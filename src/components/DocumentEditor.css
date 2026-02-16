@@ -1,7 +1,7 @@
 .document-editor {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   border: 1px solid #e5e7eb;
 }
@@ -10,11 +10,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 32px;
+  padding: 28px 32px;
   background: linear-gradient(135deg, #217346 0%, #1e6b40 100%);
   color: white;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
 .editor-title {
@@ -24,25 +24,25 @@
 }
 
 .excel-icon {
-  background: #217346;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.5px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 1px;
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .editor-title h2 {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 26px;
+  font-weight: 700;
   margin: 0 0 4px 0;
   color: white;
 }
 
 .editor-title p {
-  font-size: 14px;
+  font-size: 15px;
   opacity: 0.9;
   margin: 0;
   color: rgba(255, 255, 255, 0.9);
@@ -59,14 +59,105 @@
   font-size: 13px;
   opacity: 0.9;
   background: rgba(255, 255, 255, 0.2);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
 }
 
-.btn-save,
-.btn-excel {
-  padding: 10px 20px;
+.btn-save {
+  padding: 12px 24px;
+  background: #ffffff;
+  color: #217346;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Toolbar */
+.editor-toolbar {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 20px 32px;
+  border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sheet-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.info-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #217346;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.badge-label {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.badge-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sheet-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sheet-tag {
+  padding: 6px 14px;
+  background: #e2e8f0;
+  color: #64748b;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 2px solid transparent;
+}
+
+.sheet-tag.active {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #3b82f6;
+  font-weight: 600;
+}
+
+.download-options {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-download-original,
+.btn-download-edited {
+  padding: 10px 18px;
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -78,89 +169,96 @@
   gap: 8px;
 }
 
-.btn-save {
-  background: #ffffff;
-  color: #217346;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.btn-save:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.btn-save:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.btn-excel {
+.btn-download-original {
   background: #217346;
   color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(33, 115, 70, 0.3);
 }
 
-.btn-excel:hover {
-  background: #1e6b40;
+.btn-download-original:hover {
+  background: #1b5f3b;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(33, 115, 70, 0.4);
 }
 
-/* Toolbar */
-.editor-toolbar {
+.btn-download-edited {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.btn-download-edited:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Notice */
+.editor-notice {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  padding: 16px 24px;
+  margin: 0;
+}
+
+.notice-content {
+  font-size: 14px;
+  color: #92400e;
+  line-height: 1.6;
+}
+
+.notice-content strong {
+  font-weight: 700;
+}
+
+/* Sheet Header */
+.sheet-header {
   background: #f8fafc;
-  padding: 12px 32px;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  border-bottom: 2px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
-.toolbar-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.sheet-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 15px;
+  padding: 6px 16px;
+  background: #dbeafe;
+  border-radius: 6px;
+  border: 2px solid #3b82f6;
 }
 
-.info-item {
+.sheet-stats {
   font-size: 13px;
   color: #64748b;
   font-weight: 500;
 }
 
-.info-separator {
-  color: #cbd5e1;
-}
-
-.toolbar-notice {
-  font-size: 13px;
-  color: #64748b;
-  font-style: italic;
-}
-
 /* Table */
 .editor-table-container {
   overflow-x: auto;
-  max-height: 600px;
+  max-height: 500px;
   overflow-y: auto;
   background: #ffffff;
 }
 
 .editor-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 14px;
 }
 
 .editor-table th {
-  background: #f1f5f9;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   padding: 14px 12px;
   text-align: left;
-  font-weight: 600;
+  font-weight: 700;
   color: #1e293b;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid #cbd5e1;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -179,27 +277,27 @@
 }
 
 .row-header {
-  background: #f8fafc;
-  font-weight: 600;
+  background: #f8fafc !important;
+  font-weight: 700;
   color: #475569;
   text-align: center;
   width: 50px;
   position: sticky;
   left: 0;
   z-index: 5;
-  border-right: 2px solid #e2e8f0;
+  border-right: 2px solid #cbd5e1;
 }
 
 .row-number {
   background: #f8fafc;
-  font-weight: 600;
+  font-weight: 700;
   color: #64748b;
   text-align: center;
   padding: 12px;
   position: sticky;
   left: 0;
   z-index: 5;
-  border-right: 2px solid #e2e8f0;
+  border-right: 2px solid #cbd5e1;
   font-size: 12px;
 }
 
@@ -230,25 +328,25 @@
   text-align: center;
   padding: 80px 20px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
 .empty-icon {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   color: #cbd5e1;
 }
 
 .editor-empty h3 {
-  font-size: 22px;
+  font-size: 24px;
   color: #1e293b;
-  margin-bottom: 10px;
-  font-weight: 600;
+  margin-bottom: 12px;
+  font-weight: 700;
 }
 
 .editor-empty p {
   color: #64748b;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 /* Responsive */
@@ -256,7 +354,7 @@
   .editor-header {
     flex-direction: column;
     text-align: center;
-    padding: 20px;
+    padding: 24px;
   }
 
   .editor-title {
@@ -271,11 +369,23 @@
   .editor-toolbar {
     flex-direction: column;
     text-align: center;
-    padding: 16px 20px;
+    padding: 20px;
   }
 
-  .toolbar-info {
+  .sheet-info {
     justify-content: center;
+    width: 100%;
+  }
+
+  .download-options {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sheet-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
   }
 
   .cell-input {

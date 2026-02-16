@@ -6,9 +6,10 @@ import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
   const { user } = useAuth();
-  const { getMergedData, updateCompletedData } = useDocuments();
+  const { getMergedData, updateCompletedData, downloadOriginalFile } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
+  const [sheetNames, setSheetNames] = useState([]);
   const [editedData, setEditedData] = useState({});
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
@@ -22,6 +23,7 @@ export default function DocumentEditor({ month }) {
     if (merged) {
       setHeaders(merged.headers);
       setData(merged.data);
+      setSheetNames(merged.sheetNames || []);
       
       const initialEdits = {};
       merged.data.forEach((row, rowIndex) => {
@@ -57,7 +59,15 @@ export default function DocumentEditor({ month }) {
     setLastSaved(new Date());
   };
 
-  const handleOpenInExcel = () => {
+  const handleDownloadOriginal = () => {
+    if (!clientId) return;
+    const success = downloadOriginalFile(clientId, month);
+    if (success) {
+      setLastSaved(new Date());
+    }
+  };
+
+  const handleDownloadEdited = () => {
     if (!data) return;
     
     const wsData = [headers];
@@ -74,7 +84,7 @@ export default function DocumentEditor({ month }) {
     XLSX.utils.book_append_sheet(wb, ws, month);
     
     const clientName = user?.name || 'Cliente';
-    const fileName = `${month}_2025_${clientName.replace(/\s+/g, '_')}.xlsx`;
+    const fileName = `${month}_2025_${clientName.replace(/\s+/g, '_')}_editado.xlsx`;
     
     XLSX.writeFile(wb, fileName);
   };
@@ -83,7 +93,7 @@ export default function DocumentEditor({ month }) {
     return (
       <div className="editor-empty">
         <div className="empty-icon">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.5">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#217346" strokeWidth="1.5">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
             <line x1="16" y1="13" x2="8" y2="13"/>
@@ -111,7 +121,7 @@ export default function DocumentEditor({ month }) {
         <div className="editor-actions">
           {lastSaved && (
             <span className="last-saved">
-              Guardado: {lastSaved.toLocaleTimeString()}
+              Actualizado: {lastSaved.toLocaleTimeString()}
             </span>
           )}
           
@@ -122,30 +132,61 @@ export default function DocumentEditor({ month }) {
           >
             {saving ? 'Guardando...' : 'Guardar Cambios'}
           </button>
-          
-          <button className="btn-excel" onClick={handleOpenInExcel}>
+        </div>
+      </div>
+
+      <div className="editor-toolbar">
+        <div className="sheet-info">
+          <div className="info-badge">
+            <span className="badge-label">Hojas:</span>
+            <span className="badge-value">{sheetNames.length}</span>
+          </div>
+          {sheetNames.length > 0 && (
+            <div className="sheet-list">
+              {sheetNames.map((name, idx) => (
+                <span key={name} className={`sheet-tag ${idx === 0 ? 'active' : ''}`}>
+                  {name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <div className="download-options">
+          <button className="btn-download-original" onClick={handleDownloadOriginal}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            Abrir en Excel
+            Descargar Original
+          </button>
+          
+          <button className="btn-download-edited" onClick={handleDownloadEdited}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Descargar Editado
           </button>
         </div>
       </div>
 
-      <div className="editor-toolbar">
-        <div className="toolbar-info">
-          <span className="info-item">{data.length} filas</span>
-          <span className="info-separator">|</span>
-          <span className="info-item">{headers.length} columnas</span>
-        </div>
-        <div className="toolbar-notice">
-          Complete los campos y guarde los cambios. Use "Abrir en Excel" para descargar el archivo.
+      <div className="editor-notice">
+        <div className="notice-content">
+          <strong>Nota importante:</strong> Este documento tiene {sheetNames.length} hoja{sheetNames.length !== 1 ? 's' : ''}. 
+          La edición en línea solo modifica la primera hoja "{sheetNames[0] || 'Hoja1'}". 
+          Para ver todas las hojas con fórmulas y formato original, use "Descargar Original".
         </div>
       </div>
 
       <div className="editor-table-container">
+        <div className="sheet-header">
+          <span className="sheet-name">{sheetNames[0] || 'Hoja1'}</span>
+          <span className="sheet-stats">{data.length} filas × {headers.length} columnas</span>
+        </div>
+        
         <table className="editor-table">
           <thead>
             <tr>

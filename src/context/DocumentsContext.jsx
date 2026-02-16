@@ -8,14 +8,32 @@ const MESES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
+// Convertir ArrayBuffer a Base64 para guardar en localStorage
+const arrayBufferToBase64 = (buffer) => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return window.btoa(binary);
+};
+
+// Convertir Base64 a ArrayBuffer
+const base64ToArrayBuffer = (base64) => {
+  const binaryString = window.atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+};
+
 export function DocumentsProvider({ children }) {
-  // Estructura: { clienteId: { mes: { documento } } }
   const [clientDocuments, setClientDocuments] = useState({});
   const [completedData, setCompletedData] = useState({});
   const [currentMonth, setCurrentMonth] = useState(null);
   const [selectedClientId, setSelectedClientId] = useState(null);
 
-  // Cargar documentos y datos guardados al iniciar
   useEffect(() => {
     const savedDocs = localStorage.getItem('clientDocuments');
     const savedData = localStorage.getItem('completedData');
@@ -28,7 +46,6 @@ export function DocumentsProvider({ children }) {
     }
   }, []);
 
-  // Guardar cambios en localStorage
   useEffect(() => {
     localStorage.setItem('clientDocuments', JSON.stringify(clientDocuments));
   }, [clientDocuments]);
@@ -37,16 +54,19 @@ export function DocumentsProvider({ children }) {
     localStorage.setItem('completedData', JSON.stringify(completedData));
   }, [completedData]);
 
-  // Subir documento para un cliente y mes específico
+  // Subir documento completo (guarda el archivo Excel original)
   const uploadDocument = (clientId, month, file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
       reader.onload = (e) => {
         try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const arrayBuffer = e.target.result;
+          const base64Data = arrayBufferToBase64(arrayBuffer);
           
+          // Leer el workbook para obtener datos de la primera hoja (para edición web)
+          const data = new Uint8Array(arrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
           
@@ -56,8 +76,10 @@ export function DocumentsProvider({ children }) {
               ...prev[clientId],
               [month]: {
                 name: file.name,
-                data: jsonData,
+                originalFile: base64Data, // Archivo Excel completo en Base64
+                data: jsonData, // Datos de primera hoja para edición web
                 headers: jsonData[0] || [],
+                sheetNames: workbook.SheetNames, // Nombres de todas las hojas
                 uploadedAt: new Date().toISOString(),
                 clientId: clientId
               }
@@ -73,6 +95,36 @@ export function DocumentsProvider({ children }) {
       reader.onerror = reject;
       reader.readAsArrayBuffer(file);
     });
+  };
+
+  // Descargar archivo Excel original completo (con todas las hojas y fórmulas)
+  const downloadOriginalFile = (clientId, month) => {
+    const doc = clientDocuments[clientId]?.[month];
+    if (!doc || !doc.originalFile) return;
+
+    try {
+      // Convertir Base64 a ArrayBuffer
+      const arrayBuffer = base64ToArrayBuffer(doc.originalFile);
+      
+      // Crear blob y descargar
+      const blob = new Blob([arrayBuffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.name || `${month}_2025.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      return true;
+    } catch (error) {
+      console.error('Error al descargar archivo:', error);
+      return false;
+    }
   };
 
   // Actualizar datos completados por un cliente
@@ -104,7 +156,8 @@ export function DocumentsProvider({ children }) {
 
     return {
       headers: doc.headers,
-      data: merged
+      data: merged,
+      sheetNames: doc.sheetNames || []
     };
   };
 
@@ -129,28 +182,23 @@ export function DocumentsProvider({ children }) {
     });
   };
 
-  // Verificar si un cliente tiene documento para un mes
   const hasDocument = (clientId, month) => {
     return !!clientDocuments[clientId]?.[month];
   };
 
-  // Obtener meses disponibles para un cliente
   const getAvailableMonths = (clientId) => {
     if (!clientId || !clientDocuments[clientId]) return [];
     return MESES.filter(month => hasDocument(clientId, month));
   };
 
-  // Obtener todos los documentos de un cliente
   const getClientDocuments = (clientId) => {
     return clientDocuments[clientId] || {};
   };
 
-  // Obtener todos los clientes que tienen documentos
   const getClientsWithDocuments = () => {
     return Object.keys(clientDocuments);
   };
 
-  // Verificar si un cliente tiene algún documento
   const clientHasAnyDocument = (clientId) => {
     return Object.keys(clientDocuments[clientId] || {}).length > 0;
   };
@@ -165,6 +213,7 @@ export function DocumentsProvider({ children }) {
       selectedClientId,
       setSelectedClientId,
       uploadDocument,
+      downloadOriginalFile,
       updateCompletedData,
       getMergedData,
       deleteDocument,
