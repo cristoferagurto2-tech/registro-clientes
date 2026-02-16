@@ -122,9 +122,23 @@ export default function DocumentEditor({ month }) {
     
     setSaving(true);
     
+    // Guardar en el contexto (para el documento)
     Object.entries(editedData).forEach(([key, value]) => {
       const [rowIndex, colIndex] = key.split('-').map(Number);
       updateCompletedData(clientId, month, rowIndex, colIndex, value);
+    });
+
+    // Actualizar el estado local data para que se vean los cambios en la página
+    setData(prevData => {
+      const newData = [...prevData];
+      Object.entries(editedData).forEach(([key, value]) => {
+        const [rowIndex, colIndex] = key.split('-').map(Number);
+        if (newData[rowIndex]) {
+          newData[rowIndex] = [...newData[rowIndex]];
+          newData[rowIndex][colIndex] = value;
+        }
+      });
+      return newData;
     });
 
     await new Promise(resolve => setTimeout(resolve, 500));
