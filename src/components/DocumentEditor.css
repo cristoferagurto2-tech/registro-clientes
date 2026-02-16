@@ -1,30 +1,51 @@
 .document-editor {
-  background: white;
-  border-radius: 16px;
+  background: #ffffff;
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  border: 1px solid #e5e7eb;
 }
 
 .editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 25px 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #217346 0%, #1e6b40 100%);
   color: white;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 16px;
+}
+
+.editor-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.excel-icon {
+  background: #217346;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .editor-title h2 {
   font-size: 24px;
-  margin: 0 0 5px 0;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: white;
 }
 
 .editor-title p {
   font-size: 14px;
   opacity: 0.9;
   margin: 0;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .editor-actions {
@@ -39,11 +60,12 @@
   opacity: 0.9;
   background: rgba(255, 255, 255, 0.2);
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
 .btn-save,
-.btn-download {
+.btn-excel {
   padding: 10px 20px;
   border: none;
   border-radius: 8px;
@@ -53,39 +75,77 @@
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .btn-save {
-  background: #48bb78;
+  background: #ffffff;
+  color: #217346;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-excel {
+  background: #217346;
   color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.btn-save:hover {
-  background: #38a169;
+.btn-excel:hover {
+  background: #1e6b40;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.btn-save.saving {
-  background: #ecc94b;
-  cursor: wait;
+/* Toolbar */
+.editor-toolbar {
+  background: #f8fafc;
+  padding: 12px 32px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.btn-download {
-  background: white;
-  color: #667eea;
+.toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.btn-download:hover {
-  background: #f7fafc;
-  transform: translateY(-2px);
+.info-item {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
 }
 
+.info-separator {
+  color: #cbd5e1;
+}
+
+.toolbar-notice {
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Table */
 .editor-table-container {
   overflow-x: auto;
   max-height: 600px;
   overflow-y: auto;
+  background: #ffffff;
 }
 
 .editor-table {
@@ -95,124 +155,99 @@
 }
 
 .editor-table th {
-  background: #f7fafc;
-  padding: 15px 12px;
+  background: #f1f5f9;
+  padding: 14px 12px;
   text-align: left;
   font-weight: 600;
-  color: #4a5568;
+  color: #1e293b;
   border-bottom: 2px solid #e2e8f0;
   position: sticky;
   top: 0;
   z-index: 10;
   white-space: nowrap;
+  font-size: 13px;
 }
 
 .editor-table td {
   padding: 0;
   border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+}
+
+.editor-table td:last-child {
+  border-right: none;
 }
 
 .row-header {
-  background: #edf2f7;
+  background: #f8fafc;
   font-weight: 600;
-  color: #4a5568;
+  color: #475569;
   text-align: center;
   width: 50px;
   position: sticky;
   left: 0;
   z-index: 5;
+  border-right: 2px solid #e2e8f0;
 }
 
 .row-number {
-  background: #f7fafc;
-  font-weight: 500;
-  color: #718096;
+  background: #f8fafc;
+  font-weight: 600;
+  color: #64748b;
   text-align: center;
   padding: 12px;
   position: sticky;
   left: 0;
   z-index: 5;
+  border-right: 2px solid #e2e8f0;
+  font-size: 12px;
 }
 
 .cell-input {
   width: 100%;
   min-width: 120px;
-  padding: 12px;
+  padding: 10px 12px;
   border: none;
   background: transparent;
   font-size: 14px;
-  color: #2d3748;
+  color: #1e293b;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .cell-input:focus {
   outline: none;
-  background: #ebf8ff;
-  box-shadow: inset 0 0 0 2px #4299e1;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 2px #3b82f6;
 }
 
 .cell-input:hover {
-  background: #f7fafc;
+  background: #f8fafc;
 }
 
-.editor-footer {
-  padding: 20px 30px;
-  background: #f7fafc;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.editor-info {
-  display: flex;
-  gap: 20px;
-  color: #718096;
-  font-size: 14px;
-}
-
-.client-notice {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #c6f6d5;
-  padding: 12px 16px;
-  border-radius: 8px;
-  color: #276749;
-  font-size: 13px;
-}
-
-.client-notice span {
-  font-size: 18px;
-}
-
-.client-notice p {
-  margin: 0;
-}
-
+/* Empty State */
 .editor-empty {
   text-align: center;
   padding: 80px 20px;
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.editor-empty .empty-icon {
-  font-size: 64px;
+.empty-icon {
   margin-bottom: 20px;
+  color: #cbd5e1;
 }
 
 .editor-empty h3 {
   font-size: 22px;
-  color: #2d3748;
+  color: #1e293b;
   margin-bottom: 10px;
+  font-weight: 600;
 }
 
 .editor-empty p {
-  color: #718096;
+  color: #64748b;
   font-size: 15px;
 }
 
@@ -224,43 +259,33 @@
     padding: 20px;
   }
 
+  .editor-title {
+    flex-direction: column;
+  }
+
   .editor-actions {
     width: 100%;
     justify-content: center;
   }
 
-  .editor-footer {
+  .editor-toolbar {
     flex-direction: column;
     text-align: center;
+    padding: 16px 20px;
+  }
+
+  .toolbar-info {
+    justify-content: center;
   }
 
   .cell-input {
     min-width: 100px;
-    padding: 10px 8px;
+    padding: 8px;
     font-size: 13px;
   }
 
   .editor-table th,
   .editor-table td {
-    padding: 10px 8px;
+    padding: 8px;
   }
-}
-
-/* Scrollbar styling for table */
-.editor-table-container::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.editor-table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.editor-table-container::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.editor-table-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
 }

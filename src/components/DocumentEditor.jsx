@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const { getMergedData, updateCompletedData } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
@@ -13,9 +13,6 @@ export default function DocumentEditor({ month }) {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
 
-  // Determinar qué cliente estamos viendo
-  // Si es admin, necesitamos saber qué cliente está seleccionado
-  // Si es cliente, usamos su propio ID
   const clientId = user?.id;
 
   useEffect(() => {
@@ -26,7 +23,6 @@ export default function DocumentEditor({ month }) {
       setHeaders(merged.headers);
       setData(merged.data);
       
-      // Cargar datos editados previos
       const initialEdits = {};
       merged.data.forEach((row, rowIndex) => {
         row.forEach((cell, colIndex) => {
@@ -50,23 +46,20 @@ export default function DocumentEditor({ month }) {
     
     setSaving(true);
     
-    // Guardar cada celda editada
     Object.entries(editedData).forEach(([key, value]) => {
       const [rowIndex, colIndex] = key.split('-').map(Number);
       updateCompletedData(clientId, month, rowIndex, colIndex, value);
     });
 
-    // Simular delay para mostrar feedback
     await new Promise(resolve => setTimeout(resolve, 500));
     
     setSaving(false);
     setLastSaved(new Date());
   };
 
-  const handleDownload = () => {
+  const handleOpenInExcel = () => {
     if (!data) return;
     
-    // Crear workbook con los datos actuales
     const wsData = [headers];
     data.forEach((row, rowIndex) => {
       const newRow = row.map((cell, colIndex) => {
@@ -80,15 +73,24 @@ export default function DocumentEditor({ month }) {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, month);
     
-    // Descargar archivo
     const clientName = user?.name || 'Cliente';
-    XLSX.writeFile(wb, `${month}_2025_${clientName.replace(/\s+/g, '_')}.xlsx`);
+    const fileName = `${month}_2025_${clientName.replace(/\s+/g, '_')}.xlsx`;
+    
+    XLSX.writeFile(wb, fileName);
   };
 
   if (!data) {
     return (
       <div className="editor-empty">
-        <span className="empty-icon">📄</span>
+        <div className="empty-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
         <h3>No se pudo cargar el documento</h3>
         <p>El documento puede haber sido eliminado o no existe.</p>
       </div>
@@ -99,14 +101,17 @@ export default function DocumentEditor({ month }) {
     <div className="document-editor">
       <div className="editor-header">
         <div className="editor-title">
-          <h2>📝 {month} 2025</h2>
-          <p>Completa los datos en las celdas. Los cambios se guardan cuando presionas "Guardar".</p>
+          <div className="excel-icon">Excel</div>
+          <div>
+            <h2>{month} 2025</h2>
+            <p>Documento de {user?.name}</p>
+          </div>
         </div>
         
         <div className="editor-actions">
           {lastSaved && (
             <span className="last-saved">
-              💾 Guardado: {lastSaved.toLocaleTimeString()}
+              Guardado: {lastSaved.toLocaleTimeString()}
             </span>
           )}
           
@@ -115,12 +120,28 @@ export default function DocumentEditor({ month }) {
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? '💾 Guardando...' : '💾 Guardar Cambios'}
+            {saving ? 'Guardando...' : 'Guardar Cambios'}
           </button>
           
-          <button className="btn-download" onClick={handleDownload}>
-            📥 Descargar Excel
+          <button className="btn-excel" onClick={handleOpenInExcel}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Abrir en Excel
           </button>
+        </div>
+      </div>
+
+      <div className="editor-toolbar">
+        <div className="toolbar-info">
+          <span className="info-item">{data.length} filas</span>
+          <span className="info-separator">|</span>
+          <span className="info-item">{headers.length} columnas</span>
+        </div>
+        <div className="toolbar-notice">
+          Complete los campos y guarde los cambios. Use "Abrir en Excel" para descargar el archivo.
         </div>
       </div>
 
@@ -157,18 +178,6 @@ export default function DocumentEditor({ month }) {
             ))}
           </tbody>
         </table>
-      </div>
-
-      <div className="editor-footer">
-        <div className="editor-info">
-          <span>📊 {data.length} filas</span>
-          <span>📋 {headers.length} columnas</span>
-        </div>
-        
-        <div className="client-notice">
-          <span>💡</span>
-          <p>Este es tu documento personal. Solo tú puedes ver y editar estos datos.</p>
-        </div>
       </div>
     </div>
   );
