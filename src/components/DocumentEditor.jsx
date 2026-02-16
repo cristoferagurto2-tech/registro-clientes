@@ -6,7 +6,7 @@ import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
   const { user } = useAuth();
-  const { getMergedData, updateCompletedData } = useDocuments();
+  const { getMergedData, updateCompletedData, downloadOriginalFile } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
   const [editedData, setEditedData] = useState({});
@@ -54,10 +54,11 @@ export default function DocumentEditor({ month }) {
       const docHeaders = merged.headers.length > 0 ? merged.headers : defaultHeaders;
       setHeaders(docHeaders);
       
-      // Asegurar que haya al menos 50 filas
+      // Asegurar que haya al menos 50 filas de datos
       let tableData = [...merged.data];
       const numColumns = docHeaders.length;
       
+      // Si hay menos de 50 filas, agregar filas vacías
       while (tableData.length < 50) {
         tableData.push(new Array(numColumns).fill(''));
       }
@@ -110,6 +111,20 @@ export default function DocumentEditor({ month }) {
     
     setSaving(false);
     setLastSaved(new Date());
+  };
+
+  // Función para obtener el color según la observación
+  const getRowColor = (row) => {
+    const observacion = String(row[9] || '').toLowerCase().trim();
+    
+    if (observacion.includes('cobro')) {
+      return '#fef3c7'; // Amarillo
+    } else if (observacion.includes('pendiente') || observacion.includes('espera')) {
+      return '#dcfce7'; // Verde
+    } else if (observacion.includes('cancelado')) {
+      return '#fee2e2'; // Rojo
+    }
+    return 'transparent';
   };
 
   // Calcular análisis tipo Dashboard
@@ -193,54 +208,34 @@ export default function DocumentEditor({ month }) {
     };
   }, [data, editedData]);
 
+  // Descargar archivo original modificado
   const handleDownload = () => {
-    if (!data || !headers.length) return;
+    if (!clientId) return;
     
     try {
-      const updatedData = data.map((row, rowIndex) => {
-        return row.map((cell, colIndex) => {
-          const key = `${rowIndex}-${colIndex}`;
-          return editedData[key] !== undefined ? editedData[key] : cell;
-        });
+      // Primero guardar los datos actuales
+      Object.entries(editedData).forEach(([key, value]) => {
+        const [rowIndex, colIndex] = key.split('-').map(Number);
+        updateCompletedData(clientId, month, rowIndex, colIndex, value);
       });
 
-      const wb = XLSX.utils.book_new();
+      // Descargar archivo original modificado
+      const blob = downloadOriginalFile(clientId, month);
       
-      // Hoja 1: Clientes
-      const ws1 = XLSX.utils.aoa_to_sheet([headers, ...updatedData]);
-      XLSX.utils.book_append_sheet(wb, ws1, "Clientes");
-      
-      // Hoja 2: Dashboard
-      const dashboardData = [
-        ['DASHBOARD DE ANÁLISIS - AÑO 2026'],
-        [],
-        ['📋 RESUMEN GENERAL'],
-        ['Total de Clientes', dashboard.totalClientes],
-        ['Monto Total (S/)', dashboard.montoTotal.toFixed(2)],
-        ['Promedio Tasa (%)', dashboard.promedioTasa.toFixed(2)],
-        ['Total Ganancias (S/)', dashboard.totalGanancias.toFixed(2)],
-        [],
-        ['📅 RESUMEN POR MESES'],
-        ['Mes', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)'],
-        ...dashboard.porMeses.map(m => [
-          m.mes,
-          m.clientes,
-          m.monto.toFixed(2),
-          m.ganancias.toFixed(2)
-        ]),
-        [],
-        ['📊 PRODUCTOS Y CONTEO'],
-        ['Producto', 'Total'],
-        ...dashboard.porProductos.map(p => [p.producto, p.total])
-      ];
-      
-      const ws2 = XLSX.utils.aoa_to_sheet(dashboardData);
-      XLSX.utils.book_append_sheet(wb, ws2, "Dashboard");
-      
-      const fileName = `Clientes_${month}_2026.xlsx`;
-      XLSX.writeFile(wb, fileName);
-      
-      setLastSaved(new Date());
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Clientes_${month}_2026.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        setLastSaved(new Date());
+      } else {
+        alert('Error al generar el archivo. Por favor intente nuevamente.');
+      }
     } catch (error) {
       console.error('Error al descargar:', error);
       alert('Error al descargar el documento.');
@@ -289,6 +284,14 @@ export default function DocumentEditor({ month }) {
             <span className="sheet-badge editable">Editable</span>
           </div>
           
+          {/* Leyenda de colores */}
+          <div className="color-legend">
+            <span className="legend-title">Estados:</span>
+            <span className="legend-item yellow">🟡 Cobro</span>
+            <span className="legend-item green">🟢 Pendiente/Espera</span>
+            <span className="legend-item red">🔴 Cancelado</span>
+          </div>
+          
           <div className="table-wrapper">
             <table className="data-table">
               <thead>
@@ -300,72 +303,81 @@ export default function DocumentEditor({ month }) {
                 </tr>
               </thead>
               <tbody>
-                {data.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    <td className="row-num">{rowIndex + 1}</td>
-                    {row.map((cell, colIndex) => {
-                      const key = `${rowIndex}-${colIndex}`;
-                      const value = editedData[key] !== undefined ? editedData[key] : cell;
-                      
-                      // Selector para Producto (columna 5)
-                      if (colIndex === 5) {
-                        return (
-                          <td key={colIndex}>
-                            <select
-                              value={value || ''}
-                              onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                              className="data-input"
-                            >
-                              <option value="">Seleccione...</option>
-                              {productosList.map(prod => (
-                                <option key={prod} value={prod}>{prod}</option>
-                              ))}
-                            </select>
-                          </td>
-                        );
-                      }
-                      
-                      // Campo de fecha para Fecha (columna 0)
-                      if (colIndex === 0) {
-                        return (
-                          <td key={colIndex}>
-                            <input
-                              type="date"
-                              value={value || ''}
-                              onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                              className="data-input"
-                            />
-                          </td>
-                        );
-                      }
-                      
-                      // Campo de solo lectura para Mes (columna 1)
-                      if (colIndex === 1) {
+                {data.map((row, rowIndex) => {
+                  // Calcular color de la fila según observación
+                  const currentRow = row.map((cell, colIndex) => {
+                    const key = `${rowIndex}-${colIndex}`;
+                    return editedData[key] !== undefined ? editedData[key] : cell;
+                  });
+                  const rowColor = getRowColor(currentRow);
+                  
+                  return (
+                    <tr key={rowIndex} style={{ backgroundColor: rowColor }}>
+                      <td className="row-num">{rowIndex + 1}</td>
+                      {row.map((cell, colIndex) => {
+                        const key = `${rowIndex}-${colIndex}`;
+                        const value = editedData[key] !== undefined ? editedData[key] : cell;
+                        
+                        // Selector para Producto (columna 5)
+                        if (colIndex === 5) {
+                          return (
+                            <td key={colIndex}>
+                              <select
+                                value={value || ''}
+                                onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                                className="data-input"
+                              >
+                                <option value="">Seleccione...</option>
+                                {productosList.map(prod => (
+                                  <option key={prod} value={prod}>{prod}</option>
+                                ))}
+                              </select>
+                            </td>
+                          );
+                        }
+                        
+                        // Campo de fecha para Fecha (columna 0)
+                        if (colIndex === 0) {
+                          return (
+                            <td key={colIndex}>
+                              <input
+                                type="date"
+                                value={value || ''}
+                                onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                                className="data-input"
+                              />
+                            </td>
+                          );
+                        }
+                        
+                        // Campo de solo lectura para Mes (columna 1)
+                        if (colIndex === 1) {
+                          return (
+                            <td key={colIndex}>
+                              <input
+                                type="text"
+                                value={value || ''}
+                                readOnly
+                                className="data-input readonly"
+                              />
+                            </td>
+                          );
+                        }
+                        
                         return (
                           <td key={colIndex}>
                             <input
                               type="text"
                               value={value || ''}
-                              readOnly
-                              className="data-input readonly"
+                              onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                              className="data-input"
                             />
                           </td>
                         );
-                      }
-                      
-                      return (
-                        <td key={colIndex}>
-                          <input
-                            type="text"
-                            value={value || ''}
-                            onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                            className="data-input"
-                          />
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -451,7 +463,7 @@ export default function DocumentEditor({ month }) {
           <span>Clientes registrados: {dashboard.totalClientes}</span>
         </div>
         <button className="btn-download-v2" onClick={handleDownload}>
-          Descargar Documento Excel
+          Descargar Documento Excel Original
         </button>
       </div>
     </div>

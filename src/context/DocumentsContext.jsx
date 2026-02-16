@@ -85,10 +85,11 @@ export function DocumentsProvider({ children }) {
               [month]: {
                 name: file.name,
                 originalFile: base64Data,
-                sheets: allSheets, // Todas las hojas
+                originalWorkbook: base64Data, // Guardar el workbook original
+                sheets: allSheets,
                 sheetNames: workbook.SheetNames,
                 headers: firstSheetData[0] || [],
-                data: firstSheetData, // Primera hoja para edición
+                data: firstSheetData.slice(1), // Datos SIN el header
                 uploadedAt: new Date().toISOString(),
                 clientId: clientId
               }
@@ -106,6 +107,54 @@ export function DocumentsProvider({ children }) {
     });
   };
 
+  // Descargar archivo original modificado
+  const downloadOriginalFile = (clientId, month) => {
+    const doc = clientDocuments[clientId]?.[month];
+    if (!doc || !doc.originalFile) return null;
+
+    try {
+      // Obtener datos editados
+      const key = `${clientId}-${month}`;
+      const clientData = completedData[key] || {};
+      
+      // Convertir Base64 a ArrayBuffer
+      const arrayBuffer = base64ToArrayBuffer(doc.originalFile);
+      
+      // Leer el workbook original
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      // Aplicar cambios a las celdas
+      Object.entries(clientData).forEach(([cellKey, value]) => {
+        const [rowIndex, colIndex] = cellKey.split('-').map(Number);
+        // +2 porque Excel empieza en 1 y la primera fila es el header
+        const cellRef = XLSX.utils.encode_cell({r: rowIndex + 1, c: colIndex});
+        
+        if (worksheet[cellRef]) {
+          worksheet[cellRef].v = value;
+          worksheet[cellRef].t = 's';
+        } else {
+          worksheet[cellRef] = { v: value, t: 's' };
+        }
+      });
+      
+      // Recalcular fórmulas si existen
+      XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      
+      // Crear blob y descargar
+      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      return blob;
+    } catch (error) {
+      console.error('Error al preparar descarga:', error);
+      return null;
+    }
+  };
+
   // Obtener datos de ambas hojas
   const getMergedData = (clientId, month) => {
     const doc = clientDocuments[clientId]?.[month];
@@ -114,8 +163,8 @@ export function DocumentsProvider({ children }) {
     const key = `${clientId}-${month}`;
     const clientData = completedData[key] || {};
 
-    // Fusionar datos editados en la primera hoja
-    const mergedFirstSheet = doc.data.map((row, rowIndex) => {
+    // Fusionar datos editados en la primera hoja (datos sin header)
+    const mergedData = doc.data.map((row, rowIndex) => {
       return row.map((cell, colIndex) => {
         const cellKey = `${rowIndex}-${colIndex}`;
         return clientData[cellKey] !== undefined ? clientData[cellKey] : cell;
@@ -124,12 +173,9 @@ export function DocumentsProvider({ children }) {
 
     return {
       headers: doc.headers,
-      data: mergedFirstSheet,
-      sheets: doc.sheets, // Todas las hojas
-      sheetNames: doc.sheetNames,
-      headersBySheet: Object.fromEntries(
-        Object.entries(doc.sheets).map(([name, data]) => [name, data[0] || []])
-      )
+      data: mergedData,
+      sheets: doc.sheets,
+      sheetNames: doc.sheetNames
     };
   };
 
@@ -197,6 +243,7 @@ export function DocumentsProvider({ children }) {
       selectedClientId,
       setSelectedClientId,
       uploadDocument,
+      downloadOriginalFile,
       updateCompletedData,
       getMergedData,
       deleteDocument,

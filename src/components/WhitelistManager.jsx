@@ -84,7 +84,7 @@ export default function WhitelistManager() {
         setAllowedEmails(uniqueEmails);
         setMessage(`Importados ${emails.length} correos`);
         setTimeout(() => setMessage(''), 3000);
-      } catch (error) {
+      } catch (_error) {
         setMessage('Error al importar archivo');
       }
     };

@@ -7,7 +7,7 @@ import './AdminPanel.css';
 
 export default function AdminPanel() {
   const { clients, removeClient, updateClientPassword } = useAuth();
-  const { getClientsWithDocuments, clientHasAnyDocument } = useDocuments();
+  const { clientHasAnyDocument } = useDocuments();
   const [selectedClient, setSelectedClient] = useState(null);
   const [showPasswords, setShowPasswords] = useState({});
   const [message, setMessage] = useState('');
