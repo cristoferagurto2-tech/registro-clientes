@@ -6,7 +6,7 @@ import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
   const { user } = useAuth();
-  const { getMergedData, updateCompletedData, clientDocuments } = useDocuments();
+  const { getMergedData, updateCompletedData } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
   const [editedData, setEditedData] = useState({});
@@ -15,18 +15,49 @@ export default function DocumentEditor({ month }) {
 
   const clientId = user?.id;
 
+  // Columnas exactas del Excel
+  const defaultHeaders = [
+    'Fecha',
+    'Mes',
+    'DNI',
+    'Nombre y Apellidos',
+    'Celular',
+    'Producto',
+    'Monto',
+    'Tasa',
+    'Lugar',
+    'Observación',
+    'Ganancias'
+  ];
+
+  const productosList = [
+    'Préstamo personal',
+    'Crédito de consumo',
+    'Tarjeta de crédito',
+    'Préstamo vehicular (automotriz)',
+    'Crédito hipotecario',
+    'Microcrédito'
+  ];
+
+  const mesesList = [
+    'enero 2026', 'febrero 2026', 'marzo 2026', 'abril 2026',
+    'mayo 2026', 'junio 2026', 'julio 2026', 'agosto 2026',
+    'septiembre 2026', 'octubre 2026', 'noviembre 2026', 'diciembre 2026'
+  ];
+
   useEffect(() => {
     if (!clientId) return;
     
     const merged = getMergedData(clientId, month);
     if (merged) {
-      setHeaders(merged.headers);
+      // Usar los headers del documento o los default
+      const docHeaders = merged.headers.length > 0 ? merged.headers : defaultHeaders;
+      setHeaders(docHeaders);
       
       // Asegurar que haya al menos 50 filas
       let tableData = [...merged.data];
-      const numColumns = merged.headers.length;
+      const numColumns = docHeaders.length;
       
-      // Si hay menos de 50 filas, agregar filas vacías
       while (tableData.length < 50) {
         tableData.push(new Array(numColumns).fill(''));
       }
@@ -49,6 +80,20 @@ export default function DocumentEditor({ month }) {
       ...prev,
       [key]: value
     }));
+
+    // Si cambia la fecha (columna 0), actualizar mes automáticamente (columna 1)
+    if (colIndex === 0 && value) {
+      const fecha = new Date(value);
+      if (!isNaN(fecha)) {
+        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const mesNombre = meses[fecha.getMonth()] + ' 2026';
+        setEditedData(prev => ({
+          ...prev,
+          [`${rowIndex}-1`]: mesNombre
+        }));
+      }
+    }
   };
 
   const handleSave = async () => {
@@ -67,12 +112,91 @@ export default function DocumentEditor({ month }) {
     setLastSaved(new Date());
   };
 
-  // Función para descargar el documento
+  // Calcular análisis tipo Dashboard
+  const dashboard = useMemo(() => {
+    if (!data || data.length === 0) return null;
+
+    // Obtener datos actuales con ediciones
+    const currentData = data.map((row, rowIndex) => {
+      return row.map((cell, colIndex) => {
+        const key = `${rowIndex}-${colIndex}`;
+        return editedData[key] !== undefined ? editedData[key] : cell;
+      });
+    }).filter(row => row[2] && row[2] !== ''); // Filtrar filas con DNI (columna 2)
+
+    if (currentData.length === 0) {
+      return {
+        totalClientes: 0,
+        montoTotal: 0,
+        promedioTasa: 0,
+        totalGanancias: 0,
+        porMeses: mesesList.map(m => ({ mes: m, clientes: 0, monto: 0, ganancias: 0 })),
+        porProductos: productosList.map(p => ({ producto: p, total: 0 }))
+      };
+    }
+
+    // Resumen General
+    const totalClientes = currentData.length;
+    const montoTotal = currentData.reduce((sum, row) => {
+      const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+      return sum + monto;
+    }, 0);
+    
+    const tasas = currentData.map(row => parseFloat(String(row[7]).replace(/[^0-9.-]/g, '')) || 0)
+                             .filter(t => t > 0);
+    const promedioTasa = tasas.length > 0 ? tasas.reduce((a, b) => a + b, 0) / tasas.length : 0;
+    
+    const totalGanancias = currentData.reduce((sum, row) => {
+      const ganancia = parseFloat(String(row[10]).replace(/[^0-9.-]/g, '')) || 0;
+      return sum + ganancia;
+    }, 0);
+
+    // Resumen por Meses
+    const porMeses = mesesList.map(mes => {
+      const filasMes = currentData.filter(row => {
+        const mesRow = String(row[1]).toLowerCase().trim();
+        return mesRow === mes;
+      });
+      
+      return {
+        mes: mes.charAt(0).toUpperCase() + mes.slice(1),
+        clientes: filasMes.length,
+        monto: filasMes.reduce((sum, row) => {
+          const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+          return sum + monto;
+        }, 0),
+        ganancias: filasMes.reduce((sum, row) => {
+          const ganancia = parseFloat(String(row[10]).replace(/[^0-9.-]/g, '')) || 0;
+          return sum + ganancia;
+        }, 0)
+      };
+    });
+
+    // Productos y Conteo
+    const porProductos = productosList.map(prod => {
+      const count = currentData.filter(row => 
+        String(row[5]).toLowerCase().trim() === prod.toLowerCase()
+      ).length;
+      return {
+        producto: prod,
+        total: count
+      };
+    });
+
+    return {
+      totalClientes,
+      montoTotal,
+      promedioTasa,
+      totalGanancias,
+      porMeses,
+      porProductos
+    };
+  }, [data, editedData]);
+
   const handleDownload = () => {
     if (!data || !headers.length) return;
     
     try {
-      // Preparar datos actualizados
       const updatedData = data.map((row, rowIndex) => {
         return row.map((cell, colIndex) => {
           const key = `${rowIndex}-${colIndex}`;
@@ -80,94 +204,48 @@ export default function DocumentEditor({ month }) {
         });
       });
 
-      // Crear libro de Excel
       const wb = XLSX.utils.book_new();
       
-      // Hoja 1: Registro
+      // Hoja 1: Clientes
       const ws1 = XLSX.utils.aoa_to_sheet([headers, ...updatedData]);
-      XLSX.utils.book_append_sheet(wb, ws1, "Registro");
+      XLSX.utils.book_append_sheet(wb, ws1, "Clientes");
       
-      // Hoja 2: Análisis (si hay datos)
-      if (analysis && analysis.hasData) {
-        const analysisHeaders = ["Concepto", "Total", "Cantidad", "Promedio"];
-        const analysisRows = analysisData.map(row => [
-          row.concepto,
-          row.total,
-          row.cantidad,
-          row.promedio
-        ]);
-        const ws2 = XLSX.utils.aoa_to_sheet([analysisHeaders, ...analysisRows]);
-        XLSX.utils.book_append_sheet(wb, ws2, "Análisis");
-      }
+      // Hoja 2: Dashboard
+      const dashboardData = [
+        ['DASHBOARD DE ANÁLISIS - AÑO 2026'],
+        [],
+        ['📋 RESUMEN GENERAL'],
+        ['Total de Clientes', dashboard.totalClientes],
+        ['Monto Total (S/)', dashboard.montoTotal.toFixed(2)],
+        ['Promedio Tasa (%)', dashboard.promedioTasa.toFixed(2)],
+        ['Total Ganancias (S/)', dashboard.totalGanancias.toFixed(2)],
+        [],
+        ['📅 RESUMEN POR MESES'],
+        ['Mes', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)'],
+        ...dashboard.porMeses.map(m => [
+          m.mes,
+          m.clientes,
+          m.monto.toFixed(2),
+          m.ganancias.toFixed(2)
+        ]),
+        [],
+        ['📊 PRODUCTOS Y CONTEO'],
+        ['Producto', 'Total'],
+        ...dashboard.porProductos.map(p => [p.producto, p.total])
+      ];
       
-      // Descargar
-      const fileName = `${month}_2026_${user?.name || 'Documento'}.xlsx`;
+      const ws2 = XLSX.utils.aoa_to_sheet(dashboardData);
+      XLSX.utils.book_append_sheet(wb, ws2, "Dashboard");
+      
+      const fileName = `Clientes_${month}_2026.xlsx`;
       XLSX.writeFile(wb, fileName);
       
       setLastSaved(new Date());
     } catch (error) {
       console.error('Error al descargar:', error);
-      alert('Error al descargar el documento. Por favor intente nuevamente.');
+      alert('Error al descargar el documento.');
     }
   };
-
-  // Calcular análisis basado en los datos editados (no solo los datos originales)
-  const analysis = useMemo(() => {
-    if (!data || data.length === 0 || !headers.length) return null;
-    
-    // Usar los datos editados para el análisis
-    const currentData = data.map((row, rowIndex) => {
-      return row.map((cell, colIndex) => {
-        const key = `${rowIndex}-${colIndex}`;
-        const value = editedData[key] !== undefined ? editedData[key] : cell;
-        return value;
-      });
-    });
-    
-    const numericData = currentData.map(row => {
-      return row.map(cell => {
-        if (!cell || cell === '') return 0;
-        const num = parseFloat(String(cell).replace(/[^0-9.-]/g, ''));
-        return isNaN(num) ? 0 : num;
-      });
-    }).filter(row => row.some(cell => cell !== 0));
-
-    // Calcular totales por columna
-    const totals = {};
-    const columnCount = headers.length;
-    
-    for (let col = 0; col < columnCount; col++) {
-      const columnValues = numericData.map(row => row[col] || 0).filter(val => val !== 0);
-      
-      if (columnValues.length > 0) {
-        const sum = columnValues.reduce((acc, val) => acc + val, 0);
-        totals[col] = {
-          header: headers[col] || `Columna ${col + 1}`,
-          total: sum,
-          count: columnValues.length,
-          average: sum / columnValues.length
-        };
-      }
-    }
-
-    return {
-      totalRows: currentData.filter(row => row.some(cell => cell && cell !== '')).length,
-      totals: totals,
-      hasData: Object.keys(totals).length > 0
-    };
-  }, [data, headers, editedData]);
-
-  // Preparar datos para la tabla de análisis
-  const analysisData = useMemo(() => {
-    if (!analysis || !analysis.hasData) return [];
-    
-    return Object.entries(analysis.totals).map(([col, data]) => ({
-      concepto: data.header,
-      total: data.total.toFixed(2),
-      cantidad: data.count,
-      promedio: data.average.toFixed(2)
-    }));
-  }, [analysis]);
 
   if (!data) {
     return (
@@ -204,10 +282,10 @@ export default function DocumentEditor({ month }) {
       </div>
 
       <div className="sheets-container">
-        {/* HOJA 1: Registro de Clientes */}
+        {/* HOJA 1: Clientes */}
         <div className="sheet-section">
           <div className="sheet-header-v2">
-            <h3>Hoja 1: Registro de Clientes</h3>
+            <h3>Hoja 1: Clientes</h3>
             <span className="sheet-badge editable">Editable</span>
           </div>
           
@@ -229,6 +307,52 @@ export default function DocumentEditor({ month }) {
                       const key = `${rowIndex}-${colIndex}`;
                       const value = editedData[key] !== undefined ? editedData[key] : cell;
                       
+                      // Selector para Producto (columna 5)
+                      if (colIndex === 5) {
+                        return (
+                          <td key={colIndex}>
+                            <select
+                              value={value || ''}
+                              onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                              className="data-input"
+                            >
+                              <option value="">Seleccione...</option>
+                              {productosList.map(prod => (
+                                <option key={prod} value={prod}>{prod}</option>
+                              ))}
+                            </select>
+                          </td>
+                        );
+                      }
+                      
+                      // Campo de fecha para Fecha (columna 0)
+                      if (colIndex === 0) {
+                        return (
+                          <td key={colIndex}>
+                            <input
+                              type="date"
+                              value={value || ''}
+                              onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                              className="data-input"
+                            />
+                          </td>
+                        );
+                      }
+                      
+                      // Campo de solo lectura para Mes (columna 1)
+                      if (colIndex === 1) {
+                        return (
+                          <td key={colIndex}>
+                            <input
+                              type="text"
+                              value={value || ''}
+                              readOnly
+                              className="data-input readonly"
+                            />
+                          </td>
+                        );
+                      }
+                      
                       return (
                         <td key={colIndex}>
                           <input
@@ -236,7 +360,6 @@ export default function DocumentEditor({ month }) {
                             value={value || ''}
                             onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                             className="data-input"
-                            placeholder={`Fila ${rowIndex + 1}`}
                           />
                         </td>
                       );
@@ -248,65 +371,87 @@ export default function DocumentEditor({ month }) {
           </div>
         </div>
 
-        {/* HOJA 2: Análisis */}
-        <div className="sheet-section analysis">
+        {/* HOJA 2: Dashboard */}
+        <div className="sheet-section dashboard">
           <div className="sheet-header-v2">
-            <h3>Hoja 2: Análisis de Datos</h3>
+            <h3>Hoja 2: Dashboard</h3>
             <span className="sheet-badge readonly">Automático</span>
           </div>
           
-          {analysis && analysis.hasData ? (
-            <div className="analysis-content">
-              <div className="analysis-summary">
+          <div className="dashboard-content">
+            {/* Resumen General */}
+            <div className="dashboard-section">
+              <h4>📋 Resumen General</h4>
+              <div className="summary-grid">
                 <div className="summary-card">
-                  <span className="summary-label">Total de Registros</span>
-                  <span className="summary-value">{analysis.totalRows}</span>
+                  <span className="summary-label">Total de Clientes</span>
+                  <span className="summary-value">{dashboard.totalClientes}</span>
+                </div>
+                <div className="summary-card">
+                  <span className="summary-label">Monto Total (S/)</span>
+                  <span className="summary-value">{dashboard.montoTotal.toFixed(2)}</span>
+                </div>
+                <div className="summary-card">
+                  <span className="summary-label">Promedio Tasa (%)</span>
+                  <span className="summary-value">{dashboard.promedioTasa.toFixed(2)}</span>
+                </div>
+                <div className="summary-card">
+                  <span className="summary-label">Total Ganancias (S/)</span>
+                  <span className="summary-value">{dashboard.totalGanancias.toFixed(2)}</span>
                 </div>
               </div>
-              
-              <div className="analysis-table-wrapper">
-                <table className="analysis-table">
+            </div>
+
+            {/* Resumen por Meses */}
+            <div className="dashboard-section">
+              <h4>📅 Resumen por Meses</h4>
+              <div className="meses-table-wrapper">
+                <table className="meses-table">
                   <thead>
                     <tr>
-                      <th>Concepto</th>
-                      <th>Total</th>
-                      <th>Cantidad</th>
-                      <th>Promedio</th>
+                      <th>Mes</th>
+                      <th>Clientes</th>
+                      <th>Monto Total (S/)</th>
+                      <th>Ganancias (S/)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {analysisData.map((row, index) => (
+                    {dashboard.porMeses.map((mes, index) => (
                       <tr key={index}>
-                        <td className="concepto">{row.concepto}</td>
-                        <td className="numero">{row.total}</td>
-                        <td className="numero">{row.cantidad}</td>
-                        <td className="numero">{row.promedio}</td>
+                        <td>{mes.mes}</td>
+                        <td className="numero">{mes.clientes}</td>
+                        <td className="numero">{mes.monto.toFixed(2)}</td>
+                        <td className="numero">{mes.ganancias.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              
-              <div className="analysis-note">
-                <strong>Nota:</strong> Este análisis se actualiza automáticamente con los datos de la Hoja 1.
+            </div>
+
+            {/* Productos y Conteo */}
+            <div className="dashboard-section">
+              <h4>📊 Productos y Conteo</h4>
+              <div className="productos-grid">
+                {dashboard.porProductos.map((prod, index) => (
+                  <div key={index} className="producto-card">
+                    <span className="producto-nombre">{prod.producto}</span>
+                    <span className="producto-total">{prod.total}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          ) : (
-            <div className="no-analysis">
-              <p>Ingrese datos numéricos en la Hoja 1 para ver el análisis automático.</p>
-              <p className="hint">Ejemplo: Ingrese montos, cantidades o valores numéricos en cualquier columna.</p>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
       <div className="editor-footer-v2">
         <div className="footer-info">
           <span>Total de filas: {data.length}</span>
-          <span>Columnas: {headers.length}</span>
+          <span>Clientes registrados: {dashboard.totalClientes}</span>
         </div>
         <button className="btn-download-v2" onClick={handleDownload}>
-          Descargar Documento Completo
+          Descargar Documento Excel
         </button>
       </div>
     </div>
