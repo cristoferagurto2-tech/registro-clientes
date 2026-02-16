@@ -1,23 +1,22 @@
-/* Dashboard Container */
 .dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-color: #f3f4f6;
 }
 
 /* Header */
 .dashboard-header {
-  background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .header-content {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 15px 30px;
+  padding: 16px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -26,30 +25,40 @@
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 16px;
 }
 
-.header-icon {
-  font-size: 32px;
+.logo-box {
+  width: 40px;
+  height: 40px;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.05em;
 }
 
 .header-title h1 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #2d3748;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
   line-height: 1.2;
 }
 
 .header-subtitle {
   font-size: 13px;
-  color: #718096;
+  color: #6b7280;
 }
 
 .header-user {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .user-info {
@@ -60,214 +69,132 @@
 }
 
 .user-role-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #eff6ff;
+  color: #1e40af;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
 .user-email {
   font-size: 13px;
-  color: #718096;
+  color: #6b7280;
 }
 
 .logout-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   padding: 8px 16px;
-  background: #e53e3e;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  background: #f9fafb;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .logout-button:hover {
-  background: #c53030;
-  transform: translateY(-1px);
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 16px;
 }
 
 .btn-secondary {
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 8px;
-  font-size: 14px;
+  background: transparent;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.6);
-  transform: translateY(-1px);
+  background: #f9fafb;
+  border-color: #9ca3af;
 }
 
 /* Welcome Section */
 .welcome-section {
-  padding: 30px;
-  max-width: 1400px;
+  padding: 32px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
 .welcome-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  padding: 40px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .welcome-content {
-  position: relative;
-  z-index: 1;
+  max-width: 600px;
 }
 
 .welcome-greeting {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.greeting-icon {
-  font-size: 28px;
-}
-
-.welcome-greeting h2 {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 500;
-  margin: 0;
-  opacity: 0.95;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
 
 .welcome-title {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
-  margin: 0 0 20px 0;
+  color: #111827;
+  margin: 0 0 12px 0;
   line-height: 1.2;
+  letter-spacing: -0.025em;
 }
 
-.welcome-quote {
-  font-size: 18px;
-  font-style: italic;
-  opacity: 0.9;
-  margin: 0 0 25px 0;
-  padding-left: 20px;
-  border-left: 3px solid rgba(255, 255, 255, 0.5);
-}
-
-.welcome-stats {
-  display: flex;
-  gap: 30px;
-  flex-wrap: wrap;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 10px 20px;
-  border-radius: 10px;
-  backdrop-filter: blur(10px);
-}
-
-.stat-icon {
-  font-size: 18px;
-}
-
-.stat-label {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Decoration */
-.welcome-decoration {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 300px;
-  height: 100%;
-  overflow: hidden;
-}
-
-.decoration-circle {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.decoration-circle:nth-child(1) {
-  width: 200px;
-  height: 200px;
-  top: -50px;
-  right: -50px;
-}
-
-.decoration-circle:nth-child(2) {
-  width: 150px;
-  height: 150px;
-  bottom: 20px;
-  right: 50px;
-}
-
-.decoration-circle:nth-child(3) {
-  width: 100px;
-  height: 100px;
-  top: 50%;
-  right: 150px;
+.welcome-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Main Content */
 .dashboard-main {
-  padding: 0 30px 30px;
-  max-width: 1400px;
+  padding: 0 32px 32px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
 /* Footer */
 .dashboard-footer {
-  background: white;
-  padding: 20px;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 20px 32px;
   text-align: center;
-  border-top: 1px solid #e2e8f0;
 }
 
 .dashboard-footer p {
-  margin: 5px 0;
-  color: #718096;
-  font-size: 14px;
-}
-
-.footer-love {
+  margin: 0;
+  color: #6b7280;
   font-size: 13px;
-  color: #a0aec0;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .header-content {
+    padding: 16px 20px;
     flex-direction: column;
-    gap: 15px;
-    padding: 15px;
+    gap: 16px;
   }
 
   .header-user {
@@ -276,22 +203,23 @@
   }
 
   .welcome-section {
-    padding: 15px;
+    padding: 20px;
   }
 
   .welcome-card {
-    padding: 25px;
+    padding: 24px;
   }
 
   .welcome-title {
     font-size: 24px;
   }
 
-  .welcome-quote {
-    font-size: 14px;
+  .dashboard-main {
+    padding: 0 20px 20px;
   }
 
-  .dashboard-main {
-    padding: 0 15px 15px;
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 }

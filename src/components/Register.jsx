@@ -41,7 +41,6 @@ export default function Register({ onSwitchToLogin }) {
 
     if (result.success) {
       setSuccess(result.message);
-      // Limpiar formulario
       setFormData({
         name: '',
         email: '',
@@ -59,56 +58,47 @@ export default function Register({ onSwitchToLogin }) {
     <div className="register-container">
       <div className="register-card">
         <div className="register-header">
-          <div className="logo-container">
-            <div className="logo">
-              <span className="logo-icon">🏦</span>
-            </div>
+          <div className="logo-box">
+            <span>RC</span>
           </div>
           <h1 className="register-title">Crear Cuenta</h1>
           <p className="register-subtitle">
-            Regístrate para acceder a tus documentos personales
+            Complete el formulario para registrarse
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="register-form">
           <div className="form-group">
             <label htmlFor="name">Nombre Completo *</label>
-            <div className="input-container">
-              <span className="input-icon">👤</span>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Ingresa tu nombre completo"
-                disabled={loading}
-                required
-              />
-            </div>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Ingrese su nombre completo"
+              disabled={loading}
+              required
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="email">Correo Electrónico *</label>
-            <div className="input-container">
-              <span className="input-icon">📧</span>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="ejemplo@email.com"
-                disabled={loading}
-                required
-              />
-            </div>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="correo@ejemplo.com"
+              disabled={loading}
+              required
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Contraseña *</label>
-            <div className="input-container">
-              <span className="input-icon">🔒</span>
+            <div className="password-input-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
@@ -125,23 +115,22 @@ export default function Register({ onSwitchToLogin }) {
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
-            <span className="password-hint">Mínimo 6 caracteres</span>
+            <span className="field-hint">Mínimo 6 caracteres</span>
           </div>
 
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirmar Contraseña *</label>
-            <div className="input-container">
-              <span className="input-icon">🔐</span>
+            <div className="password-input-wrapper">
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="Repite tu contraseña"
+                placeholder="Repita su contraseña"
                 disabled={loading}
                 required
               />
@@ -150,21 +139,19 @@ export default function Register({ onSwitchToLogin }) {
                 className="toggle-password"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? '🙈' : '👁️'}
+                {showConfirmPassword ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
           </div>
 
           {error && (
             <div className="error-message">
-              <span className="error-icon">⚠️</span>
               {error}
             </div>
           )}
 
           {success && (
             <div className="success-message">
-              <span className="success-icon">✅</span>
               {success}
             </div>
           )}
@@ -174,39 +161,18 @@ export default function Register({ onSwitchToLogin }) {
             className="register-button"
             disabled={loading}
           >
-            {loading ? (
-              <>
-                <span className="loading-spinner"></span>
-                Creando cuenta...
-              </>
-            ) : (
-              <>
-                <span className="button-icon">✨</span>
-                Crear Cuenta
-              </>
-            )}
+            {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
           </button>
         </form>
 
         <div className="register-footer">
           <p className="login-link">
-            ¿Ya tienes cuenta?{' '}
+            ¿Ya tiene cuenta?{' '}
             <button className="link-button" onClick={onSwitchToLogin}>
-              Inicia Sesión aquí
+              Inicie sesión aquí
             </button>
           </p>
-          
-          <div className="security-info">
-            <span className="security-icon">🔐</span>
-            <span>Tus datos están protegidos</span>
-          </div>
         </div>
-      </div>
-
-      <div className="register-background">
-        <div className="bg-circle circle-1"></div>
-        <div className="bg-circle circle-2"></div>
-        <div className="bg-circle circle-3"></div>
       </div>
     </div>
   );

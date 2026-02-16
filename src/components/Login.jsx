@@ -27,13 +27,13 @@ export default function Login({ onSwitchToRegister }) {
     setLoading(true);
 
     if (!formData.email || !formData.email.includes('@')) {
-      setError('Por favor ingresa un correo válido');
+      setError('Por favor ingrese un correo válido');
       setLoading(false);
       return;
     }
 
     if (!formData.password) {
-      setError('Por favor ingresa tu contraseña');
+      setError('Por favor ingrese su contraseña');
       setLoading(false);
       return;
     }
@@ -51,46 +51,40 @@ export default function Login({ onSwitchToRegister }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <div className="logo-container">
-            <div className="logo">
-              <span className="logo-icon">🏦</span>
-            </div>
+          <div className="logo-box">
+            <span>RC</span>
           </div>
-          <h1 className="login-title">Bienvenido a Registro de Clientes</h1>
+          <h1 className="login-title">Registro de Clientes</h1>
           <p className="login-subtitle">
-            "Construyendo juntos un futuro financiero más brillante"
+            Sistema de Gestión Financiera
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="email">Correo Electrónico</label>
-            <div className="input-container">
-              <span className="input-icon">📧</span>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Ingresa tu correo electrónico"
-                disabled={loading}
-                required
-              />
-            </div>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="correo@ejemplo.com"
+              disabled={loading}
+              required
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
-            <div className="input-container">
-              <span className="input-icon">🔒</span>
+            <div className="password-input-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Ingresa tu contraseña"
+                placeholder="Ingrese su contraseña"
                 disabled={loading}
                 required
               />
@@ -99,14 +93,13 @@ export default function Login({ onSwitchToRegister }) {
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? 'Ocultar' : 'Mostrar'}
               </button>
             </div>
           </div>
 
           {error && (
             <div className="error-message">
-              <span className="error-icon">⚠️</span>
               {error}
             </div>
           )}
@@ -116,43 +109,22 @@ export default function Login({ onSwitchToRegister }) {
             className="login-button"
             disabled={loading}
           >
-            {loading ? (
-              <>
-                <span className="loading-spinner"></span>
-                Verificando...
-              </>
-            ) : (
-              <>
-                <span className="button-icon">🔐</span>
-                Ingresar al Sistema
-              </>
-            )}
+            {loading ? 'Ingresando...' : 'Ingresar al Sistema'}
           </button>
         </form>
 
         <div className="login-footer">
           <p className="register-link">
-            ¿Primera vez?{' '}
+            ¿No tiene cuenta?{' '}
             <button className="link-button" onClick={onSwitchToRegister}>
-              Regístrate aquí
+              Regístrese aquí
             </button>
           </p>
           
-          <div className="security-badge">
-            <span className="badge-icon">🔒</span>
-            <span>Sistema seguro y privado</span>
+          <div className="admin-info">
+            <p>Administrador: cristoferagurto2@gmail.com</p>
           </div>
-          
-          <p className="contact-info">
-            Admin: cristoferagurto2@gmail.com
-          </p>
         </div>
-      </div>
-
-      <div className="login-background">
-        <div className="bg-circle circle-1"></div>
-        <div className="bg-circle circle-2"></div>
-        <div className="bg-circle circle-3"></div>
       </div>
     </div>
   );

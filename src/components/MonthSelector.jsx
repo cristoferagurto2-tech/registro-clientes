@@ -6,26 +6,19 @@ export default function MonthSelector() {
   const { user } = useAuth();
   const { MESES, hasDocument, setCurrentMonth, getAvailableMonths } = useDocuments();
 
-  // Obtener solo los meses disponibles para este cliente específico
   const availableMonths = getAvailableMonths(user?.id);
-
-  // Obtener icono según el mes
-  const getMonthIcon = (month) => {
-    const icons = {
-      'Enero': '❄️', 'Febrero': '💝', 'Marzo': '🌸', 'Abril': '🌧️',
-      'Mayo': '🌹', 'Junio': '☀️', 'Julio': '🏖️', 'Agosto': '🌴',
-      'Septiembre': '🍂', 'Octubre': '🎃', 'Noviembre': '🦃', 'Diciembre': '🎄'
-    };
-    return icons[month] || '📅';
-  };
 
   if (availableMonths.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon">📭</div>
-        <h3>No tienes documentos asignados</h3>
-        <p>El administrador aún no te ha asignado documentos.</p>
-        <p className="empty-hint">Contacta al administrador para que te asigne tus documentos.</p>
+        <div className="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </div>
+        <h3>No tiene documentos asignados</h3>
+        <p>El administrador aún no le ha asignado documentos.</p>
+        <p className="empty-hint">Contacte al administrador para que le asigne sus documentos.</p>
       </div>
     );
   }
@@ -33,12 +26,12 @@ export default function MonthSelector() {
   return (
     <div className="month-selector">
       <div className="selector-header">
-        <h2>📅 Mis Documentos</h2>
-        <p>Hola {user?.name || 'Cliente'}, estos son tus documentos asignados:</p>
+        <h2>Mis Documentos</h2>
+        <p>Bienvenido {user?.name || 'Cliente'}, estos son sus documentos asignados:</p>
       </div>
 
       <div className="months-grid-client">
-        {MESES.map((month) => {
+        {MESES.map((month, index) => {
           const hasDoc = hasDocument(user?.id, month);
 
           return (
@@ -47,19 +40,17 @@ export default function MonthSelector() {
               className={`month-card-client ${hasDoc ? 'available' : 'disabled'}`}
               onClick={() => hasDoc && setCurrentMonth(month)}
             >
-              <div className="month-icon-client">{getMonthIcon(month)}</div>
+              <div className="month-number">{String(index + 1).padStart(2, '0')}</div>
               <h3 className="month-name-client">{month}</h3>
               
               {hasDoc ? (
                 <div className="month-status available">
-                  <span className="status-icon">✅</span>
-                  <span className="status-text">Disponible</span>
-                  <button className="btn-open">Abrir Documento →</button>
+                  <span className="status-badge">Disponible</span>
+                  <button className="btn-open">Abrir Documento</button>
                 </div>
               ) : (
                 <div className="month-status disabled">
-                  <span className="status-icon">🔒</span>
-                  <span className="status-text">No asignado</span>
+                  <span className="status-badge">No asignado</span>
                 </div>
               )}
             </div>
@@ -68,13 +59,13 @@ export default function MonthSelector() {
       </div>
 
       <div className="client-info">
-        <h4>💡 ¿Cómo funciona?</h4>
+        <h4>¿Cómo funciona?</h4>
         <ol>
-          <li>Estos son <strong>tus documentos personales</strong>, solo tú puedes verlos</li>
-          <li>Selecciona el mes que deseas completar</li>
-          <li>Completa los datos en el documento</li>
-          <li>Guarda tus cambios con el botón "Guardar"</li>
-          <li>Puedes volver a editar cuando lo necesites</li>
+          <li>Estos son sus documentos personales, solo usted puede verlos</li>
+          <li>Seleccione el mes que desea completar</li>
+          <li>Complete los datos en el documento</li>
+          <li>Guarde sus cambios con el botón "Guardar"</li>
+          <li>Puede volver a editar cuando lo necesite</li>
         </ol>
       </div>
     </div>
