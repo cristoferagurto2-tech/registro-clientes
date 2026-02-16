@@ -6,16 +6,10 @@ import WhitelistManager from './WhitelistManager';
 import './AdminPanel.css';
 
 export default function AdminPanel() {
-  const { clients, addClient, removeClient, updateClientPassword } = useAuth();
+  const { clients, removeClient, updateClientPassword } = useAuth();
   const { getClientsWithDocuments, clientHasAnyDocument } = useDocuments();
   const [selectedClient, setSelectedClient] = useState(null);
-  const [showAddClient, setShowAddClient] = useState(false);
   const [showPasswords, setShowPasswords] = useState({});
-  const [newClient, setNewClient] = useState({
-    email: '',
-    name: '',
-    password: ''
-  });
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('clients'); // 'clients' o 'whitelist'
 
@@ -24,35 +18,6 @@ export default function AdminPanel() {
       ...prev,
       [clientId]: !prev[clientId]
     }));
-  };
-
-  const handleAddClient = (e) => {
-    e.preventDefault();
-    if (!newClient.email || !newClient.email.includes('@')) {
-      setMessage('Error: Ingrese un correo válido');
-      return;
-    }
-
-    if (!newClient.password || newClient.password.length < 6) {
-      setMessage('Error: La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
-
-    const existingClient = clients.find(c => c.email.toLowerCase() === newClient.email.toLowerCase());
-    if (existingClient) {
-      setMessage('Error: Este cliente ya existe');
-      return;
-    }
-
-    const client = addClient(
-      newClient.email, 
-      newClient.name || `Cliente ${clients.length + 1}`,
-      newClient.password
-    );
-    
-    setMessage(`Cliente agregado: ${newClient.email}`);
-    setNewClient({ email: '', name: '', password: '' });
-    setShowAddClient(false);
   };
 
   const handleRemoveClient = (clientId, clientEmail) => {
@@ -127,23 +92,12 @@ export default function AdminPanel() {
           <div className="clients-section">
             <div className="section-header">
               <h3>Clientes Registrados ({clients.length})</h3>
-              <button 
-                className="btn-add-client"
-                onClick={() => setShowAddClient(true)}
-              >
-                + Agregar Cliente
-              </button>
             </div>
 
             {clients.length === 0 ? (
               <div className="empty-clients">
                 <p>No hay clientes registrados</p>
-                <button 
-                  className="btn-add-client"
-                  onClick={() => setShowAddClient(true)}
-                >
-                  Agregar primer cliente
-                </button>
+                <p className="empty-hint">Los clientes deben registrarse por sí mismos. Agregue sus emails a la Lista Blanca primero.</p>
               </div>
             ) : (
               <div className="clients-table-container">
@@ -226,58 +180,7 @@ export default function AdminPanel() {
             )}
           </div>
 
-          {/* Modal para agregar cliente */}
-          {showAddClient && (
-            <div className="modal-overlay" onClick={() => setShowAddClient(false)}>
-              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h3>Agregar Nuevo Cliente</h3>
-                <form onSubmit={handleAddClient}>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Correo Electrónico *</label>
-                      <input
-                        type="email"
-                        value={newClient.email}
-                        onChange={(e) => setNewClient({...newClient, email: e.target.value})}
-                        placeholder="cliente@email.com"
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Nombre *</label>
-                      <input
-                        type="text"
-                        value={newClient.name}
-                        onChange={(e) => setNewClient({...newClient, name: e.target.value})}
-                        placeholder="Nombre del cliente"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label>Contraseña * (mínimo 6 caracteres)</label>
-                    <input
-                      type="text"
-                      value={newClient.password}
-                      onChange={(e) => setNewClient({...newClient, password: e.target.value})}
-                      placeholder="Ingrese una contraseña"
-                      required
-                      minLength={6}
-                    />
-                    <span className="field-hint">El cliente usará esta contraseña para iniciar sesión</span>
-                  </div>
-                  <div className="modal-actions">
-                    <button type="button" className="btn-cancel" onClick={() => setShowAddClient(false)}>
-                      Cancelar
-                    </button>
-                    <button type="submit" className="btn-submit">
-                      Agregar Cliente
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
+
 
           <div className="admin-instructions">
             <h3>Información del Administrador</h3>
@@ -285,10 +188,14 @@ export default function AdminPanel() {
               <p><strong>Email:</strong> cristoferagurto2@gmail.com</p>
               <p><strong>Contraseña:</strong> admin123</p>
             </div>
-            <div className="admin-notes" style={{marginTop: '16px'}}>
-              <p style={{fontSize: '13px', color: '#6b7280', margin: 0}}>
-                <strong>Nota:</strong> Para que un nuevo cliente pueda registrarse, primero debe agregar su correo a la <strong>Lista Blanca</strong>.
-              </p>
+            <div className="workflow-info" style={{marginTop: '20px', padding: '16px', background: '#eff6ff', borderRadius: '6px', border: '1px solid #dbeafe'}}>
+              <h4 style={{fontSize: '13px', fontWeight: '600', color: '#1e40af', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.025em'}}>Flujo de trabajo:</h4>
+              <ol style={{margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#374151', lineHeight: '1.8'}}>
+                <li><strong>Paso 1:</strong> Agregue el email del nuevo cliente a la <strong>Lista Blanca</strong></li>
+                <li><strong>Paso 2:</strong> El cliente se registra por sí mismo eligiendo su propia contraseña</li>
+                <li><strong>Paso 3:</strong> Usted puede ver la contraseña que el cliente eligió en esta tabla</li>
+                <li><strong>Paso 4:</strong> Asigne documentos al cliente según sea necesario</li>
+              </ol>
             </div>
           </div>
         </>
