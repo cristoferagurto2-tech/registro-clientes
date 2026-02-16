@@ -145,20 +145,40 @@
   padding: 0;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
+  height: 40px;
+  min-height: 40px;
 }
 
 .data-table td:last-child {
   border-right: none;
 }
 
+/* Estilo para la columna de número de fila */
+.data-table td.row-num {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #64748b;
+  text-align: center;
+  width: 50px;
+  border-right: 2px solid #cbd5e1;
+  height: 40px;
+  min-height: 40px;
+  padding: 10px;
+  vertical-align: middle;
+}
+
 .data-input {
   width: 100%;
   min-width: 100px;
+  height: 40px;
+  min-height: 40px;
   padding: 10px 12px;
   border: none;
   font-size: 14px;
   background: transparent;
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  vertical-align: middle;
 }
 
 .data-input:focus {
