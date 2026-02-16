@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
@@ -242,7 +244,7 @@ export default function DocumentEditor({ month }) {
     };
   }, [data, editedData]);
 
-  // Descargar archivo original modificado
+  // Generar y descargar PDF con los datos y análisis
   const handleDownload = () => {
     if (!clientId) return;
     
@@ -253,26 +255,144 @@ export default function DocumentEditor({ month }) {
         updateCompletedData(clientId, month, rowIndex, colIndex, value);
       });
 
-      // Descargar archivo original modificado
-      const blob = downloadOriginalFile(clientId, month);
+      // Crear PDF
+      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
       
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Clientes_${month}_2026.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        setLastSaved(new Date());
-      } else {
-        alert('Error al generar el archivo. Por favor intente nuevamente.');
+      // Título
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 138);
+      doc.text(`Registro de Clientes - ${month} 2026`, 148, 15, { align: 'center' });
+      
+      // Cliente
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Cliente: ${user?.name || 'N/A'}`, 14, 25);
+      doc.text(`Fecha de descarga: ${new Date().toLocaleDateString()}`, 14, 30);
+      
+      // Preparar datos de la tabla
+      const tableData = data.map((row, rowIndex) => {
+        return row.map((cell, colIndex) => {
+          const key = `${rowIndex}-${colIndex}`;
+          const value = editedData[key] !== undefined ? editedData[key] : cell;
+          return value !== null && value !== undefined && value !== 'undefined' ? String(value) : '';
+        });
+      }).filter(row => row.some(cell => cell !== '')); // Solo filas con datos
+      
+      // Agregar tabla de clientes
+      doc.setFontSize(14);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Lista de Clientes', 14, 40);
+      
+      doc.autoTable({
+        head: [headers],
+        body: tableData,
+        startY: 45,
+        theme: 'grid',
+        styles: { 
+          fontSize: 8, 
+          cellPadding: 2,
+          overflow: 'linebreak'
+        },
+        headStyles: { 
+          fillColor: [30, 58, 138], 
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        margin: { top: 45 }
+      });
+      
+      // Agregar Dashboard en nueva página
+      doc.addPage();
+      
+      doc.setFontSize(18);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Dashboard - Análisis de Datos', 148, 15, { align: 'center' });
+      
+      // Resumen General
+      doc.setFontSize(14);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Resumen General', 14, 30);
+      
+      const summaryData = [
+        ['Total de Clientes', dashboard?.totalClientes?.toString() || '0'],
+        ['Monto Total (S/)', `S/ ${(dashboard?.montoTotal || 0).toFixed(2)}`],
+        ['Promedio Tasa (%)', `${(dashboard?.promedioTasa || 0).toFixed(2)}%`],
+        ['Total Ganancias (S/)', `S/ ${(dashboard?.totalGanancias || 0).toFixed(2)}`]
+      ];
+      
+      doc.autoTable({
+        body: summaryData,
+        startY: 35,
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 3 },
+        columnStyles: {
+          0: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+          1: { fillColor: [248, 250, 252] }
+        }
+      });
+      
+      // Resumen por Meses
+      const mesesY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(14);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Resumen por Meses', 14, mesesY);
+      
+      const mesesData = dashboard?.porMeses?.map(m => [
+        m.mes,
+        m.clientes.toString(),
+        `S/ ${m.monto.toFixed(2)}`,
+        `S/ ${m.ganancias.toFixed(2)}`
+      ]) || [];
+      
+      doc.autoTable({
+        head: [['Mes', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)']],
+        body: mesesData,
+        startY: mesesY + 5,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [14, 165, 233], textColor: 255 }
+      });
+      
+      // Productos y Conteo
+      const productosY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(14);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Productos y Conteo', 14, productosY);
+      
+      const productosData = dashboard?.porProductos?.map(p => [
+        p.producto,
+        p.total.toString()
+      ]) || [];
+      
+      doc.autoTable({
+        head: [['Producto', 'Total']],
+        body: productosData,
+        startY: productosY + 5,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [30, 58, 138], textColor: 255 }
+      });
+      
+      // Pie de página con advertencia de seguridad
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Documento confidencial - Generado por Registro de Clientes', 148, 200, { align: 'center' });
+        doc.text(`Página ${i} de ${pageCount}`, 280, 200, { align: 'right' });
       }
+      
+      // Guardar PDF
+      doc.save(`Clientes_${month}_2026.pdf`);
+      
+      setLastSaved(new Date());
     } catch (error) {
-      console.error('Error al descargar:', error);
-      alert('Error al descargar el documento.');
+      console.error('Error al generar PDF:', error);
+      alert('Error al generar el documento PDF.');
     }
   };
 
@@ -507,7 +627,7 @@ export default function DocumentEditor({ month }) {
           <span>Clientes registrados: {dashboard.totalClientes}</span>
         </div>
         <button className="btn-download-v2" onClick={handleDownload}>
-          Descargar Documento Excel Original
+          Descargar Documento PDF
         </button>
       </div>
     </div>
