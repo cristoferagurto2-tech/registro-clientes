@@ -186,9 +186,11 @@ export function DocumentsProvider({ children }) {
     };
   };
 
-  // Actualizar datos completados
+  // Actualizar datos completados y también el documento original
   const updateCompletedData = (clientId, month, rowIndex, columnIndex, value) => {
     const key = `${clientId}-${month}`;
+    
+    // Guardar en completedData (para seguimiento de cambios)
     setCompletedData(prev => ({
       ...prev,
       [key]: {
@@ -196,6 +198,39 @@ export function DocumentsProvider({ children }) {
         [`${rowIndex}-${columnIndex}`]: value
       }
     }));
+    
+    // Actualizar también el documento original para que persista al volver
+    setClientDocuments(prev => {
+      if (!prev[clientId] || !prev[clientId][month]) return prev;
+      
+      const newDocs = { ...prev };
+      const doc = { ...newDocs[clientId][month] };
+      
+      // Asegurar que la fila existe
+      if (!doc.data[rowIndex]) {
+        doc.data[rowIndex] = new Array(doc.headers.length).fill('');
+      }
+      
+      // Actualizar el valor en la data original
+      doc.data[rowIndex] = [...doc.data[rowIndex]];
+      doc.data[rowIndex][columnIndex] = value;
+      
+      // Actualizar también en sheets
+      const firstSheetName = doc.sheetNames[0];
+      if (doc.sheets[firstSheetName]) {
+        doc.sheets[firstSheetName] = doc.sheets[firstSheetName].map((row, idx) => {
+          if (idx === rowIndex + 1) { // +1 porque la primera fila es el header
+            const newRow = [...row];
+            newRow[columnIndex] = value;
+            return newRow;
+          }
+          return row;
+        });
+      }
+      
+      newDocs[clientId] = { ...newDocs[clientId], [month]: doc };
+      return newDocs;
+    });
   };
 
   // Eliminar documento
