@@ -162,11 +162,29 @@
   border-right: 1px solid #e2e8f0;
   height: 60px !important;
   vertical-align: middle;
+  min-width: 140px;
+  box-sizing: border-box;
 }
 
 /* Asegurar que todas las filas tengan el mismo formato */
 .data-table tbody tr {
   height: 60px !important;
+  display: table-row;
+}
+
+/* Asegurar que todas las celdas sean visibles y editables */
+.data-table tbody tr td {
+  display: table-cell;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Estilo específico para las primeras filas */
+.data-table tbody tr:first-child td,
+.data-table tbody tr:nth-child(2) td {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: table-cell !important;
 }
 
 .data-table tbody tr:nth-child(even) {

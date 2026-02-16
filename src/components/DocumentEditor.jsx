@@ -63,6 +63,14 @@ export default function DocumentEditor({ month }) {
         tableData.push(new Array(numColumns).fill(''));
       }
       
+      // Asegurar que todas las filas tengan el número correcto de columnas
+      tableData = tableData.map(row => {
+        if (row.length < numColumns) {
+          return [...row, ...new Array(numColumns - row.length).fill('')];
+        }
+        return row;
+      });
+      
       setData(tableData);
       
       const initialEdits = {};
@@ -79,7 +87,8 @@ export default function DocumentEditor({ month }) {
               value = meses[fecha.m - 1] + ' 2026';
             }
           }
-          initialEdits[`${rowIndex}-${colIndex}`] = value;
+          // Asegurar que el valor sea un string
+          initialEdits[`${rowIndex}-${colIndex}`] = value !== null && value !== undefined ? String(value) : '';
         });
       });
       setEditedData(initialEdits);
@@ -331,10 +340,11 @@ export default function DocumentEditor({ month }) {
                         
                         // Selector para Producto (columna 5)
                         if (colIndex === 5) {
+                          const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
                           return (
                             <td key={colIndex}>
                               <select
-                                value={value || ''}
+                                value={safeValue}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
                               >
@@ -353,9 +363,10 @@ export default function DocumentEditor({ month }) {
                             <td key={colIndex}>
                               <input
                                 type="date"
-                                value={value || ''}
+                                value={value && value !== 'undefined' ? value : ''}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
+                                placeholder="DD/MM/AAAA"
                               />
                             </td>
                           );
@@ -363,10 +374,11 @@ export default function DocumentEditor({ month }) {
                         
                         // Campo de selección para Mes (columna 1)
                         if (colIndex === 1) {
+                          const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
                           return (
                             <td key={colIndex}>
                               <select
-                                value={value || ''}
+                                value={safeValue}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
                               >
@@ -385,9 +397,10 @@ export default function DocumentEditor({ month }) {
                           <td key={colIndex}>
                             <input
                               type="text"
-                              value={value || ''}
+                              value={value !== null && value !== undefined && value !== 'undefined' ? value : ''}
                               onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                               className="data-input"
+                              placeholder=""
                             />
                           </td>
                         );
