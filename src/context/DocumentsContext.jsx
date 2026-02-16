@@ -125,16 +125,18 @@ export function DocumentsProvider({ children }) {
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       
-      // Aplicar cambios a las celdas
+      // Aplicar cambios a las celdas preservando estilos originales
       Object.entries(clientData).forEach(([cellKey, value]) => {
         const [rowIndex, colIndex] = cellKey.split('-').map(Number);
         // +2 porque Excel empieza en 1 y la primera fila es el header
         const cellRef = XLSX.utils.encode_cell({r: rowIndex + 1, c: colIndex});
         
         if (worksheet[cellRef]) {
+          // Preservar el objeto de celda original pero actualizar el valor
           worksheet[cellRef].v = value;
-          worksheet[cellRef].t = 's';
+          // No cambiar el tipo (t) ni los estilos (s) para preservar colores originales
         } else {
+          // Si la celda no existe, crearla con tipo string
           worksheet[cellRef] = { v: value, t: 's' };
         }
       });

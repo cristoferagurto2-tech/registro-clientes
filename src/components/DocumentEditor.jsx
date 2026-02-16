@@ -68,7 +68,18 @@ export default function DocumentEditor({ month }) {
       const initialEdits = {};
       tableData.forEach((row, rowIndex) => {
         row.forEach((cell, colIndex) => {
-          initialEdits[`${rowIndex}-${colIndex}`] = cell;
+          let value = cell;
+          // Convertir números de fecha serial de Excel a texto legible para la columna Mes (columna 1)
+          if (colIndex === 1 && typeof value === 'number' && value > 40000) {
+            // Es una fecha serial de Excel, convertir a texto del mes
+            const fecha = XLSX.SSF.parse_date_code(value);
+            if (fecha) {
+              const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+              value = meses[fecha.m - 1] + ' 2026';
+            }
+          }
+          initialEdits[`${rowIndex}-${colIndex}`] = value;
         });
       });
       setEditedData(initialEdits);
