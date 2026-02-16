@@ -1,5 +1,5 @@
-/* Login Container */
-.login-container {
+/* Register Container */
+.register-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -11,7 +11,7 @@
 }
 
 /* Background Animation */
-.login-background {
+.register-background {
   position: absolute;
   top: 0;
   left: 0;
@@ -61,8 +61,8 @@
   }
 }
 
-/* Login Card */
-.login-card {
+/* Register Card */
+.register-card {
   background: white;
   border-radius: 20px;
   padding: 40px;
@@ -86,7 +86,7 @@
 }
 
 /* Header */
-.login-header {
+.register-header {
   text-align: center;
   margin-bottom: 30px;
 }
@@ -111,7 +111,7 @@
   font-size: 40px;
 }
 
-.login-title {
+.register-title {
   font-size: 28px;
   font-weight: 700;
   color: #2d3748;
@@ -119,15 +119,14 @@
   line-height: 1.2;
 }
 
-.login-subtitle {
+.register-subtitle {
   font-size: 16px;
   color: #718096;
-  font-style: italic;
   margin: 0;
 }
 
 /* Form */
-.login-form {
+.register-form {
   margin-bottom: 25px;
 }
 
@@ -158,7 +157,7 @@
 
 .input-container input {
   width: 100%;
-  padding: 14px 14px 14px 45px;
+  padding: 14px 50px 14px 45px;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 15px;
@@ -185,6 +184,7 @@
   font-size: 18px;
   cursor: pointer;
   padding: 0;
+  width: auto;
   color: #718096;
   transition: color 0.3s ease;
 }
@@ -193,10 +193,17 @@
   color: #667eea;
 }
 
-/* Error Message */
-.error-message {
-  background: #fed7d7;
-  color: #c53030;
+.password-hint {
+  display: block;
+  font-size: 12px;
+  color: #a0aec0;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+
+/* Error and Success Messages */
+.error-message,
+.success-message {
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;
@@ -207,7 +214,18 @@
   animation: shake 0.5s ease-in-out;
 }
 
-.error-icon {
+.error-message {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.success-message {
+  background: #c6f6d5;
+  color: #276749;
+}
+
+.error-icon,
+.success-icon {
   font-size: 16px;
 }
 
@@ -217,11 +235,11 @@
   75% { transform: translateX(5px); }
 }
 
-/* Login Button */
-.login-button {
+/* Register Button */
+.register-button {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -233,15 +251,15 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
 }
 
-.login-button:hover:not(:disabled) {
+.register-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.5);
 }
 
-.login-button:disabled {
+.register-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -266,13 +284,13 @@
 }
 
 /* Footer */
-.login-footer {
+.register-footer {
   text-align: center;
   padding-top: 20px;
   border-top: 1px solid #e2e8f0;
 }
 
-.register-link {
+.login-link {
   font-size: 14px;
   color: #718096;
   margin-bottom: 15px;
@@ -293,40 +311,33 @@
   color: #764ba2;
 }
 
-.security-badge {
+.security-info {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #c6f6d5;
-  color: #276749;
+  background: #ebf8ff;
+  color: #2b6cb0;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  margin-bottom: 12px;
 }
 
-.badge-icon {
+.security-icon {
   font-size: 14px;
-}
-
-.contact-info {
-  font-size: 13px;
-  color: #718096;
-  margin: 0;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
-  .login-card {
+  .register-card {
     padding: 30px 20px;
   }
 
-  .login-title {
+  .register-title {
     font-size: 24px;
   }
 
-  .login-subtitle {
+  .register-subtitle {
     font-size: 14px;
   }
 }

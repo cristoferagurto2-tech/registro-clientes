@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DocumentsProvider } from './context/DocumentsContext';
 import Login from './components/Login';
+import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import './App.css';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
+  const [showRegister, setShowRegister] = useState(false);
 
   return (
     <div className="app">
@@ -13,8 +16,10 @@ function AppContent() {
         <DocumentsProvider>
           <Dashboard />
         </DocumentsProvider>
+      ) : showRegister ? (
+        <Register onSwitchToLogin={() => setShowRegister(false)} />
       ) : (
-        <Login />
+        <Login onSwitchToRegister={() => setShowRegister(true)} />
       )}
     </div>
   );

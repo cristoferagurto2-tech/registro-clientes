@@ -2,24 +2,43 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
-export default function Login() {
-  const [email, setEmail] = useState('');
+export default function Login({ onSwitchToRegister }) {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (!email || !email.includes('@')) {
+    if (!formData.email || !formData.email.includes('@')) {
       setError('Por favor ingresa un correo válido');
       setLoading(false);
       return;
     }
 
-    const result = login(email);
+    if (!formData.password) {
+      setError('Por favor ingresa tu contraseña');
+      setLoading(false);
+      return;
+    }
+
+    const result = login(formData.email, formData.password);
     
     if (!result.success) {
       setError(result.error);
@@ -51,12 +70,37 @@ export default function Login() {
               <input
                 type="email"
                 id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="Ingresa tu correo electrónico"
                 disabled={loading}
                 required
               />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Contraseña</label>
+            <div className="input-container">
+              <span className="input-icon">🔒</span>
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Ingresa tu contraseña"
+                disabled={loading}
+                required
+              />
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
             </div>
           </div>
 
@@ -87,12 +131,20 @@ export default function Login() {
         </form>
 
         <div className="login-footer">
+          <p className="register-link">
+            ¿Primera vez?{' '}
+            <button className="link-button" onClick={onSwitchToRegister}>
+              Regístrate aquí
+            </button>
+          </p>
+          
           <div className="security-badge">
             <span className="badge-icon">🔒</span>
             <span>Sistema seguro y privado</span>
           </div>
+          
           <p className="contact-info">
-            ¿Necesitas acceso? Contacta al administrador
+            Admin: cristoferagurto2@gmail.com
           </p>
         </div>
       </div>
