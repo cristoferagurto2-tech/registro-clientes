@@ -13,7 +13,7 @@ const getAllowedEmails = () => {
     return JSON.parse(saved);
   }
   // Lista por defecto si no existe
-  const defaultList = ['cliente1@email.com', 'cliente2@email.com'];
+  const defaultList = ['cliente1@email.com', 'cliente2@email.com', 'cristovalleagur@gmail.com'];
   localStorage.setItem('allowedEmails', JSON.stringify(defaultList));
   return defaultList;
 };
@@ -32,6 +32,13 @@ const INITIAL_CLIENTS = [
     email: 'cliente2@email.com', 
     name: 'Cliente 2',
     password: 'cliente123',
+    isRegistered: true 
+  },
+  { 
+    id: 'cliente-003', 
+    email: 'cristovalleagur@gmail.com', 
+    name: 'Cristo Agurto',
+    password: '123456',
     isRegistered: true 
   },
 ];
