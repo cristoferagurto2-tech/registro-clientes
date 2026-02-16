@@ -23,7 +23,7 @@ export default function Dashboard() {
               </div>
               <div className="header-title">
                 <h1>{projectName}</h1>
-                <span className="header-subtitle">{currentMonth} 2025</span>
+                <span className="header-subtitle">{currentMonth} 2026</span>
               </div>
             </div>
             
@@ -104,7 +104,7 @@ export default function Dashboard() {
       </main>
 
       <footer className="dashboard-footer">
-        <p>© 2025 {projectName} - Todos los derechos reservados</p>
+        <p>© 2026 {projectName} - Todos los derechos reservados</p>
       </footer>
     </div>
   );

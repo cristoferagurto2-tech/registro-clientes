@@ -6,7 +6,7 @@ import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
   const { user } = useAuth();
-  const { getMergedData, updateCompletedData } = useDocuments();
+  const { getMergedData, updateCompletedData, clientDocuments } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
   const [editedData, setEditedData] = useState({});
@@ -21,10 +21,20 @@ export default function DocumentEditor({ month }) {
     const merged = getMergedData(clientId, month);
     if (merged) {
       setHeaders(merged.headers);
-      setData(merged.data);
+      
+      // Asegurar que haya al menos 50 filas
+      let tableData = [...merged.data];
+      const numColumns = merged.headers.length;
+      
+      // Si hay menos de 50 filas, agregar filas vacías
+      while (tableData.length < 50) {
+        tableData.push(new Array(numColumns).fill(''));
+      }
+      
+      setData(tableData);
       
       const initialEdits = {};
-      merged.data.forEach((row, rowIndex) => {
+      tableData.forEach((row, rowIndex) => {
         row.forEach((cell, colIndex) => {
           initialEdits[`${rowIndex}-${colIndex}`] = cell;
         });
@@ -57,35 +67,91 @@ export default function DocumentEditor({ month }) {
     setLastSaved(new Date());
   };
 
-  // Calcular análisis basado en los datos
-  const analysis = useMemo(() => {
-    if (!data || data.length === 0) return null;
+  // Función para descargar el documento
+  const handleDownload = () => {
+    if (!data || !headers.length) return;
     
-    const numericData = data.slice(1).map(row => {
-      return row.map(cell => {
-        const num = parseFloat(cell);
-        return isNaN(num) ? 0 : num;
+    try {
+      // Preparar datos actualizados
+      const updatedData = data.map((row, rowIndex) => {
+        return row.map((cell, colIndex) => {
+          const key = `${rowIndex}-${colIndex}`;
+          return editedData[key] !== undefined ? editedData[key] : cell;
+        });
+      });
+
+      // Crear libro de Excel
+      const wb = XLSX.utils.book_new();
+      
+      // Hoja 1: Registro
+      const ws1 = XLSX.utils.aoa_to_sheet([headers, ...updatedData]);
+      XLSX.utils.book_append_sheet(wb, ws1, "Registro");
+      
+      // Hoja 2: Análisis (si hay datos)
+      if (analysis && analysis.hasData) {
+        const analysisHeaders = ["Concepto", "Total", "Cantidad", "Promedio"];
+        const analysisRows = analysisData.map(row => [
+          row.concepto,
+          row.total,
+          row.cantidad,
+          row.promedio
+        ]);
+        const ws2 = XLSX.utils.aoa_to_sheet([analysisHeaders, ...analysisRows]);
+        XLSX.utils.book_append_sheet(wb, ws2, "Análisis");
+      }
+      
+      // Descargar
+      const fileName = `${month}_2026_${user?.name || 'Documento'}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error('Error al descargar:', error);
+      alert('Error al descargar el documento. Por favor intente nuevamente.');
+    }
+  };
+
+  // Calcular análisis basado en los datos editados (no solo los datos originales)
+  const analysis = useMemo(() => {
+    if (!data || data.length === 0 || !headers.length) return null;
+    
+    // Usar los datos editados para el análisis
+    const currentData = data.map((row, rowIndex) => {
+      return row.map((cell, colIndex) => {
+        const key = `${rowIndex}-${colIndex}`;
+        const value = editedData[key] !== undefined ? editedData[key] : cell;
+        return value;
       });
     });
+    
+    const numericData = currentData.map(row => {
+      return row.map(cell => {
+        if (!cell || cell === '') return 0;
+        const num = parseFloat(String(cell).replace(/[^0-9.-]/g, ''));
+        return isNaN(num) ? 0 : num;
+      });
+    }).filter(row => row.some(cell => cell !== 0));
 
-    // Calcular totales por columna (asumiendo que las columnas numéricas están desde la columna 4)
+    // Calcular totales por columna
     const totals = {};
     const columnCount = headers.length;
     
     for (let col = 0; col < columnCount; col++) {
-      const sum = numericData.reduce((acc, row) => acc + (row[col] || 0), 0);
-      if (sum !== 0) {
+      const columnValues = numericData.map(row => row[col] || 0).filter(val => val !== 0);
+      
+      if (columnValues.length > 0) {
+        const sum = columnValues.reduce((acc, val) => acc + val, 0);
         totals[col] = {
           header: headers[col] || `Columna ${col + 1}`,
           total: sum,
-          count: numericData.filter(row => (row[col] || 0) !== 0).length,
-          average: numericData.length > 0 ? sum / numericData.length : 0
+          count: columnValues.length,
+          average: sum / columnValues.length
         };
       }
     }
 
     return {
-      totalRows: data.length - 1,
+      totalRows: currentData.filter(row => row.some(cell => cell && cell !== '')).length,
       totals: totals,
       hasData: Object.keys(totals).length > 0
     };
@@ -116,7 +182,7 @@ export default function DocumentEditor({ month }) {
     <div className="document-editor-v2">
       <div className="editor-header-v2">
         <div className="header-content">
-          <h2>{month} 2025</h2>
+          <h2>{month} 2026</h2>
           <p className="client-name">Documento de {user?.name}</p>
         </div>
         
@@ -149,6 +215,7 @@ export default function DocumentEditor({ month }) {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th className="row-num">#</th>
                   {headers.map((header, index) => (
                     <th key={index}>{header}</th>
                   ))}
@@ -157,6 +224,7 @@ export default function DocumentEditor({ month }) {
               <tbody>
                 {data.map((row, rowIndex) => (
                   <tr key={rowIndex}>
+                    <td className="row-num">{rowIndex + 1}</td>
                     {row.map((cell, colIndex) => {
                       const key = `${rowIndex}-${colIndex}`;
                       const value = editedData[key] !== undefined ? editedData[key] : cell;
@@ -168,6 +236,7 @@ export default function DocumentEditor({ month }) {
                             value={value || ''}
                             onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                             className="data-input"
+                            placeholder={`Fila ${rowIndex + 1}`}
                           />
                         </td>
                       );
@@ -225,6 +294,7 @@ export default function DocumentEditor({ month }) {
           ) : (
             <div className="no-analysis">
               <p>Ingrese datos numéricos en la Hoja 1 para ver el análisis automático.</p>
+              <p className="hint">Ejemplo: Ingrese montos, cantidades o valores numéricos en cualquier columna.</p>
             </div>
           )}
         </div>
@@ -235,7 +305,7 @@ export default function DocumentEditor({ month }) {
           <span>Total de filas: {data.length}</span>
           <span>Columnas: {headers.length}</span>
         </div>
-        <button className="btn-download-v2" onClick={handleSave}>
+        <button className="btn-download-v2" onClick={handleDownload}>
           Descargar Documento Completo
         </button>
       </div>
