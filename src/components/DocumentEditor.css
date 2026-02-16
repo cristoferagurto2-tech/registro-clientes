@@ -160,13 +160,13 @@
   padding: 0;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
-  height: 50px;
+  height: 60px !important;
   vertical-align: middle;
 }
 
 /* Asegurar que todas las filas tengan el mismo formato */
 .data-table tbody tr {
-  height: 50px;
+  height: 60px !important;
 }
 
 .data-table tbody tr:nth-child(even) {
@@ -193,11 +193,11 @@
 
 .data-input {
   width: 100%;
-  min-width: 120px;
-  height: 50px;
-  padding: 10px 12px;
+  min-width: 140px;
+  height: 60px !important;
+  padding: 12px 14px;
   border: none;
-  font-size: 14px;
+  font-size: 15px;
   background: transparent;
   transition: all 0.2s ease;
   box-sizing: border-box;
@@ -216,6 +216,22 @@
 
 .data-table select.data-input {
   cursor: pointer;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  appearance: auto;
+  padding-right: 24px;
+}
+
+.data-table select.data-input:focus {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+/* Ajustar ancho mínimo para todas las columnas de datos */
+.data-table th:not(.row-num),
+.data-table td:not(.row-num) {
+  min-width: 140px;
 }
 
 /* Dashboard Content */

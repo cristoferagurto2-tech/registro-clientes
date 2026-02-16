@@ -361,16 +361,22 @@ export default function DocumentEditor({ month }) {
                           );
                         }
                         
-                        // Campo de solo lectura para Mes (columna 1)
+                        // Campo de selección para Mes (columna 1)
                         if (colIndex === 1) {
                           return (
                             <td key={colIndex}>
-                              <input
-                                type="text"
+                              <select
                                 value={value || ''}
-                                readOnly
-                                className="data-input readonly"
-                              />
+                                onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                                className="data-input"
+                              >
+                                <option value="">Seleccione...</option>
+                                {mesesList.map(mes => (
+                                  <option key={mes} value={mes}>
+                                    {mes.charAt(0).toUpperCase() + mes.slice(1)}
+                                  </option>
+                                ))}
+                              </select>
                             </td>
                           );
                         }

@@ -144,8 +144,13 @@ export function DocumentsProvider({ children }) {
       // Recalcular fórmulas si existen
       XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       
-      // Crear blob y descargar
-      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      // Crear blob y descargar preservando estilos originales
+      const wbout = XLSX.write(workbook, { 
+        bookType: 'xlsx', 
+        type: 'array',
+        cellStyles: true,
+        bookSST: false
+      });
       const blob = new Blob([wbout], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
