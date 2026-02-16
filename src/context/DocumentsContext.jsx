@@ -8,7 +8,7 @@ const MESES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-// Convertir ArrayBuffer a Base64 para guardar en localStorage
+// Convertir ArrayBuffer a Base64
 const arrayBufferToBase64 = (buffer) => {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -54,7 +54,7 @@ export function DocumentsProvider({ children }) {
     localStorage.setItem('completedData', JSON.stringify(completedData));
   }, [completedData]);
 
-  // Subir documento completo (guarda el archivo Excel original)
+  // Subir documento con múltiples hojas
   const uploadDocument = (clientId, month, file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -64,11 +64,19 @@ export function DocumentsProvider({ children }) {
           const arrayBuffer = e.target.result;
           const base64Data = arrayBufferToBase64(arrayBuffer);
           
-          // Leer el workbook para obtener datos de la primera hoja (para edición web)
+          // Leer todas las hojas del workbook
           const data = new Uint8Array(arrayBuffer);
           const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          
+          const allSheets = {};
+          workbook.SheetNames.forEach(sheetName => {
+            const sheet = workbook.Sheets[sheetName];
+            allSheets[sheetName] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+          });
+          
+          // La primera hoja es la editable
+          const firstSheetName = workbook.SheetNames[0];
+          const firstSheetData = allSheets[firstSheetName];
           
           setClientDocuments(prev => ({
             ...prev,
@@ -76,10 +84,11 @@ export function DocumentsProvider({ children }) {
               ...prev[clientId],
               [month]: {
                 name: file.name,
-                originalFile: base64Data, // Archivo Excel completo en Base64
-                data: jsonData, // Datos de primera hoja para edición web
-                headers: jsonData[0] || [],
-                sheetNames: workbook.SheetNames, // Nombres de todas las hojas
+                originalFile: base64Data,
+                sheets: allSheets, // Todas las hojas
+                sheetNames: workbook.SheetNames,
+                headers: firstSheetData[0] || [],
+                data: firstSheetData, // Primera hoja para edición
                 uploadedAt: new Date().toISOString(),
                 clientId: clientId
               }
@@ -97,37 +106,34 @@ export function DocumentsProvider({ children }) {
     });
   };
 
-  // Descargar archivo Excel original completo (con todas las hojas y fórmulas)
-  const downloadOriginalFile = (clientId, month) => {
+  // Obtener datos de ambas hojas
+  const getMergedData = (clientId, month) => {
     const doc = clientDocuments[clientId]?.[month];
-    if (!doc || !doc.originalFile) return;
+    if (!doc) return null;
 
-    try {
-      // Convertir Base64 a ArrayBuffer
-      const arrayBuffer = base64ToArrayBuffer(doc.originalFile);
-      
-      // Crear blob y descargar
-      const blob = new Blob([arrayBuffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    const key = `${clientId}-${month}`;
+    const clientData = completedData[key] || {};
+
+    // Fusionar datos editados en la primera hoja
+    const mergedFirstSheet = doc.data.map((row, rowIndex) => {
+      return row.map((cell, colIndex) => {
+        const cellKey = `${rowIndex}-${colIndex}`;
+        return clientData[cellKey] !== undefined ? clientData[cellKey] : cell;
       });
-      
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.name || `${month}_2025.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      return true;
-    } catch (error) {
-      console.error('Error al descargar archivo:', error);
-      return false;
-    }
+    });
+
+    return {
+      headers: doc.headers,
+      data: mergedFirstSheet,
+      sheets: doc.sheets, // Todas las hojas
+      sheetNames: doc.sheetNames,
+      headersBySheet: Object.fromEntries(
+        Object.entries(doc.sheets).map(([name, data]) => [name, data[0] || []])
+      )
+    };
   };
 
-  // Actualizar datos completados por un cliente
+  // Actualizar datos completados
   const updateCompletedData = (clientId, month, rowIndex, columnIndex, value) => {
     const key = `${clientId}-${month}`;
     setCompletedData(prev => ({
@@ -139,29 +145,7 @@ export function DocumentsProvider({ children }) {
     }));
   };
 
-  // Obtener datos fusionados para un cliente y mes
-  const getMergedData = (clientId, month) => {
-    const doc = clientDocuments[clientId]?.[month];
-    if (!doc) return null;
-
-    const key = `${clientId}-${month}`;
-    const clientData = completedData[key] || {};
-
-    const merged = doc.data.map((row, rowIndex) => {
-      return row.map((cell, colIndex) => {
-        const cellKey = `${rowIndex}-${colIndex}`;
-        return clientData[cellKey] !== undefined ? clientData[cellKey] : cell;
-      });
-    });
-
-    return {
-      headers: doc.headers,
-      data: merged,
-      sheetNames: doc.sheetNames || []
-    };
-  };
-
-  // Eliminar documento de un cliente
+  // Eliminar documento
   const deleteDocument = (clientId, month) => {
     setClientDocuments(prev => {
       const newDocs = { ...prev };
@@ -213,7 +197,6 @@ export function DocumentsProvider({ children }) {
       selectedClientId,
       setSelectedClientId,
       uploadDocument,
-      downloadOriginalFile,
       updateCompletedData,
       getMergedData,
       deleteDocument,
