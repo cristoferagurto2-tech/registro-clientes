@@ -13,7 +13,7 @@ export default function MonthSelector() {
   const getMonthIcon = (month) => {
     const icons = {
       'Enero': '❄️', 'Febrero': '💝', 'Marzo': '🌸', 'Abril': '🌧️',
-      'Mayo': '🌺', 'Junio': '☀️', 'Julio': '🏖️', 'Agosto': '🌴',
+      'Mayo': '🌹', 'Junio': '☀️', 'Julio': '🏖️', 'Agosto': '🌴',
       'Septiembre': '🍂', 'Octubre': '🎃', 'Noviembre': '🦃', 'Diciembre': '🎄'
     };
     return icons[month] || '📅';
