@@ -6,6 +6,16 @@ const AuthContext = createContext();
 const ADMIN_EMAIL = 'cristoferagurto2@gmail.com';
 const ADMIN_PASSWORD = 'admin123'; // Contraseña fija para admin
 
+// LISTA BLANCA: Solo estos correos pueden registrarse
+// Agrega aquí los emails que autorizas para registrarse
+const ALLOWED_EMAILS = [
+  'cliente1@email.com',
+  'cliente2@email.com',
+  'juan.perez@empresa.com',
+  'maria.garcia@empresa.com',
+  // Agrega más correos aquí...
+];
+
 // Lista inicial de clientes autorizados con sus IDs
 const INITIAL_CLIENTS = [
   { 
@@ -123,7 +133,12 @@ export function AuthProvider({ children }) {
     
     // Validaciones
     if (!normalizedEmail || !normalizedEmail.includes('@')) {
-      return { success: false, error: 'Por favor ingresa un correo válido' };
+      return { success: false, error: 'Por favor ingrese un correo válido' };
+    }
+    
+    // Verificar si el email está en la lista blanca
+    if (!ALLOWED_EMAILS.includes(normalizedEmail)) {
+      return { success: false, error: 'Este correo no está autorizado para registrarse. Contacte al administrador.' };
     }
     
     if (!password || password.length < 6) {
@@ -135,13 +150,13 @@ export function AuthProvider({ children }) {
     }
     
     if (!name || name.trim().length < 2) {
-      return { success: false, error: 'Por favor ingresa tu nombre' };
+      return { success: false, error: 'Por favor ingrese su nombre' };
     }
 
     // Verificar si el email ya existe
     const existingClient = clients.find(c => c.email.toLowerCase() === normalizedEmail);
     if (existingClient) {
-      return { success: false, error: 'Este correo ya está registrado. Usa "Iniciar Sesión".' };
+      return { success: false, error: 'Este correo ya está registrado. Use "Iniciar Sesión".' };
     }
 
     // Crear nuevo cliente
@@ -201,8 +216,10 @@ export function AuthProvider({ children }) {
   // Verificar si un email está autorizado para registrarse
   const canRegister = (email) => {
     const normalizedEmail = email.toLowerCase().trim();
-    const client = clients.find(c => c.email.toLowerCase() === normalizedEmail);
-    return !client; // Puede registrarse si no existe
+    // Verificar si está en la lista blanca y no está registrado
+    const isAllowed = ALLOWED_EMAILS.includes(normalizedEmail);
+    const isRegistered = clients.some(c => c.email.toLowerCase() === normalizedEmail);
+    return isAllowed && !isRegistered;
   };
 
   return (
@@ -211,6 +228,7 @@ export function AuthProvider({ children }) {
       isAuthenticated, 
       isAdmin, 
       clients,
+      allowedEmails: ALLOWED_EMAILS,
       login, 
       logout,
       registerClient,
