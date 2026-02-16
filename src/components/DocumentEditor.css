@@ -1,0 +1,266 @@
+.document-editor {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.editor-title h2 {
+  font-size: 24px;
+  margin: 0 0 5px 0;
+}
+
+.editor-title p {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.last-saved {
+  font-size: 13px;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.btn-save,
+.btn-download {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-save {
+  background: #48bb78;
+  color: white;
+}
+
+.btn-save:hover {
+  background: #38a169;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.btn-save.saving {
+  background: #ecc94b;
+  cursor: wait;
+}
+
+.btn-download {
+  background: white;
+  color: #667eea;
+}
+
+.btn-download:hover {
+  background: #f7fafc;
+  transform: translateY(-2px);
+}
+
+.editor-table-container {
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.editor-table th {
+  background: #f7fafc;
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #4a5568;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.editor-table td {
+  padding: 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.row-header {
+  background: #edf2f7;
+  font-weight: 600;
+  color: #4a5568;
+  text-align: center;
+  width: 50px;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+.row-number {
+  background: #f7fafc;
+  font-weight: 500;
+  color: #718096;
+  text-align: center;
+  padding: 12px;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+.cell-input {
+  width: 100%;
+  min-width: 120px;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #2d3748;
+  transition: all 0.2s ease;
+}
+
+.cell-input:focus {
+  outline: none;
+  background: #ebf8ff;
+  box-shadow: inset 0 0 0 2px #4299e1;
+}
+
+.cell-input:hover {
+  background: #f7fafc;
+}
+
+.editor-footer {
+  padding: 20px 30px;
+  background: #f7fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.editor-info {
+  display: flex;
+  gap: 20px;
+  color: #718096;
+  font-size: 14px;
+}
+
+.client-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #c6f6d5;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #276749;
+  font-size: 13px;
+}
+
+.client-notice span {
+  font-size: 18px;
+}
+
+.client-notice p {
+  margin: 0;
+}
+
+.editor-empty {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.editor-empty .empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.editor-empty h3 {
+  font-size: 22px;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.editor-empty p {
+  color: #718096;
+  font-size: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .editor-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .editor-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .editor-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cell-input {
+    min-width: 100px;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .editor-table th,
+  .editor-table td {
+    padding: 10px 8px;
+  }
+}
+
+/* Scrollbar styling for table */
+.editor-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.editor-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.editor-table-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.editor-table-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

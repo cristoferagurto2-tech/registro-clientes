@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { DocumentsProvider } from './context/DocumentsContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import './App.css';
@@ -8,7 +9,13 @@ function AppContent() {
 
   return (
     <div className="app">
-      {isAuthenticated ? <Dashboard /> : <Login />}
+      {isAuthenticated ? (
+        <DocumentsProvider>
+          <Dashboard />
+        </DocumentsProvider>
+      ) : (
+        <Login />
+      )}
     </div>
   );
 }
