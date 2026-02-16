@@ -6,15 +6,17 @@ const AuthContext = createContext();
 const ADMIN_EMAIL = 'cristoferagurto2@gmail.com';
 const ADMIN_PASSWORD = 'admin123'; // Contraseña fija para admin
 
-// LISTA BLANCA: Solo estos correos pueden registrarse
-// Agrega aquí los emails que autorizas para registrarse
-const ALLOWED_EMAILS = [
-  'cliente1@email.com',
-  'cliente2@email.com',
-  'juan.perez@empresa.com',
-  'maria.garcia@empresa.com',
-  // Agrega más correos aquí...
-];
+// Función para obtener la lista blanca desde localStorage
+const getAllowedEmails = () => {
+  const saved = localStorage.getItem('allowedEmails');
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  // Lista por defecto si no existe
+  const defaultList = ['cliente1@email.com', 'cliente2@email.com'];
+  localStorage.setItem('allowedEmails', JSON.stringify(defaultList));
+  return defaultList;
+};
 
 // Lista inicial de clientes autorizados con sus IDs
 const INITIAL_CLIENTS = [
@@ -137,7 +139,8 @@ export function AuthProvider({ children }) {
     }
     
     // Verificar si el email está en la lista blanca
-    if (!ALLOWED_EMAILS.includes(normalizedEmail)) {
+    const allowedEmails = getAllowedEmails();
+    if (!allowedEmails.includes(normalizedEmail)) {
       return { success: false, error: 'Este correo no está autorizado para registrarse. Contacte al administrador.' };
     }
     
@@ -217,7 +220,8 @@ export function AuthProvider({ children }) {
   const canRegister = (email) => {
     const normalizedEmail = email.toLowerCase().trim();
     // Verificar si está en la lista blanca y no está registrado
-    const isAllowed = ALLOWED_EMAILS.includes(normalizedEmail);
+    const allowedEmails = getAllowedEmails();
+    const isAllowed = allowedEmails.includes(normalizedEmail);
     const isRegistered = clients.some(c => c.email.toLowerCase() === normalizedEmail);
     return isAllowed && !isRegistered;
   };
@@ -228,7 +232,7 @@ export function AuthProvider({ children }) {
       isAuthenticated, 
       isAdmin, 
       clients,
-      allowedEmails: ALLOWED_EMAILS,
+      allowedEmails: getAllowedEmails(),
       login, 
       logout,
       registerClient,
