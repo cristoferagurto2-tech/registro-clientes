@@ -160,15 +160,13 @@ export default function DocumentEditor({ month }) {
 
   // Calcular análisis tipo Dashboard
   const dashboard = useMemo(() => {
-    if (!data || data.length === 0) return null;
-
     // Obtener datos actuales con ediciones
-    const currentData = data.map((row, rowIndex) => {
+    const currentData = data ? data.map((row, rowIndex) => {
       return row.map((cell, colIndex) => {
         const key = `${rowIndex}-${colIndex}`;
         return editedData[key] !== undefined ? editedData[key] : cell;
       });
-    }).filter(row => row[2] && row[2] !== ''); // Filtrar filas con DNI (columna 2)
+    }).filter(row => row[2] && row[2] !== '') : []; // Filtrar filas con DNI (columna 2)
 
     if (currentData.length === 0) {
       return {
