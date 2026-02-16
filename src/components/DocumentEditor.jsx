@@ -76,18 +76,13 @@ export default function DocumentEditor({ month }) {
       setData(tableData);
       
       const initialEdits = {};
+      const mesAutomatico = month.toLowerCase() + ' 2026';
       tableData.forEach((row, rowIndex) => {
         row.forEach((cell, colIndex) => {
           let value = cell;
-          // Convertir números de fecha serial de Excel a texto legible para la columna Mes (columna 1)
-          if (colIndex === 1 && typeof value === 'number' && value > 40000) {
-            // Es una fecha serial de Excel, convertir a texto del mes
-            const fecha = XLSX.SSF.parse_date_code(value);
-            if (fecha) {
-              const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-                            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-              value = meses[fecha.m - 1] + ' 2026';
-            }
+          // La columna Mes (columna 1) se asigna automáticamente según el mes seleccionado
+          if (colIndex === 1) {
+            value = mesAutomatico;
           }
           // Asegurar que el valor sea un string
           initialEdits[`${rowIndex}-${colIndex}`] = value !== null && value !== undefined ? String(value) : '';
@@ -506,23 +501,18 @@ export default function DocumentEditor({ month }) {
                           );
                         }
                         
-                        // Campo de selección para Mes (columna 1)
+                        // Campo automático para Mes (columna 1) - Se asigna automáticamente según el mes seleccionado
                         if (colIndex === 1) {
-                          const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
+                          const mesAutomatico = month.toLowerCase() + ' 2026';
                           return (
                             <td key={colIndex}>
-                              <select
-                                value={safeValue}
-                                onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                                className="data-input"
-                              >
-                                <option value="">Seleccione...</option>
-                                {mesesList.map(mes => (
-                                  <option key={mes} value={mes}>
-                                    {mes.charAt(0).toUpperCase() + mes.slice(1)}
-                                  </option>
-                                ))}
-                              </select>
+                              <input
+                                type="text"
+                                value={mesAutomatico}
+                                readOnly
+                                className="data-input readonly"
+                                title="Mes asignado automáticamente"
+                              />
                             </td>
                           );
                         }
