@@ -138,18 +138,21 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 13px;
+  font-size: 12px;
+  table-layout: fixed;
 }
 
 .data-table th {
   background: #1e3a8a;
   color: white;
-  padding: 16px 12px;
+  padding: 12px 8px;
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 11px;
   border-right: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .data-table th:last-child {
@@ -160,15 +163,17 @@
   padding: 0;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
-  height: 60px !important;
+  height: 45px !important;
   vertical-align: middle;
-  min-width: 140px;
+  min-width: 95px;
+  max-width: 130px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Asegurar que todas las filas tengan el mismo formato */
 .data-table tbody tr {
-  height: 60px !important;
+  height: 45px !important;
   display: table-row;
 }
 
@@ -211,11 +216,11 @@
 
 .data-input {
   width: 100%;
-  min-width: 140px;
-  height: 60px !important;
-  padding: 12px 14px;
+  min-width: 95px;
+  height: 45px !important;
+  padding: 6px 8px;
   border: none;
-  font-size: 15px;
+  font-size: 13px;
   background: transparent;
   transition: all 0.2s ease;
   box-sizing: border-box;
@@ -246,10 +251,12 @@
   background-color: #eff6ff;
 }
 
-/* Ajustar ancho mínimo para todas las columnas de datos */
+/* Ajustar ancho para todas las columnas de datos - 11 columnas deben caber en pantalla */
 .data-table th:not(.row-num),
 .data-table td:not(.row-num) {
-  min-width: 140px;
+  min-width: 85px;
+  max-width: 120px;
+  width: calc((100% - 45px) / 11);
 }
 
 /* Dashboard Content */
