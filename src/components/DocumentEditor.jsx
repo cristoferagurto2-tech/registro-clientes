@@ -5,16 +5,23 @@ import * as XLSX from 'xlsx';
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
-  const { isAdmin } = useAuth();
-  const { getMergedData, updateCompletedData, documents } = useDocuments();
+  const { user, isAdmin } = useAuth();
+  const { getMergedData, updateCompletedData } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
   const [editedData, setEditedData] = useState({});
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
 
+  // Determinar qué cliente estamos viendo
+  // Si es admin, necesitamos saber qué cliente está seleccionado
+  // Si es cliente, usamos su propio ID
+  const clientId = user?.id;
+
   useEffect(() => {
-    const merged = getMergedData(month);
+    if (!clientId) return;
+    
+    const merged = getMergedData(clientId, month);
     if (merged) {
       setHeaders(merged.headers);
       setData(merged.data);
@@ -28,7 +35,7 @@ export default function DocumentEditor({ month }) {
       });
       setEditedData(initialEdits);
     }
-  }, [month, getMergedData]);
+  }, [month, clientId, getMergedData]);
 
   const handleCellChange = (rowIndex, colIndex, value) => {
     const key = `${rowIndex}-${colIndex}`;
@@ -39,12 +46,14 @@ export default function DocumentEditor({ month }) {
   };
 
   const handleSave = async () => {
+    if (!clientId) return;
+    
     setSaving(true);
     
     // Guardar cada celda editada
     Object.entries(editedData).forEach(([key, value]) => {
       const [rowIndex, colIndex] = key.split('-').map(Number);
-      updateCompletedData(month, rowIndex, colIndex, value);
+      updateCompletedData(clientId, month, rowIndex, colIndex, value);
     });
 
     // Simular delay para mostrar feedback
@@ -55,6 +64,8 @@ export default function DocumentEditor({ month }) {
   };
 
   const handleDownload = () => {
+    if (!data) return;
+    
     // Crear workbook con los datos actuales
     const wsData = [headers];
     data.forEach((row, rowIndex) => {
@@ -70,7 +81,8 @@ export default function DocumentEditor({ month }) {
     XLSX.utils.book_append_sheet(wb, ws, month);
     
     // Descargar archivo
-    XLSX.writeFile(wb, `${month}_2025_Registro_Clientes.xlsx`);
+    const clientName = user?.name || 'Cliente';
+    XLSX.writeFile(wb, `${month}_2025_${clientName.replace(/\s+/g, '_')}.xlsx`);
   };
 
   if (!data) {
@@ -88,7 +100,7 @@ export default function DocumentEditor({ month }) {
       <div className="editor-header">
         <div className="editor-title">
           <h2>📝 {month} 2025</h2>
-          <p>Completa los datos en las celdas. Los cambios se guardan automáticamente.</p>
+          <p>Completa los datos en las celdas. Los cambios se guardan cuando presionas "Guardar".</p>
         </div>
         
         <div className="editor-actions">
@@ -129,7 +141,6 @@ export default function DocumentEditor({ month }) {
                 {row.map((cell, colIndex) => {
                   const key = `${rowIndex}-${colIndex}`;
                   const value = editedData[key] !== undefined ? editedData[key] : cell;
-                  const isEditable = !isAdmin || colIndex > 0; // Primera columna (headers) no editable
                   
                   return (
                     <td key={colIndex}>
@@ -138,7 +149,6 @@ export default function DocumentEditor({ month }) {
                         value={value || ''}
                         onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                         className="cell-input"
-                        placeholder={rowIndex === 0 ? header : ''}
                       />
                     </td>
                   );
@@ -155,12 +165,10 @@ export default function DocumentEditor({ month }) {
           <span>📋 {headers.length} columnas</span>
         </div>
         
-        {!isAdmin && (
-          <div className="client-notice">
-            <span>💡</span>
-            <p>Completa los campos vacíos con tu información. Los datos se guardan en este dispositivo.</p>
-          </div>
-        )}
+        <div className="client-notice">
+          <span>💡</span>
+          <p>Este es tu documento personal. Solo tú puedes ver y editar estos datos.</p>
+        </div>
       </div>
     </div>
   );

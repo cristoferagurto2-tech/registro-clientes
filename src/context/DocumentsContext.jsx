@@ -9,17 +9,19 @@ const MESES = [
 ];
 
 export function DocumentsProvider({ children }) {
-  const [documents, setDocuments] = useState({});
+  // Estructura: { clienteId: { mes: { documento } } }
+  const [clientDocuments, setClientDocuments] = useState({});
   const [completedData, setCompletedData] = useState({});
   const [currentMonth, setCurrentMonth] = useState(null);
+  const [selectedClientId, setSelectedClientId] = useState(null);
 
   // Cargar documentos y datos guardados al iniciar
   useEffect(() => {
-    const savedDocs = localStorage.getItem('documents');
+    const savedDocs = localStorage.getItem('clientDocuments');
     const savedData = localStorage.getItem('completedData');
     
     if (savedDocs) {
-      setDocuments(JSON.parse(savedDocs));
+      setClientDocuments(JSON.parse(savedDocs));
     }
     if (savedData) {
       setCompletedData(JSON.parse(savedData));
@@ -28,15 +30,15 @@ export function DocumentsProvider({ children }) {
 
   // Guardar cambios en localStorage
   useEffect(() => {
-    localStorage.setItem('documents', JSON.stringify(documents));
-  }, [documents]);
+    localStorage.setItem('clientDocuments', JSON.stringify(clientDocuments));
+  }, [clientDocuments]);
 
   useEffect(() => {
     localStorage.setItem('completedData', JSON.stringify(completedData));
   }, [completedData]);
 
-  // Subir documento para un mes específico
-  const uploadDocument = (month, file) => {
+  // Subir documento para un cliente y mes específico
+  const uploadDocument = (clientId, month, file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
@@ -45,17 +47,20 @@ export function DocumentsProvider({ children }) {
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           
-          // Convertir workbook a JSON para almacenar
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
           
-          setDocuments(prev => ({
+          setClientDocuments(prev => ({
             ...prev,
-            [month]: {
-              name: file.name,
-              data: jsonData,
-              headers: jsonData[0] || [],
-              uploadedAt: new Date().toISOString()
+            [clientId]: {
+              ...prev[clientId],
+              [month]: {
+                name: file.name,
+                data: jsonData,
+                headers: jsonData[0] || [],
+                uploadedAt: new Date().toISOString(),
+                clientId: clientId
+              }
             }
           }));
           
@@ -70,28 +75,30 @@ export function DocumentsProvider({ children }) {
     });
   };
 
-  // Actualizar datos completados por los clientes
-  const updateCompletedData = (month, rowIndex, columnIndex, value) => {
+  // Actualizar datos completados por un cliente
+  const updateCompletedData = (clientId, month, rowIndex, columnIndex, value) => {
+    const key = `${clientId}-${month}`;
     setCompletedData(prev => ({
       ...prev,
-      [month]: {
-        ...prev[month],
+      [key]: {
+        ...prev[key],
         [`${rowIndex}-${columnIndex}`]: value
       }
     }));
   };
 
-  // Obtener datos fusionados (documento original + datos completados)
-  const getMergedData = (month) => {
-    const doc = documents[month];
+  // Obtener datos fusionados para un cliente y mes
+  const getMergedData = (clientId, month) => {
+    const doc = clientDocuments[clientId]?.[month];
     if (!doc) return null;
+
+    const key = `${clientId}-${month}`;
+    const clientData = completedData[key] || {};
 
     const merged = doc.data.map((row, rowIndex) => {
       return row.map((cell, colIndex) => {
-        const key = `${rowIndex}-${colIndex}`;
-        return completedData[month]?.[key] !== undefined 
-          ? completedData[month][key] 
-          : cell;
+        const cellKey = `${rowIndex}-${colIndex}`;
+        return clientData[cellKey] !== undefined ? clientData[cellKey] : cell;
       });
     });
 
@@ -101,44 +108,71 @@ export function DocumentsProvider({ children }) {
     };
   };
 
-  // Eliminar documento
-  const deleteDocument = (month) => {
-    setDocuments(prev => {
+  // Eliminar documento de un cliente
+  const deleteDocument = (clientId, month) => {
+    setClientDocuments(prev => {
       const newDocs = { ...prev };
-      delete newDocs[month];
+      if (newDocs[clientId]) {
+        delete newDocs[clientId][month];
+        if (Object.keys(newDocs[clientId]).length === 0) {
+          delete newDocs[clientId];
+        }
+      }
       return newDocs;
     });
     
+    const key = `${clientId}-${month}`;
     setCompletedData(prev => {
       const newData = { ...prev };
-      delete newData[month];
+      delete newData[key];
       return newData;
     });
   };
 
-  // Verificar si un mes tiene documento
-  const hasDocument = (month) => {
-    return !!documents[month];
+  // Verificar si un cliente tiene documento para un mes
+  const hasDocument = (clientId, month) => {
+    return !!clientDocuments[clientId]?.[month];
   };
 
-  // Obtener lista de meses con documentos
-  const getAvailableMonths = () => {
-    return MESES.filter(month => hasDocument(month));
+  // Obtener meses disponibles para un cliente
+  const getAvailableMonths = (clientId) => {
+    if (!clientId || !clientDocuments[clientId]) return [];
+    return MESES.filter(month => hasDocument(clientId, month));
+  };
+
+  // Obtener todos los documentos de un cliente
+  const getClientDocuments = (clientId) => {
+    return clientDocuments[clientId] || {};
+  };
+
+  // Obtener todos los clientes que tienen documentos
+  const getClientsWithDocuments = () => {
+    return Object.keys(clientDocuments);
+  };
+
+  // Verificar si un cliente tiene algún documento
+  const clientHasAnyDocument = (clientId) => {
+    return Object.keys(clientDocuments[clientId] || {}).length > 0;
   };
 
   return (
     <DocumentsContext.Provider value={{
       MESES,
-      documents,
+      clientDocuments,
       completedData,
       currentMonth,
       setCurrentMonth,
+      selectedClientId,
+      setSelectedClientId,
       uploadDocument,
       updateCompletedData,
       getMergedData,
       deleteDocument,
       hasDocument,
-      getAvailableMonths
+      getAvailableMonths,
+      getClientDocuments,
+      getClientsWithDocuments,
+      clientHasAnyDocument
     }}>
       {children}
     </DocumentsContext.Provider>
