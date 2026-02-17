@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import { autoTable } from 'jspdf-autotable';
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
@@ -48,6 +48,31 @@ export default function DocumentEditor({ month }) {
     'mayo 2026', 'junio 2026', 'julio 2026', 'agosto 2026',
     'septiembre 2026', 'octubre 2026', 'noviembre 2026', 'diciembre 2026'
   ];
+
+  // Función para obtener los días del mes según calendario 2026
+  const getDiasDelMes = (mes) => {
+    const meses30 = ['abril', 'junio', 'septiembre', 'noviembre'];
+    const mesLower = mes.toLowerCase();
+    
+    if (mesLower === 'febrero') {
+      // 2026 no es bisiesto, febrero tiene 28 días
+      return 28;
+    } else if (meses30.includes(mesLower)) {
+      return 30;
+    } else {
+      return 31;
+    }
+  };
+
+  // Generar opciones de días para el mes actual
+  const getOpcionesDias = () => {
+    const diasEnMes = getDiasDelMes(month);
+    const opciones = [];
+    for (let i = 1; i <= diasEnMes; i++) {
+      opciones.push(i.toString().padStart(2, '0'));
+    }
+    return opciones;
+  };
 
   useEffect(() => {
     if (!clientId) return;
@@ -278,7 +303,7 @@ export default function DocumentEditor({ month }) {
       doc.setTextColor(30, 58, 138);
       doc.text('Lista de Clientes', 14, 40);
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [headers],
         body: tableData,
         startY: 45,
@@ -318,7 +343,7 @@ export default function DocumentEditor({ month }) {
         ['Total Ganancias (S/)', `S/ ${(dashboard?.totalGanancias || 0).toFixed(2)}`]
       ];
       
-      doc.autoTable({
+      autoTable(doc, {
         body: summaryData,
         startY: 35,
         theme: 'grid',
@@ -330,7 +355,7 @@ export default function DocumentEditor({ month }) {
       });
       
       // Resumen por Meses
-      const mesesY = doc.lastAutoTable.finalY + 10;
+      const mesesY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 80;
       doc.setFontSize(14);
       doc.setTextColor(30, 58, 138);
       doc.text('Resumen por Meses', 14, mesesY);
@@ -342,7 +367,7 @@ export default function DocumentEditor({ month }) {
         `S/ ${m.ganancias.toFixed(2)}`
       ]) || [];
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Mes', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)']],
         body: mesesData,
         startY: mesesY + 5,
@@ -352,7 +377,7 @@ export default function DocumentEditor({ month }) {
       });
       
       // Productos y Conteo
-      const productosY = doc.lastAutoTable.finalY + 10;
+      const productosY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 120;
       doc.setFontSize(14);
       doc.setTextColor(30, 58, 138);
       doc.text('Productos y Conteo', 14, productosY);
@@ -362,7 +387,7 @@ export default function DocumentEditor({ month }) {
         p.total.toString()
       ]) || [];
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Producto', 'Total']],
         body: productosData,
         startY: productosY + 5,
@@ -414,7 +439,8 @@ export default function DocumentEditor({ month }) {
 
       setPreviewData({
         headers: headers,
-        rows: previewRows
+        rows: previewRows,
+        dashboard: dashboard // Agregar el análisis/dashboard
       });
       setShowPreview(true);
       setLastSaved(new Date());
@@ -525,17 +551,24 @@ export default function DocumentEditor({ month }) {
                           );
                         }
                         
-                        // Campo de fecha para Fecha (columna 0)
+                        // Campo de día para Fecha (columna 0) - Solo días según el mes seleccionado
                         if (colIndex === 0) {
+                          const diasOptions = getOpcionesDias();
+                          const mesNumero = (mesesList.indexOf(month.toLowerCase() + ' 2026') + 1).toString().padStart(2, '0');
                           return (
                             <td key={colIndex}>
-                              <input
-                                type="date"
+                              <select
                                 value={value && value !== 'undefined' ? value : ''}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
-                                placeholder="DD/MM/AAAA"
-                              />
+                              >
+                                <option value="">Día</option>
+                                {diasOptions.map(dia => (
+                                  <option key={dia} value={`2026-${mesNumero}-${dia}`}>
+                                    {dia}
+                                  </option>
+                                ))}
+                              </select>
                             </td>
                           );
                         }
@@ -674,34 +707,77 @@ export default function DocumentEditor({ month }) {
               <button className="preview-close-btn" onClick={handleClosePreview}>✕</button>
             </div>
             <div className="preview-content">
-              <div className="preview-excel-table">
-                <table>
-                  <thead>
-                    <tr>
-                      {previewData.headers.map((header, idx) => (
-                        <th key={idx}>{header}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {previewData.rows.length > 0 ? (
-                      previewData.rows.map((row, rowIdx) => (
-                        <tr key={rowIdx}>
-                          {row.map((cell, cellIdx) => (
-                            <td key={cellIdx}>{cell}</td>
-                          ))}
-                        </tr>
-                      ))
-                    ) : (
+              <div className="preview-section">
+                <h4 className="preview-section-title">📋 Datos de Clientes</h4>
+                <div className="preview-excel-table">
+                  <table>
+                    <thead>
                       <tr>
-                        <td colSpan={previewData.headers.length} className="no-data">
-                          No hay datos registrados aún
-                        </td>
+                        {previewData.headers.map((header, idx) => (
+                          <th key={idx}>{header}</th>
+                        ))}
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {previewData.rows.length > 0 ? (
+                        previewData.rows.map((row, rowIdx) => (
+                          <tr key={rowIdx}>
+                            {row.map((cell, cellIdx) => (
+                              <td key={cellIdx}>{cell}</td>
+                            ))}
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={previewData.headers.length} className="no-data">
+                            No hay datos registrados aún
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+              
+              {previewData.dashboard && (
+                <div className="preview-section">
+                  <h4 className="preview-section-title">📊 Análisis del Documento</h4>
+                  <div className="preview-dashboard">
+                    <div className="preview-summary-grid">
+                      <div className="preview-summary-card">
+                        <span className="preview-summary-label">Total Clientes</span>
+                        <span className="preview-summary-value">{previewData.dashboard.totalClientes}</span>
+                      </div>
+                      <div className="preview-summary-card">
+                        <span className="preview-summary-label">Monto Total</span>
+                        <span className="preview-summary-value">S/ {previewData.dashboard.montoTotal?.toFixed(2)}</span>
+                      </div>
+                      <div className="preview-summary-card">
+                        <span className="preview-summary-label">Promedio Tasa</span>
+                        <span className="preview-summary-value">{previewData.dashboard.promedioTasa?.toFixed(2)}%</span>
+                      </div>
+                      <div className="preview-summary-card">
+                        <span className="preview-summary-label">Total Ganancias</span>
+                        <span className="preview-summary-value">S/ {previewData.dashboard.totalGanancias?.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    
+                    {previewData.dashboard.porProductos && previewData.dashboard.porProductos.some(p => p.total > 0) && (
+                      <div className="preview-productos-section">
+                        <h5>Productos y Conteo</h5>
+                        <div className="preview-productos-grid">
+                          {previewData.dashboard.porProductos.filter(p => p.total > 0).map((prod, idx) => (
+                            <div key={idx} className="preview-producto-card">
+                              <span className="preview-producto-nombre">{prod.producto}</span>
+                              <span className="preview-producto-total">{prod.total}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="preview-footer">
               <span>Total de registros: {previewData.rows.length}</span>
