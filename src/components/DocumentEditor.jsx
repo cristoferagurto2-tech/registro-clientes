@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import './DocumentEditor.css';
 
@@ -14,6 +14,8 @@ export default function DocumentEditor({ month }) {
   const [editedData, setEditedData] = useState({});
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
 
   const clientId = user?.id;
 
@@ -390,38 +392,42 @@ export default function DocumentEditor({ month }) {
     }
   };
 
-  // Descargar archivo Excel original
-  const handleDownloadExcel = () => {
+  // Mostrar vista previa del documento Excel
+  const handleShowPreview = () => {
     if (!clientId) return;
     
     try {
-      // Primero guardar los datos actuales
+      // Guardar datos actuales
       Object.entries(editedData).forEach(([key, value]) => {
         const [rowIndex, colIndex] = key.split('-').map(Number);
         updateCompletedData(clientId, month, rowIndex, colIndex, value);
       });
 
-      // Descargar archivo Excel
-      const blob = downloadOriginalFile(clientId, month);
-      
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Clientes_${month}_2026.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        setLastSaved(new Date());
-      } else {
-        alert('Error al generar el archivo Excel. Por favor intente nuevamente.');
-      }
+      // Preparar datos para la vista previa
+      const previewRows = data.map((row, rowIndex) => {
+        return row.map((cell, colIndex) => {
+          const key = `${rowIndex}-${colIndex}`;
+          const value = editedData[key] !== undefined ? editedData[key] : cell;
+          return value !== null && value !== undefined && value !== 'undefined' ? String(value) : '';
+        });
+      }).filter(row => row.some(cell => cell !== ''));
+
+      setPreviewData({
+        headers: headers,
+        rows: previewRows
+      });
+      setShowPreview(true);
+      setLastSaved(new Date());
     } catch (error) {
-      console.error('Error al descargar Excel:', error);
-      alert('Error al descargar el documento Excel: ' + (error.message || 'Error desconocido'));
+      console.error('Error al mostrar vista previa:', error);
+      alert('Error al mostrar la vista previa: ' + (error.message || 'Error desconocido'));
     }
+  };
+
+  // Cerrar vista previa
+  const handleClosePreview = () => {
+    setShowPreview(false);
+    setPreviewData(null);
   };
 
   if (!data) {
@@ -650,14 +656,62 @@ export default function DocumentEditor({ month }) {
           <span>Clientes registrados: {dashboard.totalClientes}</span>
         </div>
         <div className="download-buttons">
-          <button className="btn-download-v2 btn-excel" onClick={handleDownloadExcel}>
-            📊 Descargar Excel
+          <button className="btn-download-v2 btn-excel" onClick={handleShowPreview}>
+            👁️ Vista Previa Documento
           </button>
           <button className="btn-download-v2" onClick={handleDownload}>
             📄 Descargar PDF
           </button>
         </div>
       </div>
+
+      {/* Modal de Vista Previa */}
+      {showPreview && previewData && (
+        <div className="preview-modal-overlay" onClick={handleClosePreview}>
+          <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="preview-header">
+              <h3>Vista Previa del Documento - {month} 2026</h3>
+              <button className="preview-close-btn" onClick={handleClosePreview}>✕</button>
+            </div>
+            <div className="preview-content">
+              <div className="preview-excel-table">
+                <table>
+                  <thead>
+                    <tr>
+                      {previewData.headers.map((header, idx) => (
+                        <th key={idx}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewData.rows.length > 0 ? (
+                      previewData.rows.map((row, rowIdx) => (
+                        <tr key={rowIdx}>
+                          {row.map((cell, cellIdx) => (
+                            <td key={cellIdx}>{cell}</td>
+                          ))}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={previewData.headers.length} className="no-data">
+                          No hay datos registrados aún
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="preview-footer">
+              <span>Total de registros: {previewData.rows.length}</span>
+              <button className="btn-close-preview" onClick={handleClosePreview}>
+                Cerrar Vista Previa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
