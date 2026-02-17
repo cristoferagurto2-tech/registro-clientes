@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
-import { autoTable } from 'jspdf-autotable';
+import 'jspdf-autotable';
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
@@ -303,7 +303,7 @@ export default function DocumentEditor({ month }) {
       doc.setTextColor(30, 58, 138);
       doc.text('Lista de Clientes', 14, 40);
       
-      autoTable(doc, {
+      doc.autoTable({
         head: [headers],
         body: tableData,
         startY: 45,
@@ -343,7 +343,7 @@ export default function DocumentEditor({ month }) {
         ['Total Ganancias (S/)', `S/ ${(dashboard?.totalGanancias || 0).toFixed(2)}`]
       ];
       
-      autoTable(doc, {
+      doc.autoTable({
         body: summaryData,
         startY: 35,
         theme: 'grid',
@@ -367,7 +367,7 @@ export default function DocumentEditor({ month }) {
         `S/ ${m.ganancias.toFixed(2)}`
       ]) || [];
       
-      autoTable(doc, {
+      doc.autoTable({
         head: [['Mes', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)']],
         body: mesesData,
         startY: mesesY + 5,
@@ -387,7 +387,7 @@ export default function DocumentEditor({ month }) {
         p.total.toString()
       ]) || [];
       
-      autoTable(doc, {
+      doc.autoTable({
         head: [['Producto', 'Total']],
         body: productosData,
         startY: productosY + 5,
@@ -741,40 +741,98 @@ export default function DocumentEditor({ month }) {
               
               {previewData.dashboard && (
                 <div className="preview-section">
-                  <h4 className="preview-section-title">📊 Análisis del Documento</h4>
+                  <h4 className="preview-section-title">📊 DASHBOARD DE ANÁLISIS - AÑO 2026</h4>
+                  
+                  {/* Instrucciones */}
+                  <div className="preview-instrucciones">
+                    <p><strong>INSTRUCCIONES:</strong></p>
+                    <ol>
+                      <li>Ve a la hoja 'Clientes'</li>
+                      <li>Escribe fechas del año 2026</li>
+                      <li>La columna 'Mes' se actualiza automáticamente</li>
+                      <li>En Observaciones usa: <span className="color-cobro">Cobro</span>, <span className="color-pendiente">Pendiente</span> o <span className="color-cancelado">Cancelado</span></li>
+                      <li>Los colores se aplican automáticamente:</li>
+                    </ol>
+                    <div className="preview-leyenda-colores">
+                      <span className="leyenda-item yellow">🟡 Amarillo: Cobro</span>
+                      <span className="leyenda-item green">🟢 Verde: Pendiente / En espera</span>
+                      <span className="leyenda-item red">🔴 Rojo: Cancelado</span>
+                    </div>
+                  </div>
+
                   <div className="preview-dashboard">
-                    <div className="preview-summary-grid">
-                      <div className="preview-summary-card">
-                        <span className="preview-summary-label">Total Clientes</span>
-                        <span className="preview-summary-value">{previewData.dashboard.totalClientes}</span>
+                    {/* Resumen General */}
+                    <div className="preview-resumen-general">
+                      <h5>RESUMEN GENERAL - AÑO 2026</h5>
+                      <div className="preview-stats-grid">
+                        <div className="preview-stat-item">
+                          <span className="preview-stat-label">Total de Clientes</span>
+                          <span className="preview-stat-value">{previewData.dashboard.totalClientes || 0}</span>
+                        </div>
+                        <div className="preview-stat-item">
+                          <span className="preview-stat-label">Monto Total (S/)</span>
+                          <span className="preview-stat-value">{previewData.dashboard.montoTotal?.toFixed(2) || '0.00'}</span>
+                        </div>
+                        <div className="preview-stat-item">
+                          <span className="preview-stat-label">Promedio Tasa (%)</span>
+                          <span className="preview-stat-value">{previewData.dashboard.promedioTasa ? previewData.dashboard.promedioTasa.toFixed(2) + '%' : '#¡DIV/0!'}</span>
+                        </div>
+                        <div className="preview-stat-item">
+                          <span className="preview-stat-label">Total Ganancias (S/)</span>
+                          <span className="preview-stat-value">{previewData.dashboard.totalGanancias?.toFixed(2) || '0.00'}</span>
+                        </div>
                       </div>
-                      <div className="preview-summary-card">
-                        <span className="preview-summary-label">Monto Total</span>
-                        <span className="preview-summary-value">S/ {previewData.dashboard.montoTotal?.toFixed(2)}</span>
-                      </div>
-                      <div className="preview-summary-card">
-                        <span className="preview-summary-label">Promedio Tasa</span>
-                        <span className="preview-summary-value">{previewData.dashboard.promedioTasa?.toFixed(2)}%</span>
-                      </div>
-                      <div className="preview-summary-card">
-                        <span className="preview-summary-label">Total Ganancias</span>
-                        <span className="preview-summary-value">S/ {previewData.dashboard.totalGanancias?.toFixed(2)}</span>
+                    </div>
+
+                    {/* Resumen por Meses */}
+                    <div className="preview-resumen-meses">
+                      <h5>RESUMEN POR MESES - AÑO 2026</h5>
+                      <div className="preview-meses-table-container">
+                        <table className="preview-meses-table">
+                          <thead>
+                            <tr>
+                              <th>Mes</th>
+                              <th>Clientes</th>
+                              <th>Monto Total (S/)</th>
+                              <th>Ganancias (S/)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewData.dashboard.porMeses && previewData.dashboard.porMeses.map((mes, idx) => (
+                              <tr key={idx}>
+                                <td>{mes.mes}</td>
+                                <td>{mes.clientes || 0}</td>
+                                <td>{(mes.monto || 0).toFixed(2)}</td>
+                                <td>{(mes.ganancias || 0).toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                     
-                    {previewData.dashboard.porProductos && previewData.dashboard.porProductos.some(p => p.total > 0) && (
-                      <div className="preview-productos-section">
-                        <h5>Productos y Conteo</h5>
-                        <div className="preview-productos-grid">
-                          {previewData.dashboard.porProductos.filter(p => p.total > 0).map((prod, idx) => (
-                            <div key={idx} className="preview-producto-card">
-                              <span className="preview-producto-nombre">{prod.producto}</span>
-                              <span className="preview-producto-total">{prod.total}</span>
-                            </div>
-                          ))}
-                        </div>
+                    {/* Productos y Conteo */}
+                    <div className="preview-resumen-productos">
+                      <h5>PRODUCTOS Y CONTEO</h5>
+                      <div className="preview-productos-table-container">
+                        <table className="preview-productos-table">
+                          <thead>
+                            <tr>
+                              <th>Producto</th>
+                              <th>Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewData.dashboard.porProductos && previewData.dashboard.porProductos.map((prod, idx) => (
+                              <tr key={idx}>
+                                <td>{prod.producto}</td>
+                                <td>{prod.total || 0}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               )}
