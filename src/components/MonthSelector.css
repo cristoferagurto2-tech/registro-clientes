@@ -6,6 +6,39 @@
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
+/* Tabs Navigation */
+.tabs-navigation {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
 .selector-header {
   margin-bottom: 32px;
   padding-bottom: 24px;

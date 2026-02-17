@@ -1,12 +1,38 @@
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
+import AvanceAnual from './AvanceAnual';
 import './MonthSelector.css';
 
 export default function MonthSelector() {
   const { user } = useAuth();
   const { MESES, hasDocument, setCurrentMonth, getAvailableMonths } = useDocuments();
+  const [activeTab, setActiveTab] = useState('documents'); // 'documents' o 'avance'
 
   const availableMonths = getAvailableMonths(user?.id);
+
+  // Si está en la pestaña de avance anual, mostrar ese componente
+  if (activeTab === 'avance') {
+    return (
+      <div className="month-selector">
+        <div className="tabs-navigation">
+          <button 
+            className={`tab-btn ${activeTab === 'documents' ? 'active' : ''}`}
+            onClick={() => setActiveTab('documents')}
+          >
+            Mis Documentos
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'avance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('avance')}
+          >
+            Avance del Año
+          </button>
+        </div>
+        <AvanceAnual />
+      </div>
+    );
+  }
 
   if (availableMonths.length === 0) {
     return (
@@ -25,6 +51,21 @@ export default function MonthSelector() {
 
   return (
     <div className="month-selector">
+      <div className="tabs-navigation">
+        <button 
+          className={`tab-btn ${activeTab === 'documents' ? 'active' : ''}`}
+          onClick={() => setActiveTab('documents')}
+        >
+          Mis Documentos
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'avance' ? 'active' : ''}`}
+          onClick={() => setActiveTab('avance')}
+        >
+          Avance del Año
+        </button>
+      </div>
+
       <div className="selector-header">
         <h2>Mis Documentos</h2>
         <p>Bienvenido {user?.name || 'Cliente'}, estos son sus documentos asignados:</p>

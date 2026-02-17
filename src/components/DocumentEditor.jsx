@@ -640,41 +640,6 @@ export default function DocumentEditor({ month }) {
               </div>
             </div>
 
-            {/* Resumen por Meses */}
-            <div className="dashboard-section">
-              <h4>📅 Resumen por Meses</h4>
-              <div className="meses-table-wrapper">
-                <table className="meses-table">
-                  <thead>
-                    <tr>
-                      <th>Mes</th>
-                      <th>Cliente</th>
-                      <th className="col-numero">Monto Total</th>
-                      <th className="col-numero">Ganancia</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dashboard.porMeses.map((mes, index) => (
-                      <tr key={index}>
-                        <td className="col-mes">{mes.mes}</td>
-                        <td className="col-cliente">{mes.clientes}</td>
-                        <td className="col-numero">S/ {mes.monto.toFixed(2)}</td>
-                        <td className="col-numero">S/ {mes.ganancias.toFixed(2)}</td>
-                        <td className="col-estado">
-                          {mes.clientes > 0 ? (
-                            <span className="check-icon">✓</span>
-                          ) : (
-                            <span className="no-venta">-</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
             {/* Productos y Conteo */}
             <div className="dashboard-section">
               <h4>📊 Productos y Conteo</h4>
@@ -792,41 +757,6 @@ export default function DocumentEditor({ month }) {
                       </div>
                     </div>
 
-                    {/* Resumen por Meses */}
-                    <div className="preview-resumen-meses">
-                      <h5>RESUMEN POR MESES - AÑO 2026</h5>
-                      <div className="preview-meses-table-container">
-                        <table className="preview-meses-table">
-                          <thead>
-                            <tr>
-                              <th>Mes</th>
-                              <th>Cliente</th>
-                              <th className="col-numero">Monto Total</th>
-                              <th className="col-numero">Ganancia</th>
-                              <th>Estado</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {previewData.dashboard.porMeses && previewData.dashboard.porMeses.map((mes, idx) => (
-                              <tr key={idx}>
-                                <td className="col-mes">{mes.mes}</td>
-                                <td className="col-cliente">{mes.clientes || 0}</td>
-                                <td className="col-numero">S/ {(mes.monto || 0).toFixed(2)}</td>
-                                <td className="col-numero">S/ {(mes.ganancias || 0).toFixed(2)}</td>
-                                <td className="col-estado">
-                                  {mes.clientes > 0 ? (
-                                    <span className="check-icon">✓</span>
-                                  ) : (
-                                    <span className="no-venta">-</span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                    
                     {/* Productos y Conteo */}
                     <div className="preview-resumen-productos">
                       <h5>PRODUCTOS Y CONTEO</h5>
