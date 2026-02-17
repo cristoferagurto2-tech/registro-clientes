@@ -431,6 +431,23 @@
   box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
 }
 
+/* Contenedor de botones de descarga */
+.download-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Botón de Excel con color verde */
+.btn-download-v2.btn-excel {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.btn-download-v2.btn-excel:hover {
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+}
+
 /* Empty State */
 .editor-empty {
   text-align: center;

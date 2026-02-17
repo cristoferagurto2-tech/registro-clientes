@@ -385,7 +385,42 @@ export default function DocumentEditor({ month }) {
       setLastSaved(new Date());
     } catch (error) {
       console.error('Error al generar PDF:', error);
-      alert('Error al generar el documento PDF.');
+      console.error('Detalles del error:', error.message, error.stack);
+      alert('Error al generar el documento PDF: ' + (error.message || 'Error desconocido'));
+    }
+  };
+
+  // Descargar archivo Excel original
+  const handleDownloadExcel = () => {
+    if (!clientId) return;
+    
+    try {
+      // Primero guardar los datos actuales
+      Object.entries(editedData).forEach(([key, value]) => {
+        const [rowIndex, colIndex] = key.split('-').map(Number);
+        updateCompletedData(clientId, month, rowIndex, colIndex, value);
+      });
+
+      // Descargar archivo Excel
+      const blob = downloadOriginalFile(clientId, month);
+      
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Clientes_${month}_2026.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        setLastSaved(new Date());
+      } else {
+        alert('Error al generar el archivo Excel. Por favor intente nuevamente.');
+      }
+    } catch (error) {
+      console.error('Error al descargar Excel:', error);
+      alert('Error al descargar el documento Excel: ' + (error.message || 'Error desconocido'));
     }
   };
 
@@ -614,9 +649,14 @@ export default function DocumentEditor({ month }) {
           <span>Total de filas: {data.length}</span>
           <span>Clientes registrados: {dashboard.totalClientes}</span>
         </div>
-        <button className="btn-download-v2" onClick={handleDownload}>
-          Descargar Documento PDF
-        </button>
+        <div className="download-buttons">
+          <button className="btn-download-v2 btn-excel" onClick={handleDownloadExcel}>
+            📊 Descargar Excel
+          </button>
+          <button className="btn-download-v2" onClick={handleDownload}>
+            📄 Descargar PDF
+          </button>
+        </div>
       </div>
     </div>
   );
