@@ -648,18 +648,26 @@ export default function DocumentEditor({ month }) {
                   <thead>
                     <tr>
                       <th>Mes</th>
-                      <th>Clientes</th>
-                      <th>Monto Total (S/)</th>
-                      <th>Ganancias (S/)</th>
+                      <th>Cliente</th>
+                      <th className="col-numero">Monto Total</th>
+                      <th className="col-numero">Ganancia</th>
+                      <th>Estado</th>
                     </tr>
                   </thead>
                   <tbody>
                     {dashboard.porMeses.map((mes, index) => (
                       <tr key={index}>
-                        <td>{mes.mes}</td>
-                        <td className="numero">{mes.clientes}</td>
-                        <td className="numero">{mes.monto.toFixed(2)}</td>
-                        <td className="numero">{mes.ganancias.toFixed(2)}</td>
+                        <td className="col-mes">{mes.mes}</td>
+                        <td className="col-cliente">{mes.clientes}</td>
+                        <td className="col-numero">S/ {mes.monto.toFixed(2)}</td>
+                        <td className="col-numero">S/ {mes.ganancias.toFixed(2)}</td>
+                        <td className="col-estado">
+                          {mes.clientes > 0 ? (
+                            <span className="check-icon">✓</span>
+                          ) : (
+                            <span className="no-venta">-</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -792,18 +800,26 @@ export default function DocumentEditor({ month }) {
                           <thead>
                             <tr>
                               <th>Mes</th>
-                              <th>Clientes</th>
-                              <th>Monto Total (S/)</th>
-                              <th>Ganancias (S/)</th>
+                              <th>Cliente</th>
+                              <th className="col-numero">Monto Total</th>
+                              <th className="col-numero">Ganancia</th>
+                              <th>Estado</th>
                             </tr>
                           </thead>
                           <tbody>
                             {previewData.dashboard.porMeses && previewData.dashboard.porMeses.map((mes, idx) => (
                               <tr key={idx}>
-                                <td>{mes.mes}</td>
-                                <td>{mes.clientes || 0}</td>
-                                <td>{(mes.monto || 0).toFixed(2)}</td>
-                                <td>{(mes.ganancias || 0).toFixed(2)}</td>
+                                <td className="col-mes">{mes.mes}</td>
+                                <td className="col-cliente">{mes.clientes || 0}</td>
+                                <td className="col-numero">S/ {(mes.monto || 0).toFixed(2)}</td>
+                                <td className="col-numero">S/ {(mes.ganancias || 0).toFixed(2)}</td>
+                                <td className="col-estado">
+                                  {mes.clientes > 0 ? (
+                                    <span className="check-icon">✓</span>
+                                  ) : (
+                                    <span className="no-venta">-</span>
+                                  )}
+                                </td>
                               </tr>
                             ))}
                           </tbody>

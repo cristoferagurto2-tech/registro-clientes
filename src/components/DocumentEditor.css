@@ -337,6 +337,10 @@
   font-weight: 600;
 }
 
+.meses-table th.col-numero {
+  text-align: right;
+}
+
 .meses-table td {
   padding: 12px 16px;
   border-bottom: 1px solid #e2e8f0;
@@ -344,6 +348,26 @@
 
 .meses-table tr:hover {
   background: #f0f9ff;
+}
+
+/* Alinear columnas de números a la derecha */
+.meses-table td.col-numero,
+.meses-table td.col-cliente {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+/* Estilo para la columna de mes */
+.meses-table td.col-mes {
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+/* Estilo para la columna de estado */
+.meses-table td.col-estado {
+  text-align: center;
 }
 
 .meses-table .numero {
@@ -852,6 +876,10 @@
   font-weight: 600;
 }
 
+.preview-meses-table th.col-numero {
+  text-align: right;
+}
+
 .preview-meses-table td {
   padding: 10px 12px;
   border-bottom: 1px solid #e2e8f0;
@@ -862,10 +890,43 @@
   background: #f8fafc;
 }
 
-.preview-meses-table td:last-child,
-.preview-meses-table td:nth-last-child(2) {
+/* Alinear columnas de números a la derecha */
+.preview-meses-table td.col-numero,
+.preview-meses-table td.col-cliente {
   text-align: right;
   font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+/* Estilo para la columna de mes */
+.preview-meses-table td.col-mes {
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+/* Estilo para la columna de estado */
+.preview-meses-table td.col-estado {
+  text-align: center;
+}
+
+/* Icono de check */
+.check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #22c55e;
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Sin venta */
+.no-venta {
+  color: #94a3b8;
   font-weight: 600;
 }
 
