@@ -609,51 +609,6 @@ export default function DocumentEditor({ month }) {
           </div>
         </div>
 
-        {/* HOJA 2: Dashboard */}
-        <div className="sheet-section dashboard">
-          <div className="sheet-header-v2">
-            <h3>Hoja 2: Dashboard</h3>
-            <span className="sheet-badge readonly">Automático</span>
-          </div>
-          
-          <div className="dashboard-content">
-            {/* Resumen General */}
-            <div className="dashboard-section">
-              <h4>📋 Resumen General</h4>
-              <div className="summary-grid">
-                <div className="summary-card">
-                  <span className="summary-label">Total de Clientes</span>
-                  <span className="summary-value">{dashboard.totalClientes}</span>
-                </div>
-                <div className="summary-card">
-                  <span className="summary-label">Monto Total (S/)</span>
-                  <span className="summary-value">{dashboard.montoTotal.toFixed(2)}</span>
-                </div>
-                <div className="summary-card">
-                  <span className="summary-label">Promedio Tasa (%)</span>
-                  <span className="summary-value">{dashboard.promedioTasa.toFixed(2)}</span>
-                </div>
-                <div className="summary-card">
-                  <span className="summary-label">Total Ganancias (S/)</span>
-                  <span className="summary-value">{dashboard.totalGanancias.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Productos y Conteo */}
-            <div className="dashboard-section">
-              <h4>📊 Productos y Conteo</h4>
-              <div className="productos-grid">
-                {dashboard.porProductos.map((prod, index) => (
-                  <div key={index} className="producto-card">
-                    <span className="producto-nombre">{prod.producto}</span>
-                    <span className="producto-total">{prod.total}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="editor-footer-v2">
