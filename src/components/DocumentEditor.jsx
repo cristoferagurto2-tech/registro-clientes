@@ -417,6 +417,41 @@ export default function DocumentEditor({ month }) {
     }
   };
 
+  // Calcular resumen por días
+  const calcularResumenPorDias = (rows) => {
+    const resumenPorDia = {};
+    
+    rows.forEach(row => {
+      const fecha = row[0]; // Columna 0 es la fecha
+      if (!fecha) return;
+      
+      // Extraer solo el día de la fecha (formato: 2026-01-15)
+      const dia = fecha.split('-')[2] || fecha;
+      
+      if (!resumenPorDia[dia]) {
+        resumenPorDia[dia] = {
+          dia: dia,
+          clientes: 0,
+          monto: 0,
+          ganancias: 0
+        };
+      }
+      
+      resumenPorDia[dia].clientes += 1;
+      
+      // Columna 6 es Monto
+      const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+      resumenPorDia[dia].monto += monto;
+      
+      // Columna 10 es Ganancias
+      const ganancia = parseFloat(String(row[10]).replace(/[^0-9.-]/g, '')) || 0;
+      resumenPorDia[dia].ganancias += ganancia;
+    });
+    
+    // Convertir a array y ordenar por día
+    return Object.values(resumenPorDia).sort((a, b) => parseInt(a.dia) - parseInt(b.dia));
+  };
+
   // Mostrar vista previa del documento Excel
   const handleShowPreview = () => {
     if (!clientId) return;
@@ -437,10 +472,14 @@ export default function DocumentEditor({ month }) {
         });
       }).filter(row => row.some(cell => cell !== ''));
 
+      // Calcular resumen por días
+      const resumenPorDias = calcularResumenPorDias(previewRows);
+
       setPreviewData({
         headers: headers,
         rows: previewRows,
-        dashboard: dashboard // Agregar el análisis/dashboard
+        dashboard: dashboard,
+        resumenPorDias: resumenPorDias
       });
       setShowPreview(true);
       setLastSaved(new Date());
@@ -709,6 +748,39 @@ export default function DocumentEditor({ month }) {
                           <span className="preview-stat-label">Total Ganancias (S/)</span>
                           <span className="preview-stat-value">{previewData.dashboard.totalGanancias?.toFixed(2) || '0.00'}</span>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Resumen por Días */}
+                    <div className="preview-resumen-dias">
+                      <h5>RESUMEN POR DÍAS - {month.toUpperCase()} 2026</h5>
+                      <div className="preview-dias-table-container">
+                        <table className="preview-dias-table">
+                          <thead>
+                            <tr>
+                              <th className="col-dia-header">Día</th>
+                              <th className="col-cliente-header">Clientes</th>
+                              <th className="col-numero-header">Monto Total</th>
+                              <th className="col-numero-header">Ganancia</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewData.resumenPorDias && previewData.resumenPorDias.length > 0 ? (
+                              previewData.resumenPorDias.map((dia, idx) => (
+                                <tr key={idx}>
+                                  <td className="col-dia">{dia.dia}</td>
+                                  <td className="col-cliente">{dia.clientes}</td>
+                                  <td className="col-numero">S/ {dia.monto.toFixed(2)}</td>
+                                  <td className="col-numero">S/ {dia.ganancias.toFixed(2)}</td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="4" className="no-data">No hay datos por día</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
 

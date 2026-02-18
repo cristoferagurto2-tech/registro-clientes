@@ -930,6 +930,96 @@
   font-weight: 600;
 }
 
+/* Resumen por Días */
+.preview-resumen-dias {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.preview-resumen-dias h5 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.preview-dias-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.preview-dias-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.preview-dias-table th {
+  background: #1e3a8a;
+  color: white;
+  padding: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.preview-dias-table th.col-dia-header {
+  text-align: left;
+}
+
+.preview-dias-table th.col-cliente-header {
+  text-align: center;
+}
+
+.preview-dias-table th.col-numero-header {
+  text-align: right;
+}
+
+.preview-dias-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.preview-dias-table tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+.preview-dias-table tr:hover td {
+  background: #f0f9ff;
+}
+
+.preview-dias-table td.col-dia {
+  font-weight: 600;
+  color: #1e3a8a;
+  text-align: left;
+}
+
+.preview-dias-table td.col-cliente {
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.preview-dias-table td.col-numero {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+.preview-dias-table .no-data {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 20px;
+}
+
 /* Productos y Conteo */
 .preview-resumen-productos h5 {
   font-size: 16px;
