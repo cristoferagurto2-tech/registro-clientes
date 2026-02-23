@@ -9,9 +9,22 @@ import TrialExpiredModal from './TrialExpiredModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const { user, isAdmin, logout, getTrialStatus, isReadOnlyMode } = useAuth();
+  const { user, isAdmin, logout, getTrialStatus, isReadOnlyMode, subscribeClient } = useAuth();
   const { currentMonth, setCurrentMonth } = useDocuments();
   const [showTrialModal, setShowTrialModal] = useState(false);
+
+  // Manejar suscripción
+  const handleSubscribe = (plan) => {
+    // Aquí puedes redirigir a una pasarela de pagos real
+    // Por ahora mostramos un mensaje con las instrucciones
+    const planName = plan === 'basic' ? 'Plan Básico (S/ 30/mes)' : 'Plan Profesional (S/ 60/mes)';
+    const message = `Has seleccionado: ${planName}\n\nPara completar tu suscripción, contacta al administrador:\n\n📧 cristoferagurto2@gmail.com\n\nO realiza el pago y envía el comprobante.`;
+    
+    alert(message);
+    
+    // Opcional: Abrir WhatsApp
+    // window.open('https://wa.me/TUNUMERO?text=Hola, quiero suscribirme al ' + planName, '_blank');
+  };
 
   // Verificar estado del período de prueba al cargar
   useEffect(() => {
@@ -130,6 +143,7 @@ export default function Dashboard() {
         isOpen={showTrialModal}
         onClose={() => setShowTrialModal(false)}
         daysRemaining={user ? getTrialStatus(user.email)?.daysRemaining : 0}
+        onSubscribe={handleSubscribe}
       />
     </div>
   );

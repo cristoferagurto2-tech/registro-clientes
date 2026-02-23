@@ -1,6 +1,6 @@
 import './TrialExpiredModal.css';
 
-export default function TrialExpiredModal({ isOpen, onClose, daysRemaining }) {
+export default function TrialExpiredModal({ isOpen, onClose, daysRemaining, onSubscribe }) {
   if (!isOpen) return null;
   
   const isExpired = daysRemaining <= 0;
@@ -44,7 +44,12 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining }) {
                     <li>✓ Dashboard estándar</li>
                     <li>✓ Soporte por email</li>
                   </ul>
-                  <button className="plan-button basic">Suscribirse al Básico</button>
+                  <button 
+                    className="plan-button basic"
+                    onClick={() => onSubscribe && onSubscribe('basic')}
+                  >
+                    Suscribirse al Básico
+                  </button>
                 </div>
                 
                 <div className="plan-card recommended">
@@ -61,7 +66,12 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining }) {
                     <li>✓ Exportación a Excel</li>
                     <li>✓ Soporte prioritario</li>
                   </ul>
-                  <button className="plan-button professional">Suscribirse al Profesional</button>
+                  <button 
+                    className="plan-button professional"
+                    onClick={() => onSubscribe && onSubscribe('professional')}
+                  >
+                    Suscribirse al Profesional
+                  </button>
                 </div>
               </div>
             </>
@@ -83,7 +93,12 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining }) {
                     <span className="plan-name">Plan Básico</span>
                     <span className="plan-price">S/ 30/mes</span>
                   </div>
-                  <button className="plan-button basic">Suscribirse</button>
+                  <button 
+                    className="plan-button basic"
+                    onClick={() => onSubscribe && onSubscribe('basic')}
+                  >
+                    Suscribirse
+                  </button>
                 </div>
                 
                 <div className="plan-card recommended">
@@ -91,7 +106,12 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining }) {
                     <span className="plan-name">Plan Profesional</span>
                     <span className="plan-price">S/ 60/mes</span>
                   </div>
-                  <button className="plan-button professional">Suscribirse</button>
+                  <button 
+                    className="plan-button professional"
+                    onClick={() => onSubscribe && onSubscribe('professional')}
+                  >
+                    Suscribirse
+                  </button>
                 </div>
               </div>
             </>
