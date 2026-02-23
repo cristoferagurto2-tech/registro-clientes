@@ -1,9 +1,38 @@
 import emailjs from '@emailjs/browser';
 
-// Configuración de EmailJS
-const SERVICE_ID = 'service_clientcore'; // Lo obtendrás de EmailJS
-const TEMPLATE_ID = 'template_payment'; // Lo obtendrás de EmailJS
-const PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // Lo obtendrás de EmailJS
+// ============================================
+// CONFIGURACIÓN CON CONTRASEÑA DE APLICACIÓN
+// ============================================
+
+// INSTRUCCIONES PARA CONFIGURAR SMTP EN EMAILJS:
+//
+// 1. En EmailJS, ve a "Email Services"
+// 2. Crea un NUEVO servicio (no uses el de Gmail que dio error)
+// 3. Selecciona tipo: "SMTP"
+// 4. Completa estos datos:
+//    - Name: Gmail SMTP
+//    - SMTP Host: smtp.gmail.com
+//    - Port: 587
+//    - Username: cristoferagurto2@gmail.com
+//    - Password: [Pega aquí tu contraseña de 16 caracteres]
+//    - Encryption: TLS
+//    - From Email: cristoferagurto2@gmail.com
+//    - From Name: ClientCore
+//
+// 5. Presiona "Create Service"
+// 6. Copia el Service ID (ejemplo: service_abc123)
+// 7. Pégalo aquí abajo en SERVICE_ID
+//
+// 8. Ve a "Email Templates" y crea una plantilla
+// 9. Copia el Template ID (ejemplo: template_xyz789)
+// 10. Pégalo aquí abajo en TEMPLATE_ID
+//
+// 11. Ve a Account > General, copia Public Key
+// 12. Pégalo aquí abajo en PUBLIC_KEY
+
+const SERVICE_ID = 'service_tu_service_id';   // ← Pega aquí tu Service ID
+const TEMPLATE_ID = 'template_tu_template_id'; // ← Pega aquí tu Template ID
+const PUBLIC_KEY = 'tu_public_key';           // ← Pega aquí tu Public Key
 
 export const sendPaymentNotification = async (planName, planPrice, clientEmail, file) => {
   try {
