@@ -13,6 +13,7 @@ export default function ClientDocumentsManager({ client, onBack }) {
   
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
+  const [bulkUploading, setBulkUploading] = useState(false);
 
   const clientDocs = getClientDocuments(client.id);
 
@@ -46,6 +47,37 @@ export default function ClientDocumentsManager({ client, onBack }) {
     }
   };
 
+  const handleBulkUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      setMessage('Error: Por favor suba un archivo Excel (.xlsx o .xls)');
+      return;
+    }
+
+    if (!window.confirm(`¿Está seguro de asignar el archivo "${file.name}" a TODOS los meses para ${client.name}?\n\nEsto reemplazará cualquier documento existente.`)) {
+      event.target.value = '';
+      return;
+    }
+
+    setBulkUploading(true);
+    setMessage('Asignando documento a todos los meses...');
+
+    try {
+      // Subir el archivo a todos los meses
+      for (const month of MESES) {
+        await uploadDocument(client.id, month, file);
+      }
+      setMessage(`¡Éxito! Documento "${file.name}" asignado a todos los meses`);
+    } catch (error) {
+      setMessage(`Error al asignar: ${error.message}`);
+    } finally {
+      setBulkUploading(false);
+      event.target.value = '';
+    }
+  };
+
   const documentCount = Object.keys(clientDocs).length;
 
   return (
@@ -73,6 +105,30 @@ export default function ClientDocumentsManager({ client, onBack }) {
           {message}
         </div>
       )}
+
+      {/* Subida masiva a todos los meses */}
+      <div className="bulk-upload-section">
+        <h3>📁 Asignar Documento a Todos los Meses</h3>
+        <p className="section-description">
+          Suba un archivo Excel para asignarlo automáticamente a todos los meses de {client.name}.
+          Esto es útil cuando el cliente usa el mismo formato para todo el año.
+        </p>
+        <div className="bulk-upload-box">
+          <label className={`btn-bulk-upload ${bulkUploading ? 'disabled' : ''}`}>
+            {bulkUploading ? '⏳ Asignando a todos los meses...' : '📤 Subir archivo para todos los meses'}
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleBulkUpload}
+              style={{ display: 'none' }}
+              disabled={bulkUploading}
+            />
+          </label>
+          <p className="bulk-hint">
+            El mismo archivo se copiará a todos los meses (Enero a Diciembre)
+          </p>
+        </div>
+      </div>
 
       <div className="documents-section">
         <h3>Documentos por Mes</h3>
