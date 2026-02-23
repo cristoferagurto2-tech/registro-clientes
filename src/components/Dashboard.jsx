@@ -15,15 +15,20 @@ export default function Dashboard() {
 
   // Manejar suscripción
   const handleSubscribe = (plan) => {
+    console.log('Botón de suscripción presionado:', plan);
+    
     // Aquí puedes redirigir a una pasarela de pagos real
     // Por ahora mostramos un mensaje con las instrucciones
     const planName = plan === 'basic' ? 'Plan Básico (S/ 30/mes)' : 'Plan Profesional (S/ 60/mes)';
     const message = `Has seleccionado: ${planName}\n\nPara completar tu suscripción, contacta al administrador:\n\n📧 cristoferagurto2@gmail.com\n\nO realiza el pago y envía el comprobante.`;
     
-    alert(message);
+    // Usar setTimeout para asegurar que el alert se muestre después del renderizado
+    setTimeout(() => {
+      alert(message);
+    }, 100);
     
     // Opcional: Abrir WhatsApp
-    // window.open('https://wa.me/TUNUMERO?text=Hola, quiero suscribirme al ' + planName, '_blank');
+    // window.open('https://wa.me/51913664993?text=Hola, quiero suscribirme al ' + planName, '_blank');
   };
 
   // Verificar estado del período de prueba al cargar
@@ -128,7 +133,7 @@ export default function Dashboard() {
       </section>
 
       {/* Barra de estado del período de prueba */}
-      {!isAdmin && <TrialStatusBar />}
+      {!isAdmin && <TrialStatusBar onSubscribe={handleSubscribe} />}
 
       <main className="dashboard-main">
         {isAdmin ? <AdminPanel /> : <MonthSelector />}

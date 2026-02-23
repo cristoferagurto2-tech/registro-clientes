@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import './TrialStatusBar.css';
 
-export default function TrialStatusBar() {
+export default function TrialStatusBar({ onSubscribe }) {
   const { user, getTrialStatus, isReadOnlyMode } = useAuth();
   
   if (!user) return null;
@@ -44,7 +44,10 @@ export default function TrialStatusBar() {
             <span className="trial-date">Vence el {formattedDate}</span>
           </div>
         </div>
-        <button className="trial-subscribe-btn">
+        <button 
+          className="trial-subscribe-btn"
+          onClick={() => onSubscribe && onSubscribe('professional')}
+        >
           Suscribirse Ahora
         </button>
       </div>
@@ -63,7 +66,10 @@ export default function TrialStatusBar() {
           <span className="trial-date">Modo solo lectura - Suscríbase para reactivar</span>
         </div>
       </div>
-      <button className="trial-subscribe-btn urgent">
+      <button 
+        className="trial-subscribe-btn urgent"
+        onClick={() => onSubscribe && onSubscribe('professional')}
+      >
         Suscribirse Ahora
       </button>
     </div>
