@@ -1,0 +1,19 @@
+# ============================================
+# CONFIGURACIÓN PARA RENDER.COM
+# ============================================
+# Este archivo le dice a Render.com cómo desplegar tu backend
+# ============================================
+
+services:
+  - type: web
+    name: clientcore-backend
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: EMAIL_USER
+        sync: false  # Lo configuras manualmente en el dashboard de Render
+      - key: EMAIL_PASS
+        sync: false  # Lo configuras manualmente en el dashboard de Render
