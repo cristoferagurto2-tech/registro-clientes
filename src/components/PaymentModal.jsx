@@ -85,6 +85,15 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
                   <div className="qr-container">
                     <h4>Escanea el QR con tu Yape:</h4>
                     <div className="qr-placeholder">
+                      {/* OPCIÓN 1: Usar imagen QR real (recomendada) */}
+                      {/* 
+                        Para usar tu QR real:
+                        1. Guarda tu QR como 'yape-qr.png' en la carpeta public/
+                        2. Descomenta la siguiente línea y comenta el div.qr-pattern
+                      */}
+                      {/* <img src="/yape-qr.png" alt="QR Yape" className="qr-image" /> */}
+                      
+                      {/* OPCIÓN 2: Placeholder visual (actual) */}
                       <div className="qr-code">
                         <div className="qr-pattern">
                           <span className="qr-label">QR YAPE</span>

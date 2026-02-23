@@ -120,6 +120,15 @@
   gap: 8px;
 }
 
+/* Estilo para imagen QR real */
+.qr-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 .qr-label {
   font-size: 14px;
   font-weight: 700;
