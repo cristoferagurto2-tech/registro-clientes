@@ -1,0 +1,128 @@
+.trial-status-bar {
+  padding: 12px 24px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.trial-status-bar.active {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border: 1px solid #60a5fa;
+}
+
+.trial-status-bar.warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+}
+
+.trial-status-bar.expired {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border: 1px solid #ef4444;
+}
+
+.trial-status-bar.subscribed {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 1px solid #22c55e;
+  justify-content: center;
+}
+
+.trial-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.trial-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trial-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trial-text {
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.trial-text strong {
+  font-weight: 600;
+}
+
+.trial-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.trial-subscribe-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.trial-subscribe-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.trial-subscribe-btn.urgent {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  animation: pulse 2s infinite;
+}
+
+.trial-subscribe-btn.urgent:hover {
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .trial-status-bar {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+  
+  .trial-content {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .trial-info {
+    align-items: center;
+  }
+  
+  .trial-subscribe-btn {
+    width: 100%;
+  }
+}

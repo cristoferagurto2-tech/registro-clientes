@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
-export default function Login({ onSwitchToRegister }) {
+export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }) {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -111,6 +111,16 @@ export default function Login({ onSwitchToRegister }) {
           >
             {loading ? 'Ingresando...' : 'Ingresar al Sistema'}
           </button>
+
+          <div className="forgot-password-link">
+            <button 
+              type="button" 
+              className="link-button"
+              onClick={onSwitchToForgotPassword}
+            >
+              ¿Olvidó su contraseña?
+            </button>
+          </div>
         </form>
 
         <div className="login-footer">

@@ -7,7 +7,7 @@ import 'jspdf-autotable';
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
-  const { user } = useAuth();
+  const { user, isReadOnlyMode, getTrialStatus } = useAuth();
   const { getMergedData, updateCompletedData, downloadOriginalFile } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
@@ -213,9 +213,16 @@ export default function DocumentEditor({ month }) {
       return sum + monto;
     }, 0);
     
-    const tasas = currentData.map(row => parseFloat(String(row[7]).replace(/[^0-9.-]/g, '')) || 0)
-                             .filter(t => t > 0);
-    const promedioTasa = tasas.length > 0 ? tasas.reduce((a, b) => a + b, 0) / tasas.length : 0;
+    // Calcular promedio ponderado de tasas (ponderado por el monto)
+    const tasasConMontos = currentData.map(row => {
+      const tasa = parseFloat(String(row[7]).replace(/[^0-9.-]/g, '')) || 0;
+      const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+      return { tasa, monto };
+    }).filter(item => item.tasa > 0 && item.monto > 0);
+    
+    const totalMonto = tasasConMontos.reduce((sum, item) => sum + item.monto, 0);
+    const sumaPonderada = tasasConMontos.reduce((sum, item) => sum + (item.tasa * item.monto), 0);
+    const promedioTasa = totalMonto > 0 ? (sumaPonderada / totalMonto) : 0;
     
     const totalGanancias = currentData.reduce((sum, row) => {
       const ganancia = parseFloat(String(row[10]).replace(/[^0-9.-]/g, '')) || 0;
@@ -339,7 +346,7 @@ export default function DocumentEditor({ month }) {
       const summaryData = [
         ['Total de Clientes', dashboard?.totalClientes?.toString() || '0'],
         ['Monto Total (S/)', `S/ ${(dashboard?.montoTotal || 0).toFixed(2)}`],
-        ['Promedio Tasa (%)', `${(dashboard?.promedioTasa || 0).toFixed(2)}%`],
+        ['Promedio Ponderado (%)', `${(dashboard?.promedioTasa || 0).toFixed(2)}%`],
         ['Total Ganancias (S/)', `S/ ${(dashboard?.totalGanancias || 0).toFixed(2)}`]
       ];
       
@@ -504,8 +511,25 @@ export default function DocumentEditor({ month }) {
     );
   }
 
+  const readOnly = isReadOnlyMode(user?.email);
+  const trialStatus = getTrialStatus(user?.email);
+
   return (
     <div className="document-editor-v2">
+      {/* Banner de modo solo lectura */}
+      {readOnly && (
+        <div className="read-only-banner">
+          <span className="read-only-icon">🔒</span>
+          <div className="read-only-content">
+            <strong>Modo Solo Lectura</strong>
+            <span>Su período de prueba ha finalizado. Suscríbase para editar.</span>
+          </div>
+          <button className="read-only-btn" onClick={() => window.location.reload()}>
+            Ver Planes
+          </button>
+        </div>
+      )}
+
       <div className="editor-header-v2">
         <div className="header-content">
           <h2>{month} 2026</h2>
@@ -513,19 +537,21 @@ export default function DocumentEditor({ month }) {
         </div>
         
         <div className="header-actions">
-          {lastSaved && (
+          {lastSaved && !readOnly && (
             <span className="save-indicator">
               Guardado: {lastSaved.toLocaleTimeString()}
             </span>
           )}
           
-          <button 
-            className={`btn-save-v2 ${saving ? 'saving' : ''}`}
-            onClick={handleSave}
-            disabled={saving}
-          >
-            {saving ? 'Guardando...' : 'Guardar Cambios'}
-          </button>
+          {!readOnly && (
+            <button 
+              className={`btn-save-v2 ${saving ? 'saving' : ''}`}
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -580,6 +606,7 @@ export default function DocumentEditor({ month }) {
                                 value={safeValue}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
+                                disabled={readOnly}
                               >
                                 <option value="">Seleccione...</option>
                                 {productosList.map(prod => (
@@ -600,6 +627,7 @@ export default function DocumentEditor({ month }) {
                                 value={value && value !== 'undefined' ? value : ''}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
+                                disabled={readOnly}
                               >
                                 <option value="">Día</option>
                                 {diasOptions.map(dia => (
@@ -636,6 +664,7 @@ export default function DocumentEditor({ month }) {
                               onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                               className="data-input"
                               placeholder=""
+                              disabled={readOnly}
                             />
                           </td>
                         );
@@ -741,7 +770,7 @@ export default function DocumentEditor({ month }) {
                           <span className="preview-stat-value">{previewData.dashboard.montoTotal?.toFixed(2) || '0.00'}</span>
                         </div>
                         <div className="preview-stat-item">
-                          <span className="preview-stat-label">Promedio Tasa (%)</span>
+                          <span className="preview-stat-label">Promedio Ponderado (%)</span>
                           <span className="preview-stat-value">{previewData.dashboard.promedioTasa ? previewData.dashboard.promedioTasa.toFixed(2) + '%' : '#¡DIV/0!'}</span>
                         </div>
                         <div className="preview-stat-item">

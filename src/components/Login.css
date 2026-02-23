@@ -219,6 +219,22 @@
   margin: 0;
 }
 
+/* Forgot Password Link */
+.forgot-password-link {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.forgot-password-link .link-button {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.forgot-password-link .link-button:hover {
+  color: #667eea;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .login-card {

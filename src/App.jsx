@@ -3,12 +3,13 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DocumentsProvider } from './context/DocumentsContext';
 import Login from './components/Login';
 import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import './App.css';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
-  const [showRegister, setShowRegister] = useState(false);
+  const [currentView, setCurrentView] = useState('login'); // 'login', 'register', 'forgotPassword'
 
   return (
     <div className="app">
@@ -16,10 +17,15 @@ function AppContent() {
         <DocumentsProvider>
           <Dashboard />
         </DocumentsProvider>
-      ) : showRegister ? (
-        <Register onSwitchToLogin={() => setShowRegister(false)} />
+      ) : currentView === 'register' ? (
+        <Register onSwitchToLogin={() => setCurrentView('login')} />
+      ) : currentView === 'forgotPassword' ? (
+        <ForgotPassword onSwitchToLogin={() => setCurrentView('login')} />
       ) : (
-        <Login onSwitchToRegister={() => setShowRegister(true)} />
+        <Login 
+          onSwitchToRegister={() => setCurrentView('register')} 
+          onSwitchToForgotPassword={() => setCurrentView('forgotPassword')}
+        />
       )}
     </div>
   );
