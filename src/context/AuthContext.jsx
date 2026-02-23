@@ -48,14 +48,6 @@ const INITIAL_CLIENTS = [
     password: '123456',
     isRegistered: true 
   },
-  { 
-    id: 'cliente-prueba', 
-    email: 'prueba@clientcore.com', 
-    name: 'Usuario de Prueba',
-    password: '123456',
-    isRegistered: true,
-    registeredAt: new Date().toISOString()
-  },
 ];
 
 export function AuthProvider({ children }) {

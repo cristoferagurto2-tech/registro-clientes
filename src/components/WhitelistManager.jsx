@@ -16,8 +16,7 @@ export default function WhitelistManager() {
       // Lista por defecto si no hay nada guardado
       const defaultEmails = [
         'cliente1@email.com',
-        'cliente2@email.com',
-        'prueba@clientcore.com'
+        'cliente2@email.com'
       ];
       setAllowedEmails(defaultEmails);
       localStorage.setItem('allowedEmails', JSON.stringify(defaultEmails));
