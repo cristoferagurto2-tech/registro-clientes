@@ -14,7 +14,6 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
   };
 
   const plan = planDetails[selectedPlan] || planDetails.basic;
-  const whatsappNumber = '51913664993';
   const yapeNumber = '913664993';
   const adminEmail = 'cristoferagurto2@gmail.com';
 
@@ -35,12 +34,6 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
       setShowSuccess(false);
       onClose();
     }, 3000);
-  };
-
-  const openWhatsApp = () => {
-    const message = `Hola, acabo de realizar el pago del ${plan.name} (S/ ${plan.price}.00). Adjunto el comprobante.`;
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
   };
 
   const copyYapeNumber = () => {
@@ -103,15 +96,6 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
                 </div>
               )}
 
-              {/* Botón WhatsApp */}
-              <div className="whatsapp-section">
-                <h4>¿Ya realizaste el pago?</h4>
-                <button className="whatsapp-btn" onClick={openWhatsApp}>
-                  <span className="whatsapp-icon">💬</span>
-                  Enviar comprobante por WhatsApp
-                </button>
-              </div>
-
               {/* Subir comprobante */}
               <div className="upload-section">
                 <h4>O suba el comprobante aquí:</h4>
@@ -140,7 +124,6 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
               {/* Información de contacto */}
               <div className="contact-info-payment">
                 <p><strong>📧 Email:</strong> {adminEmail}</p>
-                <p><strong>📱 WhatsApp:</strong> {whatsappNumber}</p>
               </div>
             </div>
 
