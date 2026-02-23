@@ -6,29 +6,21 @@ import DocumentEditor from './DocumentEditor';
 import AdminPanel from './AdminPanel';
 import TrialStatusBar from './TrialStatusBar';
 import TrialExpiredModal from './TrialExpiredModal';
+import PaymentModal from './PaymentModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
   const { user, isAdmin, logout, getTrialStatus, isReadOnlyMode, subscribeClient } = useAuth();
   const { currentMonth, setCurrentMonth } = useDocuments();
   const [showTrialModal, setShowTrialModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('basic');
 
   // Manejar suscripción
   const handleSubscribe = (plan) => {
     console.log('Botón de suscripción presionado:', plan);
-    
-    // Aquí puedes redirigir a una pasarela de pagos real
-    // Por ahora mostramos un mensaje con las instrucciones
-    const planName = plan === 'basic' ? 'Plan Básico (S/ 30/mes)' : 'Plan Profesional (S/ 60/mes)';
-    const message = `Has seleccionado: ${planName}\n\nPara completar tu suscripción, contacta al administrador:\n\n📧 cristoferagurto2@gmail.com\n\nO realiza el pago y envía el comprobante.`;
-    
-    // Usar setTimeout para asegurar que el alert se muestre después del renderizado
-    setTimeout(() => {
-      alert(message);
-    }, 100);
-    
-    // Opcional: Abrir WhatsApp
-    // window.open('https://wa.me/51913664993?text=Hola, quiero suscribirme al ' + planName, '_blank');
+    setSelectedPlan(plan);
+    setShowPaymentModal(true);
   };
 
   // Verificar estado del período de prueba al cargar
@@ -149,6 +141,13 @@ export default function Dashboard() {
         onClose={() => setShowTrialModal(false)}
         daysRemaining={user ? getTrialStatus(user.email)?.daysRemaining : 0}
         onSubscribe={handleSubscribe}
+      />
+
+      {/* Modal de pago */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        selectedPlan={selectedPlan}
       />
     </div>
   );

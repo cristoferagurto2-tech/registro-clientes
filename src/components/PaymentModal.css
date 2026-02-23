@@ -1,0 +1,386 @@
+.payment-modal {
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  padding: 24px;
+  text-align: center;
+}
+
+.modal-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+}
+
+.modal-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+.payment-body {
+  padding: 24px;
+}
+
+/* Métodos de pago */
+.payment-methods {
+  margin-bottom: 24px;
+}
+
+.payment-methods h3 {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.method-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.method-btn {
+  flex: 1;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.method-btn:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.method-btn.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.method-icon {
+  font-size: 32px;
+}
+
+/* Sección Yape */
+.yape-section {
+  background: #f0fdf4;
+  border: 2px solid #86efac;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.qr-container h4,
+.number-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #166534;
+}
+
+.qr-placeholder {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.qr-code {
+  width: 200px;
+  height: 200px;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.qr-pattern {
+  width: 160px;
+  height: 160px;
+  background: linear-gradient(135deg, #742284 0%, #9c27b0 100%);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  gap: 8px;
+}
+
+.qr-label {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.qr-number {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.qr-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #166534;
+  margin: 0;
+}
+
+.number-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed #86efac;
+}
+
+.number-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #86efac;
+}
+
+.phone-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #742284;
+  font-family: monospace;
+  flex: 1;
+}
+
+.copy-btn {
+  padding: 8px 16px;
+  background: #742284;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  background: #9c27b0;
+  transform: translateY(-1px);
+}
+
+/* Botón WhatsApp */
+.whatsapp-section {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.whatsapp-section h4 {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.whatsapp-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #25d366, #128c7e);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.whatsapp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(37, 211, 102, 0.3);
+}
+
+.whatsapp-icon {
+  font-size: 24px;
+}
+
+/* Subir comprobante */
+.upload-section {
+  margin-bottom: 24px;
+}
+
+.upload-section h4 {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.upload-icon {
+  font-size: 32px;
+}
+
+.upload-label span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.upload-label small {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.file-selected {
+  color: #166534;
+  font-weight: 600;
+  background: #dcfce7;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+/* Información de contacto */
+.contact-info-payment {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.contact-info-payment p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* Footer */
+.modal-footer-payment {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.modal-footer-payment .btn-secondary {
+  padding: 12px 24px;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-footer-payment .btn-secondary:hover {
+  background: #f3f4f6;
+}
+
+.modal-footer-payment .btn-primary {
+  flex: 1;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-footer-payment .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.modal-footer-payment .btn-primary.disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Mensaje de éxito */
+.success-container {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.success-container h3 {
+  font-size: 20px;
+  color: #166534;
+  margin-bottom: 8px;
+}
+
+.success-container p {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .payment-modal {
+    max-width: 100%;
+    margin: 10px;
+  }
+  
+  .number-display {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .copy-btn {
+    width: 100%;
+  }
+  
+  .modal-footer-payment {
+    flex-direction: column;
+  }
+}
