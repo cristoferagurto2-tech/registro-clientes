@@ -86,7 +86,7 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
                     <h4>Escanea el QR con tu Yape:</h4>
                     <div className="qr-placeholder">
                       {/* QR REAL DE YAPE - YA ACTIVADO */}
-                      <img src="/yape-qr.png" alt="QR Yape" className="qr-image" />
+                      <img src="/yape-qr.png.jpeg" alt="QR Yape" className="qr-image" />
                     </div>
                     <p className="qr-hint">Escanea este código con tu aplicación Yape</p>
                   </div>
