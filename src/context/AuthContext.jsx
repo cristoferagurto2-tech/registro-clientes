@@ -7,7 +7,7 @@ const ADMIN_EMAIL = 'cristoferagurto2@gmail.com';
 const ADMIN_PASSWORD = 'admin123'; // Contraseña fija para admin
 
 // Correo VIP (acceso gratuito permanente para familiar)
-const VIP_EMAIL = 'correo-familiar@ejemplo.com'; // <-- Cambia esto por el correo de tu familiar
+const VIP_EMAIL = 'cristovalleagur@gmail.com'; // Acceso gratuito permanente
 
 // Periodo de prueba: 7 días en milisegundos
 const TRIAL_PERIOD_DAYS = 7;

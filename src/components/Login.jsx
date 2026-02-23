@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import TerminosCondiciones from './TerminosCondiciones';
 import './Login.css';
 
 export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }) {
@@ -10,6 +11,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }) 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const { login } = useAuth();
 
   const handleChange = (e) => {
@@ -131,11 +133,28 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }) 
             </button>
           </p>
           
+          <p className="terms-link">
+            <button 
+              className="link-button" 
+              onClick={() => setShowTerms(true)}
+              type="button"
+            >
+              Ver Términos y Condiciones
+            </button>
+          </p>
+          
           <div className="admin-info">
             <p>Administrador: cristoferagurto2@gmail.com</p>
           </div>
         </div>
       </div>
+
+      {/* Modal de Términos y Condiciones */}
+      <TerminosCondiciones
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={() => setShowTerms(false)}
+      />
     </div>
   );
 }
