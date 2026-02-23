@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import TerminosCondiciones from './TerminosCondiciones';
 import './Register.css';
 
 export default function Register({ onSwitchToLogin }) {
@@ -14,6 +15,8 @@ export default function Register({ onSwitchToLogin }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const { registerClient } = useAuth();
 
@@ -26,16 +29,47 @@ export default function Register({ onSwitchToLogin }) {
     setError('');
   };
 
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setError('El nombre es obligatorio');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setError('El correo electrónico es obligatorio');
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (!validateForm()) {
+      return;
+    }
+
+    // Mostrar términos y condiciones antes de registrar
+    setShowTerms(true);
+  };
+
+  const handleAcceptTerms = async () => {
+    setTermsAccepted(true);
+    setShowTerms(false);
     setLoading(true);
 
     const result = registerClient(
       formData.email,
       formData.password,
-      formData.confirmPassword,
       formData.name
     );
 
@@ -172,8 +206,25 @@ export default function Register({ onSwitchToLogin }) {
               Inicie sesión aquí
             </button>
           </p>
+          <p className="terms-link">
+            Al registrarse, acepta nuestros{' '}
+            <button 
+              className="link-button" 
+              onClick={() => setShowTerms(true)}
+              type="button"
+            >
+              Términos y Condiciones
+            </button>
+          </p>
         </div>
       </div>
+
+      {/* Modal de Términos y Condiciones */}
+      <TerminosCondiciones
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAccept={handleAcceptTerms}
+      />
     </div>
   );
 }

@@ -198,6 +198,18 @@
   text-decoration: underline;
 }
 
+.terms-link {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.terms-link .link-button {
+  font-size: 13px;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .register-card {
