@@ -6,7 +6,7 @@ import WhitelistManager from './WhitelistManager';
 import './AdminPanel.css';
 
 export default function AdminPanel() {
-  const { clients, removeClient, updateClientPassword } = useAuth();
+  const { clients, removeClient, updateClientPassword, subscribeClient, getTrialStatus } = useAuth();
   const { clientHasAnyDocument } = useDocuments();
   const [selectedClient, setSelectedClient] = useState(null);
   const [showPasswords, setShowPasswords] = useState({});
@@ -108,6 +108,7 @@ export default function AdminPanel() {
                       <th>Email</th>
                       <th>Contraseña</th>
                       <th>Documentos</th>
+                      <th>Suscripción</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -115,6 +116,10 @@ export default function AdminPanel() {
                     {clients.map((client) => {
                       const hasDocs = clientHasAnyDocument(client.id);
                       const showPass = showPasswords[client.id];
+                      const trialStatus = getTrialStatus(client.email);
+                      const isSubscribed = trialStatus?.isSubscribed;
+                      const isTrialActive = trialStatus?.isTrialActive;
+                      const daysRemaining = trialStatus?.daysRemaining;
 
                       return (
                         <tr key={client.id}>
@@ -148,6 +153,15 @@ export default function AdminPanel() {
                               <span className="badge-docs no">No</span>
                             )}
                           </td>
+                          <td className="subscription-cell">
+                            {isSubscribed ? (
+                              <span className="badge-subscription active">Activa</span>
+                            ) : isTrialActive ? (
+                              <span className="badge-subscription trial">Trial: {daysRemaining} días</span>
+                            ) : (
+                              <span className="badge-subscription expired">Expirada</span>
+                            )}
+                          </td>
                           <td className="actions-cell">
                             <button 
                               className="btn-action manage"
@@ -163,6 +177,20 @@ export default function AdminPanel() {
                             >
                               Contraseña
                             </button>
+                            {!isSubscribed && (
+                              <button 
+                                className="btn-action subscribe"
+                                onClick={() => {
+                                  if (window.confirm(`¿Activar suscripción para ${client.name}?\n\nEl cliente podrá usar el sistema sin límites.`)) {
+                                    subscribeClient(client.email);
+                                    setMessage(`Suscripción activada para ${client.name}`);
+                                  }
+                                }}
+                                title="Activar suscripción"
+                              >
+                                Suscribir
+                              </button>
+                            )}
                             <button 
                               className="btn-action delete"
                               onClick={() => handleRemoveClient(client.id, client.email)}
