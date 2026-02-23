@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { sendPaymentNotification } from '../services/emailService';
 import './PaymentModal.css';
 
 export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
+  const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState('yape');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [emailStatus, setEmailStatus] = useState('');
 
   if (!isOpen) return null;
 
@@ -24,16 +29,41 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!uploadedFile) {
       alert('Por favor suba el comprobante de pago');
       return;
     }
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      onClose();
-    }, 3000);
+
+    setSending(true);
+    setEmailStatus('Enviando comprobante...');
+
+    try {
+      // Enviar notificación por email
+      const result = await sendPaymentNotification(
+        plan.name,
+        plan.price,
+        user?.email || 'cliente@email.com',
+        uploadedFile
+      );
+
+      if (result.success) {
+        setEmailStatus('✓ Comprobante enviado a tu correo');
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          onClose();
+        }, 3000);
+      } else {
+        setEmailStatus('⚠ Error al enviar. Intente nuevamente.');
+        alert('Hubo un error al enviar el comprobante. Por favor intente nuevamente.');
+      }
+    } catch (error) {
+      setEmailStatus('⚠ Error al enviar');
+      console.error('Error:', error);
+    } finally {
+      setSending(false);
+    }
   };
 
   const copyYapeNumber = () => {
@@ -127,16 +157,22 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
               </div>
             </div>
 
+            {emailStatus && (
+              <div className={`email-status ${emailStatus.includes('✓') ? 'success' : 'loading'}`}>
+                {emailStatus}
+              </div>
+            )}
+
             <div className="modal-footer-payment">
-              <button className="btn-secondary" onClick={onClose}>
+              <button className="btn-secondary" onClick={onClose} disabled={sending}>
                 Cancelar
               </button>
               <button 
-                className={`btn-primary ${!uploadedFile ? 'disabled' : ''}`}
+                className={`btn-primary ${!uploadedFile || sending ? 'disabled' : ''}`}
                 onClick={handleSubmit}
-                disabled={!uploadedFile}
+                disabled={!uploadedFile || sending}
               >
-                {uploadedFile ? 'Enviar Comprobante' : 'Suba el comprobante primero'}
+                {sending ? 'Enviando...' : uploadedFile ? 'Enviar Comprobante' : 'Suba el comprobante primero'}
               </button>
             </div>
           </>
