@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './TerminosCondiciones.css';
 
-export default function TerminosCondiciones({ onAccept, isOpen, onClose }) {
+export default function TerminosCondiciones({ onAccept, isOpen }) {
   const [accepted, setAccepted] = useState(false);
 
   if (!isOpen) return null;
@@ -9,7 +9,6 @@ export default function TerminosCondiciones({ onAccept, isOpen, onClose }) {
   const handleAccept = () => {
     if (accepted) {
       onAccept();
-      onClose();
     }
   };
 
@@ -185,9 +184,6 @@ export default function TerminosCondiciones({ onAccept, isOpen, onClose }) {
           </label>
 
           <div className="buttons-container">
-            <button className="btn-secondary" onClick={onClose}>
-              Cancelar
-            </button>
             <button 
               className={`btn-primary ${!accepted ? 'disabled' : ''}`}
               onClick={handleAccept}

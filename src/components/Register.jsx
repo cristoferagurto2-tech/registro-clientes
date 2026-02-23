@@ -17,6 +17,7 @@ export default function Register({ onSwitchToLogin }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const { registerClient } = useAuth();
 
@@ -58,15 +59,9 @@ export default function Register({ onSwitchToLogin }) {
       return;
     }
 
-    // Mostrar términos y condiciones antes de registrar
-    setShowTerms(true);
-  };
-
-  const handleAcceptTerms = async () => {
-    setTermsAccepted(true);
-    setShowTerms(false);
     setLoading(true);
 
+    // Primero registrar la cuenta
     const result = registerClient(
       formData.email,
       formData.password,
@@ -74,18 +69,32 @@ export default function Register({ onSwitchToLogin }) {
     );
 
     if (result.success) {
-      setSuccess(result.message);
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-      });
+      // Guardar el email registrado para mostrarlo en los términos
+      setRegisteredEmail(formData.email);
+      // Mostrar términos y condiciones DESPUÉS de registrar
+      setShowTerms(true);
     } else {
       setError(result.error);
     }
 
     setLoading(false);
+  };
+
+  const handleAcceptTerms = () => {
+    setTermsAccepted(true);
+    setShowTerms(false);
+    
+    // Limpiar el formulario
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    
+    // Mostrar mensaje de éxito y redirigir al login
+    alert('¡Cuenta creada exitosamente! Ahora puede iniciar sesión.');
+    onSwitchToLogin();
   };
 
   return (
@@ -206,23 +215,12 @@ export default function Register({ onSwitchToLogin }) {
               Inicie sesión aquí
             </button>
           </p>
-          <p className="terms-link">
-            Al registrarse, acepta nuestros{' '}
-            <button 
-              className="link-button" 
-              onClick={() => setShowTerms(true)}
-              type="button"
-            >
-              Términos y Condiciones
-            </button>
-          </p>
         </div>
       </div>
 
-      {/* Modal de Términos y Condiciones */}
+      {/* Modal de Términos y Condiciones - Obligatorio */}
       <TerminosCondiciones
         isOpen={showTerms}
-        onClose={() => setShowTerms(false)}
         onAccept={handleAcceptTerms}
       />
     </div>
