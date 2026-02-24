@@ -133,6 +133,10 @@ export default function DocumentEditor({ month }) {
           if (colIndex === 1) {
             value = mesAutomatico;
           }
+          // Formatear Monto (columna 6) y Ganancias (columna 10) con puntos
+          if ((colIndex === 6 || colIndex === 10) && value) {
+            value = formatNumberWithDots(String(value));
+          }
           // Asegurar que el valor sea un string
           initialEdits[`${rowIndex}-${colIndex}`] = value !== null && value !== undefined ? String(value) : '';
         });
