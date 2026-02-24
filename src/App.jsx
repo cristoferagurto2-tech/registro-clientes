@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DocumentsProvider } from './context/DocumentsContext';
+import { BackupProvider } from './context/BackupContext';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
@@ -15,7 +16,9 @@ function AppContent() {
     <div className="app">
       {isAuthenticated ? (
         <DocumentsProvider>
-          <Dashboard />
+          <BackupProvider>
+            <Dashboard />
+          </BackupProvider>
         </DocumentsProvider>
       ) : currentView === 'register' ? (
         <Register onSwitchToLogin={() => setCurrentView('login')} />
