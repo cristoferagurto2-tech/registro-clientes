@@ -273,7 +273,16 @@ export default function DocumentEditor({ month }) {
 
   // Generar y descargar PDF con los datos y análisis
   const handleDownload = () => {
-    if (!clientId) return;
+    if (!clientId) {
+      alert('Error: No se pudo identificar el cliente');
+      return;
+    }
+    
+    // Verificar si hay datos para descargar
+    if (!data || data.length === 0) {
+      alert('No hay datos para descargar. Primero complete algunos registros.');
+      return;
+    }
     
     try {
       // Primero guardar los datos actuales
@@ -296,7 +305,7 @@ export default function DocumentEditor({ month }) {
       doc.text(`Cliente: ${user?.name || 'N/A'}`, 14, 25);
       doc.text(`Fecha de descarga: ${new Date().toLocaleDateString()}`, 14, 30);
       
-      // Preparar datos de la tabla
+      // Preparar datos de la tabla - solo filas que tengan al menos un dato
       const tableData = data.map((row, rowIndex) => {
         return row.map((cell, colIndex) => {
           const key = `${rowIndex}-${colIndex}`;
@@ -304,6 +313,16 @@ export default function DocumentEditor({ month }) {
           return value !== null && value !== undefined && value !== 'undefined' ? String(value) : '';
         });
       }).filter(row => row.some(cell => cell !== '')); // Solo filas con datos
+      
+      // Si no hay datos filtrados, mostrar mensaje
+      if (tableData.length === 0) {
+        doc.setFontSize(12);
+        doc.setTextColor(255, 0, 0);
+        doc.text('No hay registros de clientes para mostrar', 148, 50, { align: 'center' });
+        doc.save(`Clientes_${month}_2026.pdf`);
+        setLastSaved(new Date());
+        return;
+      }
       
       // Agregar tabla de clientes
       doc.setFontSize(14);
