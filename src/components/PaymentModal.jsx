@@ -32,11 +32,7 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
       `He realizado el pago del ${plan.name}.\n\n` +
       `💰 Monto: S/ ${plan.price}.00\n` +
       `📅 Fecha: ${new Date().toLocaleDateString()}\n\n` +
-      `═══════════════════════════════════\n` +
-      `📎 ADJUNTA AQUÍ TU CAPTURA:\n` +
-      `Haz clic en el botón "Adjuntar archivo" (📎)\n` +
-      `y selecciona la imagen del comprobante.\n` +
-      `═══════════════════════════════════\n\n` +
+      `Adjunto el comprobante de pago.\n\n` +
       `Gracias.`
     );
     window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${adminEmail}&su=${subject}&body=${body}`, '_blank');
@@ -49,11 +45,7 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
       `He realizado el pago del ${plan.name}.\n\n` +
       `💰 Monto: S/ ${plan.price}.00\n` +
       `📅 Fecha: ${new Date().toLocaleDateString()}\n\n` +
-      `═══════════════════════════════════\n` +
-      `📎 ADJUNTA AQUÍ TU CAPTURA:\n` +
-      `Haz clic en el botón "Adjuntar" (📎)\n` +
-      `y selecciona la imagen del comprobante.\n` +
-      `═══════════════════════════════════\n\n` +
+      `Adjunto el comprobante de pago.\n\n` +
       `Gracias.`
     );
     window.open(`https://outlook.live.com/mail/0/deeplink/compose?to=${adminEmail}&subject=${subject}&body=${body}`, '_blank');
