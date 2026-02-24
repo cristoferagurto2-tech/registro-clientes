@@ -20,6 +20,24 @@ export default function DocumentEditor({ month }) {
   const [lastSaved, setLastSaved] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  
+  // Estado para el color del PDF (por defecto verde)
+  const [pdfColor, setPdfColor] = useState(() => {
+    const savedColor = localStorage.getItem('pdfHeaderColor');
+    return savedColor ? JSON.parse(savedColor) : [22, 163, 74]; // Verde por defecto
+  });
+  
+  // Colores predefinidos
+  const predefinedColors = {
+    'Verde': [22, 163, 74],
+    'Azul': [37, 99, 235],
+    'Rojo': [239, 68, 68],
+    'Naranja': [249, 115, 22],
+    'Morado': [147, 51, 234],
+    'Rosa': [236, 72, 153],
+    'Gris': [75, 85, 99],
+    'Negro': [0, 0, 0]
+  };
 
   const clientId = user?.id;
 
@@ -187,6 +205,13 @@ export default function DocumentEditor({ month }) {
       return '#fee2e2'; // Rojo
     }
     return 'transparent';
+  };
+  
+  // Función para cambiar el color del PDF
+  const handleColorChange = (colorName, colorRGB) => {
+    setPdfColor(colorRGB);
+    localStorage.setItem('pdfHeaderColor', JSON.stringify(colorRGB));
+    alert(`Color cambiado a ${colorName}. Los cambios se verán en el próximo PDF.`);
   };
 
   // Calcular análisis tipo Dashboard
@@ -368,7 +393,7 @@ export default function DocumentEditor({ month }) {
           textColor: [0, 0, 0] // Texto negro
         },
         headStyles: { 
-          fillColor: [22, 163, 74], // Verde para encabezados (Fecha, Mes, DNI, etc.)
+          fillColor: pdfColor, // Verde para encabezados (Fecha, Mes, DNI, etc.)
           textColor: 255, // Texto blanco
           fontStyle: 'bold'
         },
@@ -405,7 +430,7 @@ export default function DocumentEditor({ month }) {
           fillColor: [255, 255, 255]
         },
         columnStyles: {
-          0: { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
+          0: { fillColor: pdfColor, textColor: 255, fontStyle: 'bold' },
           1: { fillColor: [255, 255, 255] }
         }
       });
@@ -433,7 +458,7 @@ export default function DocumentEditor({ month }) {
           cellPadding: 2,
           fillColor: [255, 255, 255]
         },
-        headStyles: { fillColor: [22, 163, 74], textColor: 255 }
+        headStyles: { fillColor: pdfColor, textColor: 255 }
       });
       
       // Calcular y agregar resumen por días
@@ -460,7 +485,7 @@ export default function DocumentEditor({ month }) {
             cellPadding: 2,
             fillColor: [255, 255, 255]
           },
-          headStyles: { fillColor: [22, 163, 74], textColor: 255 }
+          headStyles: { fillColor: pdfColor, textColor: 255 }
         });
       }
       
@@ -485,7 +510,7 @@ export default function DocumentEditor({ month }) {
           cellPadding: 2,
           fillColor: [255, 255, 255]
         },
-        headStyles: { fillColor: [22, 163, 74], textColor: 255 }
+        headStyles: { fillColor: pdfColor, textColor: 255 }
       });
       
       // Pie de página con advertencia de seguridad
@@ -809,6 +834,23 @@ export default function DocumentEditor({ month }) {
           <span>Total de filas: {data.length}</span>
           <span>Clientes registrados: {dashboard.totalClientes}</span>
         </div>
+        
+        {/* Selector de Color para PDF */}
+        <div className="color-selector">
+          <span className="color-label">Color del PDF:</span>
+          <div className="color-options">
+            {Object.entries(predefinedColors).map(([name, color]) => (
+              <button
+                key={name}
+                className={`color-btn ${JSON.stringify(pdfColor) === JSON.stringify(color) ? 'active' : ''}`}
+                style={{ backgroundColor: `rgb(${color.join(',')})` }}
+                onClick={() => handleColorChange(name, color)}
+                title={name}
+              />
+            ))}
+          </div>
+        </div>
+        
         <div className="download-buttons">
           <button className="btn-download-v2 btn-excel" onClick={handleShowPreview}>
             👁️ Vista Previa Documento
