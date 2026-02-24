@@ -233,6 +233,71 @@ export function DocumentsProvider({ children }) {
     });
   };
 
+  // Subir documento a TODOS los meses de una sola vez
+  const uploadDocumentToAllMonths = async (clientId, file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const arrayBuffer = e.target.result;
+          const base64Data = arrayBufferToBase64(arrayBuffer);
+          
+          // Leer todas las hojas del workbook una sola vez
+          const data = new Uint8Array(arrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          
+          const allSheets = {};
+          workbook.SheetNames.forEach(sheetName => {
+            const sheet = workbook.Sheets[sheetName];
+            allSheets[sheetName] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+          });
+          
+          const firstSheetName = workbook.SheetNames[0];
+          const firstSheetData = allSheets[firstSheetName];
+          
+          // Crear documento base para todos los meses
+          const baseDocument = {
+            name: file.name,
+            originalFile: base64Data,
+            originalWorkbook: base64Data,
+            sheets: allSheets,
+            sheetNames: workbook.SheetNames,
+            headers: firstSheetData[0] || [],
+            data: firstSheetData.slice(1),
+            uploadedAt: new Date().toISOString(),
+            clientId: clientId
+          };
+          
+          // Actualizar estado UNA SOLA VEZ con todos los meses
+          setClientDocuments(prev => {
+            const newDocs = { ...prev };
+            if (!newDocs[clientId]) {
+              newDocs[clientId] = {};
+            }
+            
+            // Asignar el mismo documento a todos los meses
+            MESES.forEach(month => {
+              newDocs[clientId] = {
+                ...newDocs[clientId],
+                [month]: { ...baseDocument }
+              };
+            });
+            
+            return newDocs;
+          });
+          
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
   // Eliminar documento
   const deleteDocument = (clientId, month) => {
     setClientDocuments(prev => {
@@ -285,6 +350,7 @@ export function DocumentsProvider({ children }) {
       selectedClientId,
       setSelectedClientId,
       uploadDocument,
+      uploadDocumentToAllMonths,
       downloadOriginalFile,
       updateCompletedData,
       getMergedData,

@@ -6,6 +6,7 @@ export default function ClientDocumentsManager({ client, onBack }) {
   const { 
     MESES, 
     uploadDocument, 
+    uploadDocumentToAllMonths,
     deleteDocument, 
     hasDocument, 
     getClientDocuments 
@@ -63,24 +64,13 @@ export default function ClientDocumentsManager({ client, onBack }) {
     }
 
     setBulkUploading(true);
-    setMessage('Asignando documento a todos los meses...');
+    setMessage('Procesando archivo... Espere un momento');
 
     try {
-      // Crear una copia del archivo para cada mes (evita problemas de lectura concurrente)
-      const fileBuffer = await file.arrayBuffer();
+      // Usar la función optimizada que actualiza todos los meses de una sola vez
+      await uploadDocumentToAllMonths(client.id, file);
       
-      // Subir el archivo a todos los meses uno por uno
-      for (let i = 0; i < MESES.length; i++) {
-        const month = MESES[i];
-        // Crear un nuevo File objeto para cada mes desde el buffer
-        const monthFile = new File([fileBuffer], file.name, { type: file.type });
-        await uploadDocument(client.id, month, monthFile);
-        
-        // Actualizar mensaje de progreso
-        setMessage(`Asignando documento... (${i + 1}/${MESES.length} meses)`);
-      }
-      
-      setMessage(`¡Éxito! Documento "${file.name}" asignado a todos los meses`);
+      setMessage(`¡Éxito! Documento "${file.name}" asignado a los 12 meses`);
       
       // Limpiar mensaje después de 3 segundos
       setTimeout(() => {
