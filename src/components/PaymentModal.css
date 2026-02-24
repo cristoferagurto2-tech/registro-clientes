@@ -300,6 +300,25 @@
   color: #4b5563;
 }
 
+/* Aviso del servidor */
+.server-notice {
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.server-notice p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #92400e;
+}
+
+.server-notice strong {
+  color: #92400e;
+}
+
 /* Footer */
 .modal-footer-payment {
   display: flex;

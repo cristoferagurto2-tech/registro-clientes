@@ -36,7 +36,7 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
     }
 
     setSending(true);
-    setEmailStatus('Enviando comprobante...');
+    setEmailStatus('⏳ Conectando con el servidor... Esto puede tardar hasta 1 minuto la primera vez.');
 
     try {
       // Enviar notificación por email
@@ -149,6 +149,12 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
                     )}
                   </label>
                 </div>
+              </div>
+
+              {/* Aviso importante */}
+              <div className="server-notice">
+                <p><strong>⚠️ Nota importante:</strong></p>
+                <p>Si es la primera vez, el servidor necesita 30-60 segundos para despertar. <br/><strong>Por favor espera sin cerrar esta ventana.</strong></p>
               </div>
 
               {/* Información de contacto */}

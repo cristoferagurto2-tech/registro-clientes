@@ -1,30 +1,44 @@
 // ============================================
 // SERVICIO DE EMAIL - CONECTA CON BACKEND
 // ============================================
-// Este archivo envía los comprobantes al backend
-// El backend se encarga de enviar el email con Nodemailer
-// ============================================
 
-// URL del backend (cambia esto cuando despliegues en Render.com)
-// Desarrollo local: http://localhost:3001
-// Producción (Render.com): https://tu-backend.onrender.com
 const API_URL = 'https://clientcore-backend.onrender.com';
+
+// Función para hacer fetch con timeout
+const fetchWithTimeout = async (url, options, timeout = 60000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+};
 
 export const sendPaymentNotification = async (planName, planPrice, clientEmail, file) => {
   try {
-    // Crear FormData para enviar el archivo
     const formData = new FormData();
     formData.append('planName', planName);
     formData.append('planPrice', planPrice);
     formData.append('clientEmail', clientEmail);
     formData.append('comprobante', file);
 
-    // Enviar al backend
-    const response = await fetch(`${API_URL}/api/send-payment`, {
-      method: 'POST',
-      body: formData,
-      // No necesitas Content-Type, fetch lo pone automático con FormData
-    });
+    // Timeout de 60 segundos para dar tiempo al backend de despertar
+    const response = await fetchWithTimeout(
+      `${API_URL}/api/send-payment`,
+      {
+        method: 'POST',
+        body: formData,
+      },
+      60000 // 60 segundos de timeout
+    );
 
     const data = await response.json();
 
@@ -36,14 +50,26 @@ export const sendPaymentNotification = async (planName, planPrice, clientEmail, 
 
   } catch (error) {
     console.error('Error enviando al backend:', error);
-    return { success: false, error: 'Error de conexión con el servidor' };
+    if (error.name === 'AbortError') {
+      return { 
+        success: false, 
+        error: 'El servidor está despertando. Espera 30-60 segundos e intenta nuevamente.' 
+      };
+    }
+    return { 
+      success: false, 
+      error: 'No se pudo conectar con el servidor. Intenta nuevamente.' 
+    };
   }
 };
 
-// Función para verificar que el backend está funcionando
 export const checkBackendHealth = async () => {
   try {
-    const response = await fetch(`${API_URL}/api/health`);
+    const response = await fetchWithTimeout(
+      `${API_URL}/api/health`,
+      {},
+      10000 // 10 segundos para health check
+    );
     const data = await response.json();
     return { success: true, data };
   } catch (error) {
