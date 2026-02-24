@@ -363,16 +363,19 @@ export default function DocumentEditor({ month }) {
         styles: { 
           fontSize: 8, 
           cellPadding: 2,
-          overflow: 'linebreak'
+          overflow: 'linebreak',
+          fillColor: [255, 255, 255], // Fondo blanco para datos
+          textColor: [0, 0, 0] // Texto negro
         },
         headStyles: { 
-          fillColor: [30, 58, 138], 
-          textColor: 255,
+          fillColor: [22, 163, 74], // Verde para encabezados
+          textColor: 255, // Texto blanco
           fontStyle: 'bold'
         },
         bodyStyles: {
           fillColor: function(rowIndex) {
-            return rowStyles[rowIndex] || null;
+            // Solo aplicar color si hay un estado especial
+            return rowStyles[rowIndex] || [255, 255, 255]; // Blanco por defecto
           }
         },
         margin: { top: 45 }
@@ -425,10 +428,14 @@ export default function DocumentEditor({ month }) {
         body: summaryData,
         startY: 35,
         theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 3 },
+        styles: { 
+          fontSize: 10, 
+          cellPadding: 3,
+          fillColor: [255, 255, 255]
+        },
         columnStyles: {
-          0: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
-          1: { fillColor: [248, 250, 252] }
+          0: { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
+          1: { fillColor: [255, 255, 255] }
         }
       });
       
@@ -450,8 +457,12 @@ export default function DocumentEditor({ month }) {
         body: mesesData,
         startY: mesesY + 5,
         theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 2 },
-        headStyles: { fillColor: [14, 165, 233], textColor: 255 }
+        styles: { 
+          fontSize: 9, 
+          cellPadding: 2,
+          fillColor: [255, 255, 255]
+        },
+        headStyles: { fillColor: [22, 163, 74], textColor: 255 }
       });
       
       // Calcular y agregar resumen por días
@@ -473,8 +484,12 @@ export default function DocumentEditor({ month }) {
           body: diasData,
           startY: diasY + 5,
           theme: 'grid',
-          styles: { fontSize: 9, cellPadding: 2 },
-          headStyles: { fillColor: [16, 185, 129], textColor: 255 }
+          styles: { 
+            fontSize: 9, 
+            cellPadding: 2,
+            fillColor: [255, 255, 255]
+          },
+          headStyles: { fillColor: [22, 163, 74], textColor: 255 }
         });
       }
       
@@ -494,8 +509,12 @@ export default function DocumentEditor({ month }) {
         body: productosData,
         startY: productosY + 5,
         theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 2 },
-        headStyles: { fillColor: [30, 58, 138], textColor: 255 }
+        styles: { 
+          fontSize: 9, 
+          cellPadding: 2,
+          fillColor: [255, 255, 255]
+        },
+        headStyles: { fillColor: [22, 163, 74], textColor: 255 }
       });
       
       // Pie de página con advertencia de seguridad
