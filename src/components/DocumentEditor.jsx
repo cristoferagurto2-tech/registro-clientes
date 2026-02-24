@@ -364,46 +364,17 @@ export default function DocumentEditor({ month }) {
           fontSize: 8, 
           cellPadding: 2,
           overflow: 'linebreak',
-          fillColor: [255, 255, 255], // Fondo blanco para datos
+          fillColor: [255, 255, 255], // Fondo blanco para TODOS los datos
           textColor: [0, 0, 0] // Texto negro
         },
         headStyles: { 
-          fillColor: [22, 163, 74], // Verde para encabezados
+          fillColor: [22, 163, 74], // Verde para encabezados (Fecha, Mes, DNI, etc.)
           textColor: 255, // Texto blanco
           fontStyle: 'bold'
         },
-        bodyStyles: {
-          fillColor: function(rowIndex) {
-            // Solo aplicar color si hay un estado especial
-            return rowStyles[rowIndex] || [255, 255, 255]; // Blanco por defecto
-          }
-        },
+        // Sin bodyStyles - todos los datos tendrán fondo blanco uniforme
         margin: { top: 45 }
       });
-      
-      // Agregar leyenda de colores
-      const legendY = doc.lastAutoTable.finalY + 10;
-      doc.setFontSize(10);
-      doc.setTextColor(30, 58, 138);
-      doc.text('Leyenda de Estados:', 14, legendY);
-      
-      doc.setFontSize(9);
-      doc.setTextColor(0, 0, 0);
-      
-      // Amarillo - Cobro
-      doc.setFillColor(254, 243, 199);
-      doc.rect(14, legendY + 5, 5, 5, 'F');
-      doc.text('Cobro', 22, legendY + 9);
-      
-      // Verde - Pendiente/Espera
-      doc.setFillColor(220, 252, 231);
-      doc.rect(60, legendY + 5, 5, 5, 'F');
-      doc.text('Pendiente/Espera', 68, legendY + 9);
-      
-      // Rojo - Cancelado
-      doc.setFillColor(254, 226, 226);
-      doc.rect(140, legendY + 5, 5, 5, 'F');
-      doc.text('Cancelado', 148, legendY + 9);
       
       // Agregar Dashboard en nueva página
       doc.addPage();
