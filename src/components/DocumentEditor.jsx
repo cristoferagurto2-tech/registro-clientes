@@ -141,11 +141,26 @@ export default function DocumentEditor({ month }) {
     }
   }, [month, clientId, getMergedData]);
 
+  // Función para formatear números con separadores de miles (puntos)
+  const formatNumberWithDots = (value) => {
+    // Remover todo excepto números
+    const numbersOnly = value.replace(/[^0-9]/g, '');
+    // Formatear con puntos cada 3 dígitos
+    return numbersOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   const handleCellChange = (rowIndex, colIndex, value) => {
     const key = `${rowIndex}-${colIndex}`;
+    
+    // Si es columna de Monto (6) o Ganancias (10), formatear con puntos
+    let processedValue = value;
+    if ((colIndex === 6 || colIndex === 10) && value) {
+      processedValue = formatNumberWithDots(value);
+    }
+    
     setEditedData(prev => ({
       ...prev,
-      [key]: value
+      [key]: processedValue
     }));
 
     // Si cambia la fecha (columna 0), actualizar mes automáticamente (columna 1)
