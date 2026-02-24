@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
@@ -351,7 +351,7 @@ export default function DocumentEditor({ month }) {
       doc.setTextColor(30, 58, 138);
       doc.text('Lista de Clientes', 14, 40);
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [headers],
         body: tableData,
         startY: 45,
@@ -417,7 +417,7 @@ export default function DocumentEditor({ month }) {
         ['Total Ganancias (S/)', `S/ ${(dashboard?.totalGanancias || 0).toFixed(2)}`]
       ];
       
-      doc.autoTable({
+      autoTable(doc, {
         body: summaryData,
         startY: 35,
         theme: 'grid',
@@ -441,7 +441,7 @@ export default function DocumentEditor({ month }) {
         `S/ ${m.ganancias.toFixed(2)}`
       ]) || [];
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Mes', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)']],
         body: mesesData,
         startY: mesesY + 5,
@@ -464,7 +464,7 @@ export default function DocumentEditor({ month }) {
         doc.setTextColor(30, 58, 138);
         doc.text(`Resumen por Días - ${month} 2026`, 14, diasY);
         
-        doc.autoTable({
+        autoTable(doc, {
           head: [['Día', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)']],
           body: diasData,
           startY: diasY + 5,
@@ -485,7 +485,7 @@ export default function DocumentEditor({ month }) {
         p.total.toString()
       ]) || [];
       
-      doc.autoTable({
+      autoTable(doc, {
         head: [['Producto', 'Total']],
         body: productosData,
         startY: productosY + 5,
