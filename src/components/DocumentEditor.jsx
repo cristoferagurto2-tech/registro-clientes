@@ -770,6 +770,46 @@ export default function DocumentEditor({ month }) {
                           );
                         }
                         
+                        // Campo de Monto (columna 6) con prefijo S/
+                        if (colIndex === 6) {
+                          const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
+                          return (
+                            <td key={colIndex}>
+                              <div className="input-with-prefix">
+                                <span className="input-prefix">S/</span>
+                                <input
+                                  type="text"
+                                  value={safeValue}
+                                  onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                                  className="data-input prefixed"
+                                  placeholder="0.00"
+                                  disabled={readOnly}
+                                />
+                              </div>
+                            </td>
+                          );
+                        }
+                        
+                        // Campo de Ganancias (columna 10) con prefijo S/
+                        if (colIndex === 10) {
+                          const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
+                          return (
+                            <td key={colIndex}>
+                              <div className="input-with-prefix">
+                                <span className="input-prefix">S/</span>
+                                <input
+                                  type="text"
+                                  value={safeValue}
+                                  onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                                  className="data-input prefixed"
+                                  placeholder="0.00"
+                                  disabled={readOnly}
+                                />
+                              </div>
+                            </td>
+                          );
+                        }
+                        
                         return (
                           <td key={colIndex}>
                             <input
