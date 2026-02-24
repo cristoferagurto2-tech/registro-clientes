@@ -1,0 +1,9 @@
+name = "registro-clientes"
+type = "javascript"
+
+[build]
+command = "npm run build"
+output_directory = "dist"
+
+[site]
+bucket = "./dist"
