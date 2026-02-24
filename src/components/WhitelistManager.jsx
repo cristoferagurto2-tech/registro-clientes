@@ -222,6 +222,11 @@ export default function WhitelistManager() {
           <li>Los cambios se guardan automáticamente</li>
           <li>Para registrar un nuevo cliente, primero debe agregar su correo a esta lista</li>
         </ul>
+        
+        <div className="browser-note">
+          <strong>⚠️ Nota sobre modo incógnito:</strong>
+          <p>Si usas modo incógnito o privado del navegador, los datos no se comparten con ventanas normales. Se recomienda usar el navegador normal o exportar/importar la lista cuando cambies de dispositivo/navegador.</p>
+        </div>
       </div>
     </div>
   );

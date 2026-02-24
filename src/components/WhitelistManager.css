@@ -333,6 +333,27 @@
   margin-bottom: 6px;
 }
 
+.browser-note {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+}
+
+.browser-note strong {
+  color: #92400e;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.browser-note p {
+  color: #78350f;
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .whitelist-manager {

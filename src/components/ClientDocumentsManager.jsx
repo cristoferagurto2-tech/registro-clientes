@@ -53,6 +53,7 @@ export default function ClientDocumentsManager({ client, onBack }) {
 
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
       setMessage('Error: Por favor suba un archivo Excel (.xlsx o .xls)');
+      event.target.value = '';
       return;
     }
 
@@ -65,13 +66,29 @@ export default function ClientDocumentsManager({ client, onBack }) {
     setMessage('Asignando documento a todos los meses...');
 
     try {
-      // Subir el archivo a todos los meses
-      for (const month of MESES) {
-        await uploadDocument(client.id, month, file);
+      // Crear una copia del archivo para cada mes (evita problemas de lectura concurrente)
+      const fileBuffer = await file.arrayBuffer();
+      
+      // Subir el archivo a todos los meses uno por uno
+      for (let i = 0; i < MESES.length; i++) {
+        const month = MESES[i];
+        // Crear un nuevo File objeto para cada mes desde el buffer
+        const monthFile = new File([fileBuffer], file.name, { type: file.type });
+        await uploadDocument(client.id, month, monthFile);
+        
+        // Actualizar mensaje de progreso
+        setMessage(`Asignando documento... (${i + 1}/${MESES.length} meses)`);
       }
+      
       setMessage(`¡Éxito! Documento "${file.name}" asignado a todos los meses`);
+      
+      // Limpiar mensaje después de 3 segundos
+      setTimeout(() => {
+        setMessage('');
+      }, 3000);
     } catch (error) {
-      setMessage(`Error al asignar: ${error.message}`);
+      console.error('Error en subida masiva:', error);
+      setMessage(`Error al asignar: ${error.message || 'Error desconocido'}`);
     } finally {
       setBulkUploading(false);
       event.target.value = '';
