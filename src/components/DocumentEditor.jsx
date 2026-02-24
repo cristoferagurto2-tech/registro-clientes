@@ -306,13 +306,35 @@ export default function DocumentEditor({ month }) {
       doc.text(`Fecha de descarga: ${new Date().toLocaleDateString()}`, 14, 30);
       
       // Preparar datos de la tabla - solo filas que tengan al menos un dato
-      const tableData = data.map((row, rowIndex) => {
-        return row.map((cell, colIndex) => {
+      const tableData = [];
+      const rowStyles = [];
+      
+      data.forEach((row, rowIndex) => {
+        const rowData = row.map((cell, colIndex) => {
           const key = `${rowIndex}-${colIndex}`;
           const value = editedData[key] !== undefined ? editedData[key] : cell;
           return value !== null && value !== undefined && value !== 'undefined' ? String(value) : '';
         });
-      }).filter(row => row.some(cell => cell !== '')); // Solo filas con datos
+        
+        // Solo incluir filas que tengan datos
+        if (rowData.some(cell => cell !== '')) {
+          tableData.push(rowData);
+          
+          // Calcular color según observación (columna 9)
+          const observacion = String(rowData[9] || '').toLowerCase().trim();
+          let fillColor = null;
+          
+          if (observacion.includes('cobro')) {
+            fillColor = [254, 243, 199]; // Amarillo
+          } else if (observacion.includes('pendiente') || observacion.includes('espera')) {
+            fillColor = [220, 252, 231]; // Verde
+          } else if (observacion.includes('cancelado')) {
+            fillColor = [254, 226, 226]; // Rojo
+          }
+          
+          rowStyles.push(fillColor);
+        }
+      });
       
       // Si no hay datos filtrados, mostrar mensaje
       if (tableData.length === 0) {
@@ -344,11 +366,37 @@ export default function DocumentEditor({ month }) {
           textColor: 255,
           fontStyle: 'bold'
         },
-        alternateRowStyles: {
-          fillColor: [248, 250, 252]
+        bodyStyles: {
+          fillColor: function(rowIndex) {
+            return rowStyles[rowIndex] || null;
+          }
         },
         margin: { top: 45 }
       });
+      
+      // Agregar leyenda de colores
+      const legendY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(10);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Leyenda de Estados:', 14, legendY);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      
+      // Amarillo - Cobro
+      doc.setFillColor(254, 243, 199);
+      doc.rect(14, legendY + 5, 5, 5, 'F');
+      doc.text('Cobro', 22, legendY + 9);
+      
+      // Verde - Pendiente/Espera
+      doc.setFillColor(220, 252, 231);
+      doc.rect(60, legendY + 5, 5, 5, 'F');
+      doc.text('Pendiente/Espera', 68, legendY + 9);
+      
+      // Rojo - Cancelado
+      doc.setFillColor(254, 226, 226);
+      doc.rect(140, legendY + 5, 5, 5, 'F');
+      doc.text('Cancelado', 148, legendY + 9);
       
       // Agregar Dashboard en nueva página
       doc.addPage();
@@ -402,8 +450,32 @@ export default function DocumentEditor({ month }) {
         headStyles: { fillColor: [14, 165, 233], textColor: 255 }
       });
       
+      // Calcular y agregar resumen por días
+      const diasData = calcularResumenPorDias(tableData).map(dia => [
+        dia.dia,
+        dia.clientes.toString(),
+        `S/ ${dia.monto.toFixed(2)}`,
+        `S/ ${dia.ganancias.toFixed(2)}`
+      ]);
+      
+      if (diasData.length > 0) {
+        const diasY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 100;
+        doc.setFontSize(14);
+        doc.setTextColor(30, 58, 138);
+        doc.text(`Resumen por Días - ${month} 2026`, 14, diasY);
+        
+        doc.autoTable({
+          head: [['Día', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)']],
+          body: diasData,
+          startY: diasY + 5,
+          theme: 'grid',
+          styles: { fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [16, 185, 129], textColor: 255 }
+        });
+      }
+      
       // Productos y Conteo
-      const productosY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 120;
+      const productosY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 140;
       doc.setFontSize(14);
       doc.setTextColor(30, 58, 138);
       doc.text('Productos y Conteo', 14, productosY);
