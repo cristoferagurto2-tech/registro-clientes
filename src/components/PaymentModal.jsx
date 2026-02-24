@@ -1,15 +1,8 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { sendPaymentNotification } from '../services/emailService';
 import './PaymentModal.css';
 
 export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
-  const { user } = useAuth();
-  const [paymentMethod, setPaymentMethod] = useState('yape');
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [emailStatus, setEmailStatus] = useState('');
+  const [showInstructions, setShowInstructions] = useState(false);
 
   if (!isOpen) return null;
 
@@ -22,53 +15,40 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
   const yapeNumber = '913664993';
   const adminEmail = 'cristoferagurto2@gmail.com';
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setUploadedFile(file);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!uploadedFile) {
-      alert('Por favor suba el comprobante de pago');
-      return;
-    }
-
-    setSending(true);
-    setEmailStatus('⏳ Conectando con el servidor... Esto puede tardar hasta 1 minuto la primera vez.');
-
-    try {
-      // Enviar notificación por email
-      const result = await sendPaymentNotification(
-        plan.name,
-        plan.price,
-        user?.email || 'cliente@email.com',
-        uploadedFile
-      );
-
-      if (result.success) {
-        setEmailStatus('✓ Comprobante enviado a tu correo');
-        setShowSuccess(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-          onClose();
-        }, 3000);
-      } else {
-        setEmailStatus('⚠ Error al enviar. Intente nuevamente.');
-        alert('Hubo un error al enviar el comprobante. Por favor intente nuevamente.');
-      }
-    } catch (error) {
-      setEmailStatus('⚠ Error al enviar');
-      console.error('Error:', error);
-    } finally {
-      setSending(false);
-    }
+  const copyEmail = () => {
+    navigator.clipboard.writeText(adminEmail);
+    alert('📧 Email copiado: ' + adminEmail);
   };
 
   const copyYapeNumber = () => {
     navigator.clipboard.writeText(yapeNumber);
-    alert('Número de Yape copiado: ' + yapeNumber);
+    alert('📱 Número de Yape copiado: ' + yapeNumber);
+  };
+
+  const openGmail = () => {
+    const subject = encodeURIComponent(`Comprobante de Pago - ${plan.name}`);
+    const body = encodeURIComponent(
+      `Hola,\n\n` +
+      `He realizado el pago del ${plan.name}.\n\n` +
+      `💰 Monto: S/ ${plan.price}.00\n` +
+      `📅 Fecha: ${new Date().toLocaleDateString()}\n\n` +
+      `Adjunto el comprobante de pago por Yape.\n\n` +
+      `Gracias.`
+    );
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${adminEmail}&su=${subject}&body=${body}`, '_blank');
+  };
+
+  const openOutlook = () => {
+    const subject = encodeURIComponent(`Comprobante de Pago - ${plan.name}`);
+    const body = encodeURIComponent(
+      `Hola,\n\n` +
+      `He realizado el pago del ${plan.name}.\n\n` +
+      `💰 Monto: S/ ${plan.price}.00\n` +
+      `📅 Fecha: ${new Date().toLocaleDateString()}\n\n` +
+      `Adjunto el comprobante de pago por Yape.\n\n` +
+      `Gracias.`
+    );
+    window.open(`https://outlook.live.com/mail/0/deeplink/compose?to=${adminEmail}&subject=${subject}&body=${body}`, '_blank');
   };
 
   return (
@@ -79,110 +59,90 @@ export default function PaymentModal({ isOpen, onClose, selectedPlan }) {
           <p>{plan.name} - S/ {plan.price}.00 / mes</p>
         </div>
 
-        {showSuccess ? (
-          <div className="success-container">
-            <div className="success-icon">✅</div>
-            <h3>¡Comprobante enviado!</h3>
-            <p>Estamos verificando su pago. En breve activaremos su suscripción.</p>
+        <div className="payment-body">
+          {/* Sección Yape */}
+          <div className="yape-section">
+            <h3>📱 Paga con Yape</h3>
+            
+            <div className="qr-container">
+              <h4>Escanea el QR:</h4>
+              <div className="qr-placeholder">
+                <img src="/yape-qr.png" alt="QR Yape" className="qr-image" />
+              </div>
+              <p className="qr-hint">Abre Yape y escanea este código</p>
+            </div>
+
+            <div className="number-section">
+              <h4>O al número:</h4>
+              <div className="number-display">
+                <span className="phone-number">{yapeNumber}</span>
+                <button className="copy-btn" onClick={copyYapeNumber}>
+                  📋 Copiar
+                </button>
+              </div>
+            </div>
           </div>
-        ) : (
-          <>
-            <div className="payment-body">
-              {/* Métodos de pago */}
-              <div className="payment-methods">
-                <h3>Seleccione método de pago:</h3>
-                <div className="method-buttons">
-                  <button 
-                    className={`method-btn ${paymentMethod === 'yape' ? 'active' : ''}`}
-                    onClick={() => setPaymentMethod('yape')}
-                  >
-                    <span className="method-icon">📱</span>
-                    Yape
-                  </button>
-                </div>
-              </div>
 
-              {/* Información de pago Yape */}
-              {paymentMethod === 'yape' && (
-                <div className="yape-section">
-                  <div className="qr-container">
-                    <h4>Escanea el QR con tu Yape:</h4>
-                    <div className="qr-placeholder">
-                      {/* QR REAL DE YAPE - YA ACTIVADO */}
-                      <img src="/yape-qr.png" alt="QR Yape" className="qr-image" />
-                    </div>
-                    <p className="qr-hint">Escanea este código con tu aplicación Yape</p>
-                  </div>
-
-                  <div className="number-section">
-                    <h4>O transfiera al número:</h4>
-                    <div className="number-display">
-                      <span className="phone-number">{yapeNumber}</span>
-                      <button className="copy-btn" onClick={copyYapeNumber}>
-                        📋 Copiar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Subir comprobante */}
-              <div className="upload-section">
-                <h4>O suba el comprobante aquí:</h4>
-                <div className="upload-area">
-                  <input
-                    type="file"
-                    id="comprobante"
-                    accept="image/*,.pdf"
-                    onChange={handleFileUpload}
-                    className="file-input"
-                  />
-                  <label htmlFor="comprobante" className="upload-label">
-                    {uploadedFile ? (
-                      <span className="file-selected">📎 {uploadedFile.name}</span>
-                    ) : (
-                      <>
-                        <span className="upload-icon">📤</span>
-                        <span>Click para subir comprobante</span>
-                        <small>JPG, PNG o PDF (máx. 5MB)</small>
-                      </>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              {/* Aviso importante */}
-              <div className="server-notice">
-                <p><strong>⚠️ Nota importante:</strong></p>
-                <p>Si es la primera vez, el servidor necesita 30-60 segundos para despertar. <br/><strong>Por favor espera sin cerrar esta ventana.</strong></p>
-              </div>
-
-              {/* Información de contacto */}
-              <div className="contact-info-payment">
-                <p><strong>📧 Email:</strong> {adminEmail}</p>
-              </div>
-            </div>
-
-            {emailStatus && (
-              <div className={`email-status ${emailStatus.includes('✓') ? 'success' : 'loading'}`}>
-                {emailStatus}
-              </div>
-            )}
-
-            <div className="modal-footer-payment">
-              <button className="btn-secondary" onClick={onClose} disabled={sending}>
-                Cancelar
-              </button>
-              <button 
-                className={`btn-primary ${!uploadedFile || sending ? 'disabled' : ''}`}
-                onClick={handleSubmit}
-                disabled={!uploadedFile || sending}
-              >
-                {sending ? 'Enviando...' : uploadedFile ? 'Enviar Comprobante' : 'Suba el comprobante primero'}
+          {/* Sección Email */}
+          <div className="email-section">
+            <h3>📧 Envía el Comprobante</h3>
+            <p className="email-instruction">
+              Después de pagar, envía el comprobante a:
+            </p>
+            
+            <div className="email-display">
+              <span className="email-address">{adminEmail}</span>
+              <button className="copy-btn" onClick={copyEmail}>
+                📋 Copiar
               </button>
             </div>
-          </>
-        )}
+
+            <div className="email-buttons">
+              <button className="email-btn gmail" onClick={openGmail}>
+                📧 Abrir Gmail
+              </button>
+              <button className="email-btn outlook" onClick={openOutlook}>
+                📧 Abrir Outlook
+              </button>
+            </div>
+
+            <div className="email-instructions-box">
+              <h4>✅ Pasos a seguir:</h4>
+              <ol>
+                <li>Paga con Yape al número o QR de arriba</li>
+                <li>Toma una captura del comprobante</li>
+                <li>Haz clic en "Abrir Gmail" o "Abrir Outlook"</li>
+                <li>Adjunta la imagen del comprobante</li>
+                <li>Envía el email</li>
+              </ol>
+              <p className="email-note">
+                <strong>💡 Tip:</strong> También puedes enviar el comprobante desde tu celular escribiendo directamente al email.
+              </p>
+            </div>
+          </div>
+
+          {/* Información */}
+          <div className="payment-info">
+            <p>⏳ <strong>Después de enviar el comprobante:</strong></p>
+            <p>Te activaremos la suscripción en menos de 24 horas.</p>
+            <p>Recibirás un email de confirmación.</p>
+          </div>
+        </div>
+
+        <div className="modal-footer-payment">
+          <button className="btn-secondary" onClick={onClose}>
+            Cerrar
+          </button>
+          <button 
+            className="btn-primary" 
+            onClick={() => { 
+              setShowInstructions(true); 
+              alert('📧 Recuerda enviar el comprobante a: ' + adminEmail);
+            }}
+          >
+            ✓ Ya pagué
+          </button>
+        </div>
       </div>
     </div>
   );

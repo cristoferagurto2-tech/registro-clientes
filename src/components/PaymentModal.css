@@ -434,3 +434,143 @@
     flex-direction: column;
   }
 }
+
+/* Nuevos estilos para sección de Email */
+.email-section {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+}
+
+.email-section h3 {
+  color: #1e40af;
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.email-instruction {
+  color: #374151;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.email-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid #3b82f6;
+  margin-bottom: 16px;
+}
+
+.email-address {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e40af;
+  flex: 1;
+  font-family: monospace;
+}
+
+.email-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.email-btn {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.email-btn.gmail {
+  background: linear-gradient(135deg, #ea4335, #fbbc05);
+  color: white;
+}
+
+.email-btn.outlook {
+  background: linear-gradient(135deg, #0078d4, #106ebe);
+  color: white;
+}
+
+.email-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.email-instructions-box {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid #3b82f6;
+}
+
+.email-instructions-box h4 {
+  color: #1e40af;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.email-instructions-box ol {
+  margin: 0 0 12px 20px;
+  padding: 0;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.email-instructions-box li {
+  margin-bottom: 4px;
+}
+
+.email-note {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.payment-info {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.payment-info p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #166534;
+}
+
+@media (max-width: 640px) {
+  .email-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .email-display {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .email-address {
+    font-size: 14px;
+    text-align: center;
+  }
+}
