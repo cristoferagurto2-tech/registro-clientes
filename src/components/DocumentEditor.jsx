@@ -411,7 +411,7 @@ export default function DocumentEditor({ month }) {
       // Título
       doc.setFontSize(20);
       doc.setTextColor(30, 58, 138);
-      doc.text(`Registro de Clientes - ${month} 2026`, 148, 15, { align: 'center' });
+      doc.text(`ClientCode - ${month} 2026`, 148, 15, { align: 'center' });
       
       // Cliente
       doc.setFontSize(12);
@@ -617,7 +617,7 @@ export default function DocumentEditor({ month }) {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
-        doc.text('Documento confidencial - Generado por Registro de Clientes', 148, 200, { align: 'center' });
+        doc.text('Documento confidencial - Generado por ClientCode', 148, 200, { align: 'center' });
         doc.text(`Página ${i} de ${pageCount}`, 280, 200, { align: 'right' });
       }
       

@@ -35,7 +35,7 @@ export default function Dashboard() {
     }
   }, [user, isAdmin, getTrialStatus]);
 
-  const projectName = "Registro de Clientes";
+  const projectName = "ClientCode";
 
   // Si hay un mes seleccionado, mostrar el editor
   if (currentMonth) {

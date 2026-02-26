@@ -56,7 +56,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }) 
           <div className="logo-box">
             <span>RC</span>
           </div>
-          <h1 className="login-title">Registro de Clientes</h1>
+          <h1 className="login-title">ClientCode</h1>
           <p className="login-subtitle">
             Sistema de Gestión Financiera
           </p>
