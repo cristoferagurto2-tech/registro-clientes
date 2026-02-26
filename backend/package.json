@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "build": "echo 'No build step needed for Node.js backend'"
   },
   "keywords": ["clientcore", "mongodb", "express", "nodejs", "api", "email"],
   "author": "Cristofer Agurto",
