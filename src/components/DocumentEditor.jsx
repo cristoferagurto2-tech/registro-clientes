@@ -147,17 +147,17 @@ export default function DocumentEditor({ month }) {
     return opciones;
   };
 
-  // Función para obtener la clase de color según la observación
-  const getRowColorClass = (row) => {
+  // Función para obtener la clase de color según la observación (solo para columna 9)
+  const getObservacionColorClass = (row) => {
     if (!row || row.length < 10) return '';
     const observacion = String(row[9] || '').toLowerCase().trim();
     
     if (observacion.includes('cobro')) {
-      return 'row-cobro';
+      return 'observacion-cobro';
     } else if (observacion.includes('pendiente') || observacion.includes('espera')) {
-      return 'row-pendiente';
+      return 'observacion-pendiente';
     } else if (observacion.includes('cancelado')) {
-      return 'row-cancelado';
+      return 'observacion-cancelado';
     }
     return '';
   };
@@ -465,12 +465,15 @@ export default function DocumentEditor({ month }) {
       doc.setTextColor(30, 58, 138);
       doc.text('Lista de Clientes', 14, 40);
       
-      // Configurar colores de filas según el estado del botón
-      const rowStylesConfig = showColorsInPreview ? {
-        bodyStyles: {
-          fillColor: function(rowIndex) {
-            const color = rowStyles[rowIndex];
-            return color || [255, 255, 255]; // Color según observación o blanco
+      // Configurar colores solo para columna de observaciones (índice 9) según el estado del botón
+      const columnStylesConfig = showColorsInPreview ? {
+        columnStyles: {
+          9: {
+            fillColor: function(cell, row) {
+              const rowIndex = row.index;
+              const color = rowStyles[rowIndex];
+              return color || [255, 255, 255]; // Color según observación o blanco
+            }
           }
         }
       } : {};
@@ -484,7 +487,7 @@ export default function DocumentEditor({ month }) {
           fontSize: 8, 
           cellPadding: 2,
           overflow: 'linebreak',
-          fillColor: showColorsInPreview ? undefined : [255, 255, 255], // Blanco si no hay colores
+          fillColor: [255, 255, 255], // Fondo blanco para todas las celdas
           textColor: [0, 0, 0] // Texto negro
         },
         headStyles: { 
@@ -492,7 +495,7 @@ export default function DocumentEditor({ month }) {
           textColor: 255, // Texto blanco
           fontStyle: 'bold'
         },
-        ...rowStylesConfig, // Aplicar colores solo si el botón está activado
+        ...columnStylesConfig, // Aplicar colores solo a columna 9 si el botón está activado
         margin: { top: 45 }
       });
       
@@ -988,12 +991,14 @@ export default function DocumentEditor({ month }) {
                     <tbody>
                       {previewData.rows.length > 0 ? (
                         previewData.rows.map((row, rowIdx) => (
-                          <tr 
-                            key={rowIdx} 
-                            className={showColorsInPreview ? getRowColorClass(row) : ''}
-                          >
+                          <tr key={rowIdx}>
                             {row.map((cell, cellIdx) => (
-                              <td key={cellIdx}>{cell}</td>
+                              <td 
+                                key={cellIdx}
+                                className={showColorsInPreview && cellIdx === 9 ? getObservacionColorClass(row) : ''}
+                              >
+                                {cell}
+                              </td>
                             ))}
                           </tr>
                         ))

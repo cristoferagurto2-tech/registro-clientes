@@ -935,29 +935,23 @@
   border-color: #3b82f6;
 }
 
-/* Clases para colorear filas en la tabla de preview */
-.preview-excel-table tbody tr.row-cobro {
+/* Clases para colorear la celda de observaciones en la tabla de preview */
+.preview-excel-table tbody td.observacion-cobro {
   background-color: #fef3c7 !important;
-}
-
-.preview-excel-table tbody tr.row-cobro td {
   color: #92400e;
+  font-weight: 600;
 }
 
-.preview-excel-table tbody tr.row-pendiente {
+.preview-excel-table tbody td.observacion-pendiente {
   background-color: #dcfce7 !important;
-}
-
-.preview-excel-table tbody tr.row-pendiente td {
   color: #166534;
+  font-weight: 600;
 }
 
-.preview-excel-table tbody tr.row-cancelado {
+.preview-excel-table tbody td.observacion-cancelado {
   background-color: #fee2e2 !important;
-}
-
-.preview-excel-table tbody tr.row-cancelado td {
   color: #991b1b;
+  font-weight: 600;
 }
 
 .preview-dashboard {
