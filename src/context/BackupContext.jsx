@@ -11,7 +11,7 @@ const BACKUP_STORAGE_KEY = 'lastBackupTimestamp';
 const BACKUP_SCHEDULE_KEY = 'backupScheduleEnabled';
 
 export function BackupProvider({ children }) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { clientDocuments, completedData, MESES } = useDocuments();
   
   const [lastBackup, setLastBackup] = useState(null);
@@ -188,13 +188,13 @@ export function BackupProvider({ children }) {
 
   // Función para verificar y ejecutar backup automático
   const checkAndRunAutomaticBackup = useCallback(() => {
-    if (!isBackupEnabled || !user) return;
+    if (!isBackupEnabled || !user || isAdmin) return;
     
     const now = Date.now();
     const savedTimestamp = localStorage.getItem(BACKUP_STORAGE_KEY);
     
     if (!savedTimestamp) {
-      // Primera vez - crear backup inicial
+      // Primera vez - crear backup inicial (solo para clientes, no admin)
       downloadBackup(true);
       return;
     }
@@ -203,16 +203,16 @@ export function BackupProvider({ children }) {
     const timeSinceLastBackup = now - lastBackupTime;
     
     if (timeSinceLastBackup >= BACKUP_INTERVAL_MS) {
-      // Han pasado 24 horas o más - crear backup
+      // Han pasado 24 horas o más - crear backup (solo para clientes)
       downloadBackup(true);
     }
-  }, [isBackupEnabled, user, downloadBackup]);
+  }, [isBackupEnabled, user, isAdmin, downloadBackup]);
 
   // Configurar verificación periódica
   useEffect(() => {
-    if (!user || !isBackupEnabled) return;
+    if (!user || !isBackupEnabled || isAdmin) return;
     
-    // Verificar inmediatamente al iniciar sesión
+    // Verificar inmediatamente al iniciar sesión (solo para clientes)
     checkAndRunAutomaticBackup();
     
     // Verificar cada hora si es hora de hacer backup
@@ -225,7 +225,7 @@ export function BackupProvider({ children }) {
         clearInterval(backupTimerRef.current);
       }
     };
-  }, [user, isBackupEnabled, checkAndRunAutomaticBackup]);
+  }, [user, isBackupEnabled, isAdmin, checkAndRunAutomaticBackup]);
 
   // Función para backup manual
   const triggerManualBackup = useCallback(async () => {
