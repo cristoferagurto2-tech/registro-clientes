@@ -71,6 +71,56 @@ export default function DocumentEditor({ month }) {
     'septiembre 2026', 'octubre 2026', 'noviembre 2026', 'diciembre 2026'
   ];
 
+  // Función para parsear montos correctamente manejando separadores de miles y decimales
+  // Formatos soportados: "1.000", "1.000,50", "1000", "1000.50", "1,000.50"
+  const parseMonto = (value) => {
+    if (!value || value === '') return 0;
+    const str = String(value).trim();
+    
+    // Detectar el formato basado en la posición de puntos y comas
+    const lastDot = str.lastIndexOf('.');
+    const lastComma = str.lastIndexOf(',');
+    
+    // Si hay tanto punto como coma, el último es el separador decimal
+    if (lastDot !== -1 && lastComma !== -1) {
+      if (lastComma > lastDot) {
+        // Formato europeo: 1.000,50
+        return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+      } else {
+        // Formato americano: 1,000.50
+        return parseFloat(str.replace(/,/g, '')) || 0;
+      }
+    }
+    
+    // Si solo hay punto
+    if (lastDot !== -1) {
+      const afterDot = str.substring(lastDot + 1);
+      // Si después del punto hay 1-2 dígitos, es separador decimal
+      // Si hay 3 dígitos, es separador de miles
+      if (afterDot.length <= 2) {
+        return parseFloat(str) || 0;
+      } else {
+        // Es separador de miles, eliminarlo
+        return parseFloat(str.replace(/\./g, '')) || 0;
+      }
+    }
+    
+    // Si solo hay coma
+    if (lastComma !== -1) {
+      const afterComma = str.substring(lastComma + 1);
+      // Si después de la coma hay 1-2 dígitos, es separador decimal
+      if (afterComma.length <= 2) {
+        return parseFloat(str.replace(',', '.')) || 0;
+      } else {
+        // Es separador de miles, eliminarlo
+        return parseFloat(str.replace(/,/g, '')) || 0;
+      }
+    }
+    
+    // Sin separadores, parsear directamente
+    return parseFloat(str) || 0;
+  };
+
   // Función para obtener los días del mes según calendario 2026
   const getDiasDelMes = (mes) => {
     const meses30 = ['abril', 'junio', 'septiembre', 'noviembre'];
@@ -257,14 +307,14 @@ export default function DocumentEditor({ month }) {
     // Resumen General
     const totalClientes = currentData.length;
     const montoTotal = currentData.reduce((sum, row) => {
-      const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+      const monto = parseMonto(row[6]);
       return sum + monto;
     }, 0);
     
     // Calcular promedio ponderado de tasas (ponderado por el monto)
     const tasasConMontos = currentData.map(row => {
-      const tasa = parseFloat(String(row[7]).replace(/[^0-9.-]/g, '')) || 0;
-      const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+      const tasa = parseMonto(row[7]);
+      const monto = parseMonto(row[6]);
       return { tasa, monto };
     }).filter(item => item.tasa > 0 && item.monto > 0);
     
@@ -273,7 +323,7 @@ export default function DocumentEditor({ month }) {
     const promedioTasa = totalMonto > 0 ? (sumaPonderada / totalMonto) : 0;
     
     const totalGanancias = currentData.reduce((sum, row) => {
-      const ganancia = parseFloat(String(row[10]).replace(/[^0-9.-]/g, '')) || 0;
+      const ganancia = parseMonto(row[10]);
       return sum + ganancia;
     }, 0);
 
@@ -288,11 +338,11 @@ export default function DocumentEditor({ month }) {
         mes: mes.charAt(0).toUpperCase() + mes.slice(1),
         clientes: filasMes.length,
         monto: filasMes.reduce((sum, row) => {
-          const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+          const monto = parseMonto(row[6]);
           return sum + monto;
         }, 0),
         ganancias: filasMes.reduce((sum, row) => {
-          const ganancia = parseFloat(String(row[10]).replace(/[^0-9.-]/g, '')) || 0;
+          const ganancia = parseMonto(row[10]);
           return sum + ganancia;
         }, 0)
       };
@@ -576,11 +626,11 @@ export default function DocumentEditor({ month }) {
       resumenPorDia[dia].clientes += 1;
       
       // Columna 6 es Monto
-      const monto = parseFloat(String(row[6]).replace(/[^0-9.-]/g, '')) || 0;
+      const monto = parseMonto(row[6]);
       resumenPorDia[dia].monto += monto;
       
       // Columna 10 es Ganancias
-      const ganancia = parseFloat(String(row[10]).replace(/[^0-9.-]/g, '')) || 0;
+      const ganancia = parseMonto(row[10]);
       resumenPorDia[dia].ganancias += ganancia;
     });
     
@@ -953,7 +1003,7 @@ export default function DocumentEditor({ month }) {
                         </div>
                         <div className="preview-stat-item">
                           <span className="preview-stat-label">Monto Total (S/)</span>
-                          <span className="preview-stat-value">{previewData.dashboard.montoTotal?.toFixed(2) || '0.00'}</span>
+                          <span className="preview-stat-value">S/ {previewData.dashboard.montoTotal?.toFixed(2) || '0.00'}</span>
                         </div>
                         <div className="preview-stat-item">
                           <span className="preview-stat-label">Promedio Ponderado (%)</span>
@@ -961,7 +1011,7 @@ export default function DocumentEditor({ month }) {
                         </div>
                         <div className="preview-stat-item">
                           <span className="preview-stat-label">Total Ganancias (S/)</span>
-                          <span className="preview-stat-value">{previewData.dashboard.totalGanancias?.toFixed(2) || '0.00'}</span>
+                          <span className="preview-stat-value">S/ {previewData.dashboard.totalGanancias?.toFixed(2) || '0.00'}</span>
                         </div>
                       </div>
                     </div>
