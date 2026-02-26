@@ -3,19 +3,49 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Importar rutas
+const authRoutes = require('./routes/auth');
+const documentRoutes = require('./routes/documents');
+const dashboardRoutes = require('./routes/dashboard');
+const adminRoutes = require('./routes/admin');
+const backupRoutes = require('./routes/backup');
+
+// Conectar a MongoDB
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('❌ Error conectando a MongoDB:', error.message);
+    process.exit(1);
+  }
+};
+
+// Conectar a la base de datos
+connectDB();
+
 // Middleware
 app.use(cors({
-  origin: '*', // Permite cualquier origen (en producción especifica tu dominio)
-  methods: ['POST'],
-  allowedHeaders: ['Content-Type']
+  origin: process.env.FRONTEND_URL || '*', // En producción especifica tu dominio
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Rutas API
+app.use('/api/auth', authRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/backup', backupRoutes);
 
 // Configuración de multer para recibir archivos
 const storage = multer.memoryStorage();
@@ -141,12 +171,31 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Backend funcionando correctamente',
+    database: mongoose.connection.readyState === 1 ? 'conectada' : 'desconectada',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    success: false, 
+    error: err.message || 'Error interno del servidor' 
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false, 
+    error: 'Ruta no encontrada' 
   });
 });
 
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`✅ Servidor backend corriendo en puerto ${PORT}`);
-  console.log(`📧 Configurado para enviar emails a: ${process.env.EMAIL_USER}`);
+  console.log(`📧 Configurado para enviar emails a: ${process.env.EMAIL_USER || 'No configurado'}`);
+  console.log(`🌐 MongoDB URI configurada: ${process.env.MONGODB_URI ? 'Sí' : 'No'}`);
 });

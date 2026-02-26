@@ -1,7 +1,37 @@
-# 🚀 GUÍA PARA DESPLEGAR BACKEND EN RENDER.COM
+# 🚀 GUÍA PARA DESPLEGAR BACKEND EN RAILWAY (Recomendado) o RENDER
 
 ## 📋 ¿Qué vamos a hacer?
-Vamos a subir tu backend a internet para que funcione 24/7 y envíe emails automáticamente.
+Vamos a subir tu backend a internet con MongoDB Atlas para que:
+- ✅ Los datos se guarden en la nube (no se pierden)
+- ✅ Accesible desde cualquier dispositivo
+- ✅ Backup automático cada 24 horas
+- ✅ Envíe emails automáticamente
+
+---
+
+## 📁 ESTRUCTURA DEL BACKEND
+
+```
+backend/
+├── server.js              # Servidor principal
+├── package.json           # Dependencias
+├── .env.example          # Plantilla de variables
+├── .env                  # Variables reales (NO subir a Git)
+├── README.md             # Esta guía
+├── models/               # Modelos MongoDB
+│   ├── User.js
+│   ├── Document.js
+│   └── Client.js
+├── routes/               # Rutas API
+│   ├── auth.js          # Login/Register
+│   ├── documents.js     # CRUD documentos
+│   ├── dashboard.js     # Análisis
+│   ├── admin.js         # Panel admin
+│   └── backup.js        # Backups
+├── middleware/           # Middleware
+│   └── auth.js          # JWT + protección
+└── README.md            # Esta guía
+```
 
 ---
 
@@ -12,10 +42,25 @@ Vamos a subir tu backend a internet para que funcione 24/7 y envíe emails autom
 2. Copia el archivo `.env.example` y renómbralo a `.env`
 3. Abre `.env` y llena tus datos:
 
-```
+```env
+# MongoDB Atlas (OBLIGATORIO)
+MONGODB_URI=mongodb+srv://clientcore_admin:cristofer200601@cluster0.fzlbb2p.mongodb.net/clientcore?retryWrites=true&w=majority
+
+# JWT Secret (cualquier texto largo y seguro)
+JWT_SECRET=tu-clave-super-secreta-123456789
+JWT_EXPIRE=30d
+
+# Email (ya configurado)
 EMAIL_USER=cristoferagurto2@gmail.com
-EMAIL_PASS=gfuouvrdensnskf  <-- Pega aquí tu contraseña de 16 caracteres
+EMAIL_PASS=tu-contraseña-de-app-gmail
+
+# Servidor
 PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+
+# Admin Setup
+ADMIN_SECRET_KEY=admin-setup-secret-key-2024
 ```
 
 **IMPORTANTE:** El archivo `.env` NO se sube a GitHub (ya está en .gitignore)
