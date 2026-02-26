@@ -20,6 +20,7 @@ export default function DocumentEditor({ month }) {
   const [lastSaved, setLastSaved] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  const [showColorsInPreview, setShowColorsInPreview] = useState(false);
   
   // Estado para el color del PDF (por defecto verde)
   const [pdfColor, setPdfColor] = useState(() => {
@@ -144,6 +145,21 @@ export default function DocumentEditor({ month }) {
       opciones.push(i.toString().padStart(2, '0'));
     }
     return opciones;
+  };
+
+  // Función para obtener la clase de color según la observación
+  const getRowColorClass = (row) => {
+    if (!row || row.length < 10) return '';
+    const observacion = String(row[9] || '').toLowerCase().trim();
+    
+    if (observacion.includes('cobro')) {
+      return 'row-cobro';
+    } else if (observacion.includes('pendiente') || observacion.includes('espera')) {
+      return 'row-pendiente';
+    } else if (observacion.includes('cancelado')) {
+      return 'row-cancelado';
+    }
+    return '';
   };
 
   useEffect(() => {
@@ -936,7 +952,16 @@ export default function DocumentEditor({ month }) {
           <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
             <div className="preview-header">
               <h3>Vista Previa del Documento - {month} 2026</h3>
-              <button className="preview-close-btn" onClick={handleClosePreview}>✕</button>
+              <div className="preview-header-actions">
+                <button 
+                  className={`btn-colors-toggle ${showColorsInPreview ? 'active' : ''}`}
+                  onClick={() => setShowColorsInPreview(!showColorsInPreview)}
+                  title={showColorsInPreview ? 'Ocultar colores' : 'Mostrar colores'}
+                >
+                  {showColorsInPreview ? '🎨 Ocultar Colores' : '🎨 Mostrar Colores'}
+                </button>
+                <button className="preview-close-btn" onClick={handleClosePreview}>✕</button>
+              </div>
             </div>
             <div className="preview-content">
               <div className="preview-section">
@@ -953,7 +978,10 @@ export default function DocumentEditor({ month }) {
                     <tbody>
                       {previewData.rows.length > 0 ? (
                         previewData.rows.map((row, rowIdx) => (
-                          <tr key={rowIdx}>
+                          <tr 
+                            key={rowIdx} 
+                            className={showColorsInPreview ? getRowColorClass(row) : ''}
+                          >
                             {row.map((cell, cellIdx) => (
                               <td key={cellIdx}>{cell}</td>
                             ))}

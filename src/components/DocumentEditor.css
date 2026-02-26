@@ -902,6 +902,64 @@
   margin-top: 8px;
 }
 
+/* Botón para mostrar/ocultar colores en preview */
+.preview-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-colors-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-colors-toggle:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.btn-colors-toggle.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+/* Clases para colorear filas en la tabla de preview */
+.preview-excel-table tbody tr.row-cobro {
+  background-color: #fef3c7 !important;
+}
+
+.preview-excel-table tbody tr.row-cobro td {
+  color: #92400e;
+}
+
+.preview-excel-table tbody tr.row-pendiente {
+  background-color: #dcfce7 !important;
+}
+
+.preview-excel-table tbody tr.row-pendiente td {
+  color: #166534;
+}
+
+.preview-excel-table tbody tr.row-cancelado {
+  background-color: #fee2e2 !important;
+}
+
+.preview-excel-table tbody tr.row-cancelado td {
+  color: #991b1b;
+}
+
 .preview-dashboard {
   background: white;
   border-radius: 12px;
