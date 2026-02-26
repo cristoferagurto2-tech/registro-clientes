@@ -465,6 +465,16 @@ export default function DocumentEditor({ month }) {
       doc.setTextColor(30, 58, 138);
       doc.text('Lista de Clientes', 14, 40);
       
+      // Configurar colores de filas según el estado del botón
+      const rowStylesConfig = showColorsInPreview ? {
+        bodyStyles: {
+          fillColor: function(rowIndex) {
+            const color = rowStyles[rowIndex];
+            return color || [255, 255, 255]; // Color según observación o blanco
+          }
+        }
+      } : {};
+      
       doc.autoTable({
         head: [headers],
         body: tableData,
@@ -474,15 +484,15 @@ export default function DocumentEditor({ month }) {
           fontSize: 8, 
           cellPadding: 2,
           overflow: 'linebreak',
-          fillColor: [255, 255, 255], // Fondo blanco para TODOS los datos
+          fillColor: showColorsInPreview ? undefined : [255, 255, 255], // Blanco si no hay colores
           textColor: [0, 0, 0] // Texto negro
         },
         headStyles: { 
-          fillColor: pdfColor, // Verde para encabezados (Fecha, Mes, DNI, etc.)
+          fillColor: pdfColor, // Color para encabezados
           textColor: 255, // Texto blanco
           fontStyle: 'bold'
         },
-        // Sin bodyStyles - todos los datos tendrán fondo blanco uniforme
+        ...rowStylesConfig, // Aplicar colores solo si el botón está activado
         margin: { top: 45 }
       });
       
