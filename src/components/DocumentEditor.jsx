@@ -465,19 +465,6 @@ export default function DocumentEditor({ month }) {
       doc.setTextColor(30, 58, 138);
       doc.text('Lista de Clientes', 14, 40);
       
-      // Configurar colores solo para columna de observaciones (índice 9) según el estado del botón
-      const columnStylesConfig = showColorsInPreview ? {
-        columnStyles: {
-          9: {
-            fillColor: function(cell, row) {
-              const rowIndex = row.index;
-              const color = rowStyles[rowIndex];
-              return color || [255, 255, 255]; // Color según observación o blanco
-            }
-          }
-        }
-      } : {};
-      
       doc.autoTable({
         head: [headers],
         body: tableData,
@@ -495,7 +482,16 @@ export default function DocumentEditor({ month }) {
           textColor: 255, // Texto blanco
           fontStyle: 'bold'
         },
-        ...columnStylesConfig, // Aplicar colores solo a columna 9 si el botón está activado
+        // Hook para aplicar colores solo a la columna de observaciones cuando el botón está activado
+        didParseCell: function(data) {
+          if (showColorsInPreview && data.column.index === 9 && data.cell.section === 'body') {
+            const rowIndex = data.row.index;
+            const color = rowStyles[rowIndex];
+            if (color) {
+              data.cell.styles.fillColor = color;
+            }
+          }
+        },
         margin: { top: 45 }
       });
       
