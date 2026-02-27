@@ -52,107 +52,133 @@ export default function BackupStatus() {
     });
   };
 
+  const formatTimeRemaining = () => {
+    if (!isBackupEnabled) return 'Desactivado';
+    if (!timeUntilNextBackup) return 'Calculando...';
+    return timeUntilNextBackup;
+  };
+
   return (
     <div className="backup-status-container">
+      {/* Header Principal */}
       <div className="backup-header">
-        <h3>💾 Copia de Seguridad</h3>
+        <h3>Copia de Seguridad</h3>
         <div className="backup-badge">
           {isBackupEnabled ? (
-            <span className="badge-active">✓ Automático</span>
+            <span className="badge-active">Automático</span>
           ) : (
-            <span className="badge-inactive">✗ Desactivado</span>
+            <span className="badge-inactive">Desactivado</span>
           )}
         </div>
       </div>
 
-      <div className="backup-info">
-        <div className="info-row">
-          <span className="info-label">Último backup:</span>
-          <span className="info-value">{formatDate(lastBackup)}</span>
+      {/* Grid de Estadísticas */}
+      <div className="backup-stats-grid">
+        <div className="stat-card">
+          <span className="stat-icon">📅</span>
+          <div className="stat-label">Último Backup</div>
+          <div className="stat-value">{formatDate(lastBackup)}</div>
         </div>
         
-        <div className="info-row">
-          <span className="info-label">Próximo backup:</span>
-          <span className="info-value">
-            {isBackupEnabled 
-              ? (timeUntilNextBackup || 'Calculando...')
-              : 'Desactivado'
-            }
-          </span>
+        <div className="stat-card">
+          <span className="stat-icon">⏰</span>
+          <div className="stat-label">Próximo Backup</div>
+          <div className="stat-value time">{formatTimeRemaining()}</div>
         </div>
 
-        <div className="info-row">
-          <span className="info-label">Frecuencia:</span>
-          <span className="info-value">Cada 24 horas</span>
+        <div className="stat-card">
+          <span className="stat-icon">🔄</span>
+          <div className="stat-label">Frecuencia</div>
+          <div className="stat-value">Cada 24 horas</div>
         </div>
       </div>
 
-      <div className="backup-actions">
-        <button
-          className={`btn-backup ${isBackingUp ? 'loading' : ''}`}
-          onClick={handleManualBackup}
-          disabled={isBackingUp}
-        >
-          {isBackingUp ? '⏳ Creando backup...' : '📥 Backup Manual'}
-        </button>
+      {/* Panel de Acciones */}
+      <div className="backup-actions-panel">
+        <div className="actions-title">⚡ Acciones Rápidas</div>
+        <div className="backup-actions">
+          <button
+            className={`btn-backup ${isBackingUp ? 'loading' : ''}`}
+            onClick={handleManualBackup}
+            disabled={isBackingUp}
+          >
+            {isBackingUp ? '⏳ Creando...' : '💾 Backup Manual'}
+          </button>
 
-        <button
-          className="btn-toggle"
-          onClick={toggleBackupSchedule}
-        >
-          {isBackupEnabled ? '⏸️ Pausar Automático' : '▶️ Activar Automático'}
-        </button>
+          <button
+            className="btn-toggle"
+            onClick={toggleBackupSchedule}
+          >
+            {isBackupEnabled ? '⏸️ Pausar' : '▶️ Activar'}
+          </button>
 
-        <button
-          className="btn-history"
+          <button
+            className="btn-history"
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            📋 Historial
+          </button>
+        </div>
+      </div>
+
+      {/* Historial de Backups */}
+      <div className="backup-history-section">
+        <button 
+          className={`history-toggle-btn ${showHistory ? 'active' : ''}`}
           onClick={() => setShowHistory(!showHistory)}
         >
-          📋 {showHistory ? 'Ocultar' : 'Ver'} Historial
+          <span>📜 Ver Historial de Backups</span>
+          <span className="toggle-icon">▼</span>
         </button>
+        
+        {showHistory && (
+          <div className="backup-history">
+            {backupHistory.length === 0 ? (
+              <p className="no-history">No hay backups registrados aún</p>
+            ) : (
+              <ul className="history-list">
+                {backupHistory.slice(0, 10).map((entry) => (
+                  <li key={entry.id} className="history-item">
+                    <span className="history-date">
+                      {new Date(entry.timestamp).toLocaleDateString()}
+                    </span>
+                    <span className={`history-type ${entry.type}`}>
+                      {entry.type === 'automático' ? '🤖 Auto' : '👤 Manual'}
+                    </span>
+                    <span className="history-filename" title={entry.filename}>
+                      {entry.filename}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Historial de backups */}
-      {showHistory && (
-        <div className="backup-history">
-          <h4>📜 Historial de Backups</h4>
-          {backupHistory.length === 0 ? (
-            <p className="no-history">No hay backups registrados aún</p>
-          ) : (
-            <ul className="history-list">
-              {backupHistory.slice(0, 10).map((entry) => (
-                <li key={entry.id} className="history-item">
-                  <span className="history-date">
-                    {new Date(entry.timestamp).toLocaleDateString()}
-                  </span>
-                  <span className={`history-type ${entry.type}`}>
-                    {entry.type === 'automático' ? '🤖 Auto' : '👤 Manual'}
-                  </span>
-                  <span className="history-filename" title={entry.filename}>
-                    {entry.filename}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* Sección de restauración */}
+      {/* Panel de Restauración */}
       <div className="backup-restore">
-        <h4>🔄 Restaurar desde Backup</h4>
+        <div className="restore-header">
+          <h4>🔄 Restaurar desde Backup</h4>
+        </div>
+        <p className="restore-description">
+          Sube un archivo de backup anterior para restaurar todos los datos
+        </p>
         <form onSubmit={handleRestore} className="restore-form">
-          <input
-            type="file"
-            accept=".xlsx,.json"
-            onChange={(e) => setRestoreFile(e.target.files[0])}
-            className="restore-input"
-          />
+          <div className="restore-input-wrapper">
+            <input
+              type="file"
+              accept=".xlsx,.json"
+              onChange={(e) => setRestoreFile(e.target.files[0])}
+              className="restore-input"
+            />
+          </div>
           <button
             type="submit"
             className="btn-restore"
             disabled={!restoreFile}
           >
-            🔄 Restaurar
+            🔄 Restaurar Datos
           </button>
         </form>
         {restoreMessage && (
@@ -161,18 +187,31 @@ export default function BackupStatus() {
           </p>
         )}
         <p className="restore-warning">
-          ⚠️ La restauración reemplazará todos los datos actuales
+          <strong>⚠️ Importante:</strong> La restauración reemplazará todos los datos actuales. Asegúrate de tener un backup reciente antes de continuar.
         </p>
       </div>
 
+      {/* Info Box */}
       <div className="backup-info-box">
-        <h4>ℹ️ Información</h4>
-        <ul>
-          <li>✅ Los backups se descargan automáticamente cada 24 horas</li>
-          <li>📁 El archivo incluye todos los clientes y documentos</li>
-          <li>💾 Se guarda en formato Excel (.xlsx)</li>
-          <li>🔒 Mantén tus backups en un lugar seguro</li>
-        </ul>
+        <h4>ℹ️ Información sobre Backups</h4>
+        <div className="info-grid">
+          <div className="info-item">
+            <span className="info-item-icon">✅</span>
+            <span className="info-item-text">Los backups se descargan automáticamente cada 24 horas</span>
+          </div>
+          <div className="info-item">
+            <span className="info-item-icon">📁</span>
+            <span className="info-item-text">El archivo incluye todos los clientes y documentos</span>
+          </div>
+          <div className="info-item">
+            <span className="info-item-icon">💾</span>
+            <span className="info-item-text">Se guarda en formato Excel (.xlsx) compatible</span>
+          </div>
+          <div className="info-item">
+            <span className="info-item-icon">🔒</span>
+            <span className="info-item-text">Mantén tus backups en un lugar seguro y protegido</span>
+          </div>
+        </div>
       </div>
     </div>
   );
