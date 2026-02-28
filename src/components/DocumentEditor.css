@@ -623,6 +623,97 @@
   box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
+/* Controles de filas (+ y -) */
+.table-row-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  margin-left: 8px;
+  align-items: center;
+}
+
+.btn-row-control {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.btn-row-control:hover {
+  transform: scale(1.1);
+}
+
+.btn-row-control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-add-row {
+  color: #16a34a;
+  border-color: #16a34a;
+}
+
+.btn-add-row:hover {
+  background: #dcfce7;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.btn-remove-row {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.btn-remove-row:hover:not(:disabled) {
+  background: #fee2e2;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+/* Tooltip para los botones */
+.control-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: #1e293b;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.control-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1e293b;
+}
+
+.btn-row-control:hover .control-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
+}
+
 /* Empty State */
 .editor-empty {
   text-align: center;

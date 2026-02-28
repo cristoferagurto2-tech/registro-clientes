@@ -295,6 +295,22 @@ export default function DocumentEditor({ month }) {
     setLastSaved(new Date());
   };
 
+  // Función para añadir una nueva fila
+  const handleAddRow = () => {
+    setData(prevData => {
+      const newRow = new Array(headers.length).fill('');
+      return [...prevData, newRow];
+    });
+  };
+
+  // Función para eliminar la última fila
+  const handleRemoveRow = () => {
+    setData(prevData => {
+      if (prevData.length <= 1) return prevData;
+      return prevData.slice(0, -1);
+    });
+  };
+
   // NUEVO: Función para guardar datos finales del mes (genera PDF y lo almacena)
   const handleSaveFinalData = async () => {
     if (!clientId || !data) return;
@@ -1092,6 +1108,29 @@ export default function DocumentEditor({ month }) {
                 })}
               </tbody>
             </table>
+            
+            {/* Botones para añadir/eliminar filas */}
+            {!readOnly && (
+              <div className="table-row-controls">
+                <button 
+                  className="btn-row-control btn-add-row"
+                  onClick={handleAddRow}
+                  title="Añadir fila"
+                >
+                  <span className="control-icon">+</span>
+                  <span className="control-tooltip">Añadir fila</span>
+                </button>
+                <button 
+                  className="btn-row-control btn-remove-row"
+                  onClick={handleRemoveRow}
+                  title="Eliminar fila"
+                  disabled={data.length <= 1}
+                >
+                  <span className="control-icon">−</span>
+                  <span className="control-tooltip">Eliminar fila</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
