@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import AvanceAnual from './AvanceAnual';
+import Historial from './Historial';
 import './MonthSelector.css';
 
 export default function MonthSelector() {
   const { user } = useAuth();
   const { MESES, hasDocument, setCurrentMonth, getAvailableMonths } = useDocuments();
-  const [activeTab, setActiveTab] = useState('documents'); // 'documents' o 'avance'
+  const [activeTab, setActiveTab] = useState('documents'); // 'documents', 'avance' o 'historial'
 
   const availableMonths = getAvailableMonths(user?.id);
 
@@ -28,8 +29,43 @@ export default function MonthSelector() {
           >
             Avance del Año
           </button>
+          <button 
+            className={`tab-btn ${activeTab === 'historial' ? 'active' : ''}`}
+            onClick={() => setActiveTab('historial')}
+          >
+            📋 Historial
+          </button>
         </div>
         <AvanceAnual />
+      </div>
+    );
+  }
+
+  // Si está en la pestaña de historial, mostrar ese componente
+  if (activeTab === 'historial') {
+    return (
+      <div className="month-selector">
+        <div className="tabs-navigation">
+          <button 
+            className={`tab-btn ${activeTab === 'documents' ? 'active' : ''}`}
+            onClick={() => setActiveTab('documents')}
+          >
+            Mis Documentos
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'avance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('avance')}
+          >
+            Avance del Año
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'historial' ? 'active' : ''}`}
+            onClick={() => setActiveTab('historial')}
+          >
+            📋 Historial
+          </button>
+        </div>
+        <Historial />
       </div>
     );
   }
@@ -63,6 +99,12 @@ export default function MonthSelector() {
           onClick={() => setActiveTab('avance')}
         >
           Avance del Año
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'historial' ? 'active' : ''}`}
+          onClick={() => setActiveTab('historial')}
+        >
+          📋 Historial
         </button>
       </div>
 
