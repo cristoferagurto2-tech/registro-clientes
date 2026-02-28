@@ -7,7 +7,6 @@ import AdminPanel from './AdminPanel';
 import TrialStatusBar from './TrialStatusBar';
 import TrialExpiredModal from './TrialExpiredModal';
 import PaymentModal from './PaymentModal';
-import BackupStatus from './BackupStatus';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -131,11 +130,6 @@ export default function Dashboard() {
       <main className="dashboard-main">
         {isAdmin ? <AdminPanel /> : <MonthSelector />}
       </main>
-
-      {/* Sección de Backup */}
-      <section className="backup-section">
-        <BackupStatus />
-      </section>
 
       <footer className="dashboard-footer">
         <p>© 2026 {projectName} - Todos los derechos reservados</p>
