@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
 import TerminosCondiciones from './TerminosCondiciones';
 import './Login.css';
 
@@ -53,10 +54,7 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }) 
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <div className="logo-box">
-            <span>RC</span>
-          </div>
-          <h1 className="login-title">ClientCode</h1>
+          <Logo size="large" />
           <p className="login-subtitle">
             Sistema de Gestión Financiera
           </p>
