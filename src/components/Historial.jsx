@@ -99,17 +99,34 @@ export default function Historial() {
                 </p>
                 
                 {backup.metadata.summary && (
-                  <div className="historial-item-stats">
-                    <span className="historial-item-stat">
-                      {backup.metadata.summary.totalClientes || 0} clientes
-                    </span>
-                    <span className="historial-item-stat">
-                      {formatCurrency(backup.metadata.summary.montoTotal || 0)}
-                    </span>
-                    <span className="historial-item-stat">
-                      {formatCurrency(backup.metadata.summary.ganancias || 0)} ganancias
-                    </span>
-                  </div>
+                  <>
+                    <div className="historial-item-stats">
+                      <span className="historial-item-stat">
+                        {backup.metadata.summary.totalClientes || 0} clientes
+                      </span>
+                      <span className="historial-item-stat">
+                        {formatCurrency(backup.metadata.summary.montoTotal || 0)}
+                      </span>
+                      <span className="historial-item-stat">
+                        {formatCurrency(backup.metadata.summary.ganancias || 0)} ganancias
+                      </span>
+                    </div>
+                    
+                    {/* TABLA DE PRODUCTOS */}
+                    {backup.metadata.summary.productos && backup.metadata.summary.productos.length > 0 && (
+                      <div className="historial-item-productos">
+                        <h4 className="productos-title">📊 Productos y Conteo</h4>
+                        <div className="productos-grid">
+                          {backup.metadata.summary.productos.map((prod, idx) => (
+                            <div key={idx} className="producto-item">
+                              <span className="producto-nombre">{prod.producto}</span>
+                              <span className="producto-total">{prod.total}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

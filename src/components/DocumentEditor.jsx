@@ -428,6 +428,12 @@ export default function DocumentEditor({ month }) {
         });
       }
 
+      // Calcular conteo de productos
+      const productosConteo = productosList.map(prod => {
+        const count = tableData.filter(row => row[5] === prod).length;
+        return { producto: prod, total: count };
+      }).filter(p => p.total > 0);
+
       // Convertir PDF a base64
       const pdfBase64 = doc.output('datauristring');
       
@@ -436,7 +442,8 @@ export default function DocumentEditor({ month }) {
       const result = savePDFBackup(clientId, month, year, pdfBase64, {
         totalClientes: data.filter(row => row[2] && row[2] !== '').length,
         montoTotal: data.reduce((sum, row) => sum + (parseFloat(row[6]) || 0), 0),
-        ganancias: data.reduce((sum, row) => sum + (parseFloat(row[10]) || 0), 0)
+        ganancias: data.reduce((sum, row) => sum + (parseFloat(row[10]) || 0), 0),
+        productos: productosConteo
       });
 
       if (result.success) {
