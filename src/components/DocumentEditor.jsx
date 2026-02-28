@@ -10,6 +10,10 @@ import { applyPlugin } from 'jspdf-autotable';
 applyPlugin(jsPDF);
 import './DocumentEditor.css';
 
+// NUEVO: Importaciones para el sistema de guardado final
+import SaveFinalDataModal from './SaveFinalDataModal';
+import { savePDFBackup, hasPDFBackup } from '../services/pdfBackupService';
+
 export default function DocumentEditor({ month }) {
   const { user, isReadOnlyMode, getTrialStatus, isAdmin } = useAuth();
   
@@ -30,6 +34,10 @@ export default function DocumentEditor({ month }) {
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState(null);
   const [showColorsInPreview, setShowColorsInPreview] = useState(false);
+  
+  // NUEVO: Estados para el sistema de guardado final
+  const [showSaveFinalModal, setShowSaveFinalModal] = useState(false);
+  const [savingFinal, setSavingFinal] = useState(false);
   
   // Estado para el color del PDF (por defecto verde)
   const [pdfColor, setPdfColor] = useState(() => {
@@ -285,6 +293,164 @@ export default function DocumentEditor({ month }) {
     
     setSaving(false);
     setLastSaved(new Date());
+  };
+
+  // NUEVO: Función para guardar datos finales del mes (genera PDF y lo almacena)
+  const handleSaveFinalData = async () => {
+    if (!clientId || !data) return;
+    
+    setSavingFinal(true);
+    
+    try {
+      // Generar el PDF usando la misma lógica que handleDownload
+      const doc = new jsPDF('landscape');
+      const currentYear = 2026;
+      
+      // Configurar metadatos
+      doc.setProperties({
+        title: `ClientCode - ${month} ${currentYear}`,
+        subject: 'Documento de Clientes',
+        author: user?.name || 'ClientCode',
+        keywords: 'clientes, documento, registro',
+        creator: 'ClientCode App'
+      });
+
+      // Color del encabezado
+      const pdfHeaderColor = pdfColor;
+
+      // Obtener datos actualizados
+      const tableData = data.map((row, rowIndex) => {
+        return row.map((cell, colIndex) => {
+          const key = `${rowIndex}-${colIndex}`;
+          return editedData[key] !== undefined ? editedData[key] : cell;
+        });
+      }).filter(row => row[2] && row[2] !== '');
+
+      // PORTADA
+      doc.setFontSize(24);
+      doc.setTextColor(pdfHeaderColor[0], pdfHeaderColor[1], pdfHeaderColor[2]);
+      doc.text('ClientCode', 148, 50, { align: 'center' });
+      
+      doc.setFontSize(16);
+      doc.setTextColor(80, 80, 80);
+      doc.text(`Documento de Clientes - ${month} ${currentYear}`, 148, 70, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text(`Generado por: ${user?.name || 'Usuario'}`, 148, 90, { align: 'center' });
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 148, 100, { align: 'center' });
+
+      // PÁGINA 2: DATOS
+      if (tableData.length > 0) {
+        doc.addPage();
+        
+        // Título
+        doc.setFontSize(14);
+        doc.setTextColor(pdfHeaderColor[0], pdfHeaderColor[1], pdfHeaderColor[2]);
+        doc.text(`Datos de ${month} ${currentYear}`, 148, 15, { align: 'center' });
+
+        // Configurar colores de filas según observaciones
+        const rowStyles = tableData.map(row => {
+          const observacion = String(row[9] || '').toLowerCase();
+          if (observacion.includes('cobro')) return [254, 243, 199]; // Amarillo
+          if (observacion.includes('pendiente') || observacion.includes('espera')) return [220, 252, 231]; // Verde
+          if (observacion.includes('cancelado')) return [254, 226, 226]; // Rojo
+          return [255, 255, 255]; // Blanco
+        });
+
+        doc.autoTable({
+          head: [headers],
+          body: tableData,
+          startY: 25,
+          theme: 'grid',
+          styles: { 
+            fontSize: 8, 
+            cellPadding: 2,
+            overflow: 'linebreak',
+            fillColor: [255, 255, 255],
+            textColor: [0, 0, 0]
+          },
+          headStyles: { 
+            fillColor: pdfHeaderColor,
+            textColor: 255,
+            fontStyle: 'bold'
+          },
+          didParseCell: function(data) {
+            if (data.cell.section === 'body') {
+              const rowIndex = data.row.index;
+              const color = rowStyles[rowIndex];
+              if (color) {
+                data.cell.styles.fillColor = color;
+              }
+            }
+          },
+          margin: { top: 25 }
+        });
+
+        // Pie de página
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Documento confidencial - Generado por ClientCode`, 148, 200, { align: 'center' });
+        doc.text(`Página 2 de ${pageCount}`, 280, 200, { align: 'right' });
+
+        // PÁGINA 3: DASHBOARD
+        doc.addPage();
+        
+        // Título del dashboard
+        doc.setFontSize(18);
+        doc.setTextColor(pdfHeaderColor[0], pdfHeaderColor[1], pdfHeaderColor[2]);
+        doc.text('Dashboard - Análisis de Datos', 148, 15, { align: 'center' });
+
+        // Calcular estadísticas
+        const totalClientes = tableData.length;
+        const montoTotal = tableData.reduce((sum, row) => sum + (parseFloat(row[6]) || 0), 0);
+        const totalGanancias = tableData.reduce((sum, row) => sum + (parseFloat(row[10]) || 0), 0);
+
+        // Resumen General
+        doc.setFontSize(12);
+        doc.setTextColor(80, 80, 80);
+        doc.text('Resumen General', 20, 30);
+
+        const resumenData = [
+          ['Total de Clientes', totalClientes.toString()],
+          ['Monto Total (S/)', `S/ ${montoTotal.toFixed(2)}`],
+          ['Total Ganancias (S/)', `S/ ${totalGanancias.toFixed(2)}`]
+        ];
+
+        doc.autoTable({
+          body: resumenData,
+          startY: 35,
+          theme: 'grid',
+          styles: { fontSize: 10 },
+          columnStyles: {
+            0: { fillColor: pdfHeaderColor, textColor: 255, fontStyle: 'bold' }
+          }
+        });
+      }
+
+      // Convertir PDF a base64
+      const pdfBase64 = doc.output('datauristring');
+      
+      // Guardar en localStorage
+      const year = 2026;
+      const result = savePDFBackup(clientId, month, year, pdfBase64, {
+        totalClientes: data.filter(row => row[2] && row[2] !== '').length,
+        montoTotal: data.reduce((sum, row) => sum + (parseFloat(row[6]) || 0), 0),
+        ganancias: data.reduce((sum, row) => sum + (parseFloat(row[10]) || 0), 0)
+      });
+
+      if (result.success) {
+        alert(`✅ Datos de ${month} ${year} guardados correctamente en el historial.`);
+        setShowSaveFinalModal(false);
+      } else {
+        alert('❌ Error al guardar: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error al guardar datos finales:', error);
+      alert('❌ Error al generar el documento: ' + error.message);
+    } finally {
+      setSavingFinal(false);
+    }
   };
 
   // Función para obtener el color según la observación
@@ -763,13 +929,25 @@ export default function DocumentEditor({ month }) {
           )}
           
           {!readOnly && (
-            <button 
-              className={`btn-save-v2 ${saving ? 'saving' : ''}`}
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? 'Guardando...' : 'Guardar Cambios'}
-            </button>
+            <>
+              <button 
+                className={`btn-save-v2 ${saving ? 'saving' : ''}`}
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+              
+              {/* NUEVO: Botón para guardar datos finales del mes */}
+              <button 
+                className="btn-save-final"
+                onClick={() => setShowSaveFinalModal(true)}
+                disabled={saving || savingFinal}
+                title="Guardar documento final en el historial"
+              >
+                {savingFinal ? '⏳ Guardando...' : '✅ Guardar Datos Finales'}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -1142,6 +1320,15 @@ export default function DocumentEditor({ month }) {
           </div>
         </div>
       )}
+      
+      {/* NUEVO: Modal para guardar datos finales del mes */}
+      <SaveFinalDataModal
+        isOpen={showSaveFinalModal}
+        onClose={() => setShowSaveFinalModal(false)}
+        onConfirm={handleSaveFinalData}
+        month={month}
+        year={2026}
+      />
     </div>
   );
 }

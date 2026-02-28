@@ -140,6 +140,31 @@
   cursor: not-allowed;
 }
 
+/* NUEVO: Estilos para botón de guardar datos finales */
+.btn-save-final {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  margin-left: 12px;
+}
+
+.btn-save-final:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-save-final:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* Sheets Container */
 .sheets-container {
   padding: 24px;
