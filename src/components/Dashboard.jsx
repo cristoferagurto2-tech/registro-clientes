@@ -35,9 +35,7 @@ export default function Dashboard() {
     }
   }, [user, isAdmin, getTrialStatus]);
 
-  const projectName = "ClientCode";
-
-  // Si hay un mes seleccionado, mostrar el editor
+// Si hay un mes seleccionado, mostrar el editor
   if (currentMonth) {
     return (
       <div className="dashboard-container">
@@ -45,10 +43,7 @@ export default function Dashboard() {
           <div className="header-content">
             <div className="header-brand">
               <Logo size="medium" />
-              <div className="header-title">
-                <h1>{projectName}</h1>
-                <span className="header-subtitle">{currentMonth} 2026</span>
-              </div>
+              <span className="header-subtitle">{currentMonth} 2026</span>
             </div>
             
             <div className="header-actions">
@@ -83,10 +78,7 @@ export default function Dashboard() {
         <div className="header-content">
           <div className="header-brand">
             <Logo size="medium" />
-            <div className="header-title">
-              <h1>{projectName}</h1>
-              <span className="header-subtitle">Sistema de Gestión Financiera</span>
-            </div>
+            <span className="header-subtitle">Sistema de Gestión Financiera</span>
           </div>
           
           <div className="header-user">
