@@ -11,7 +11,16 @@ applyPlugin(jsPDF);
 import './DocumentEditor.css';
 
 export default function DocumentEditor({ month }) {
-  const { user, isReadOnlyMode, getTrialStatus } = useAuth();
+  const { user, isReadOnlyMode, getTrialStatus, isAdmin } = useAuth();
+  
+  // Verificar si el usuario puede descargar PDF (solo suscritos o admin)
+  const canDownloadPDF = () => {
+    if (isAdmin) return true;
+    if (user?.isSubscribed) return true;
+    // Permitir durante el período de prueba
+    const trialStatus = getTrialStatus(user?.email);
+    return trialStatus?.isTrialActive || false;
+  };
   const { getMergedData, updateCompletedData, downloadOriginalFile } = useDocuments();
   const [data, setData] = useState(null);
   const [headers, setHeaders] = useState([]);
@@ -387,6 +396,12 @@ export default function DocumentEditor({ month }) {
 
   // Generar y descargar PDF con los datos y análisis
   const handleDownload = () => {
+    // Verificar si el usuario puede descargar PDF
+    if (!canDownloadPDF()) {
+      alert('La descarga de PDF es una función exclusiva para usuarios suscritos al Plan Profesional (S/ 60/mes). Por favor, suscríbase para acceder a esta característica.');
+      return;
+    }
+    
     if (!clientId) {
       alert('Error: No se pudo identificar el cliente');
       return;
@@ -949,8 +964,12 @@ export default function DocumentEditor({ month }) {
           <button className="btn-download-v2 btn-excel" onClick={handleShowPreview}>
             👁️ Vista Previa Documento
           </button>
-          <button className="btn-download-v2" onClick={handleDownload}>
-            📄 Descargar PDF
+          <button 
+            className={`btn-download-v2 ${!canDownloadPDF() ? 'btn-locked' : ''}`} 
+            onClick={handleDownload}
+            title={!canDownloadPDF() ? 'Disponible solo para usuarios suscritos al Plan Profesional' : ''}
+          >
+            📄 Descargar PDF {!canDownloadPDF() && '🔒'}
           </button>
         </div>
       </div>
