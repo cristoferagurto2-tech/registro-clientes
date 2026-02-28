@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
+import Logo from './Logo';
 import MonthSelector from './MonthSelector';
 import DocumentEditor from './DocumentEditor';
 import AdminPanel from './AdminPanel';
@@ -43,9 +44,7 @@ export default function Dashboard() {
         <header className="dashboard-header">
           <div className="header-content">
             <div className="header-brand">
-              <div className="logo-box">
-                <span>RC</span>
-              </div>
+              <Logo size="medium" />
               <div className="header-title">
                 <h1>{projectName}</h1>
                 <span className="header-subtitle">{currentMonth} 2026</span>
@@ -83,9 +82,7 @@ export default function Dashboard() {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-brand">
-            <div className="logo-box">
-              <span>RC</span>
-            </div>
+            <Logo size="medium" />
             <div className="header-title">
               <h1>{projectName}</h1>
               <span className="header-subtitle">Sistema de Gestión Financiera</span>

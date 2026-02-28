@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
 import TerminosCondiciones from './TerminosCondiciones';
 import './Register.css';
 
@@ -101,10 +102,7 @@ export default function Register({ onSwitchToLogin }) {
     <div className="register-container">
       <div className="register-card">
         <div className="register-header">
-          <div className="logo-box">
-            <span>RC</span>
-          </div>
-          <h1 className="register-title">Crear Cuenta</h1>
+          <Logo size="large" />
           <p className="register-subtitle">
             Complete el formulario para registrarse
           </p>
