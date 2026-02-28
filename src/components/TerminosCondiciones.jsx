@@ -72,7 +72,7 @@ export default function TerminosCondiciones({ onAccept, isOpen }) {
                     <li>Créditos ilimitados</li>
                     <li>Hasta 3 usuarios por cuenta</li>
                     <li>Dashboard avanzado</li>
-                    <li>Exportación a Excel</li>
+                    <li>Descarga de PDF</li>
                     <li>Soporte prioritario</li>
                   </ul>
                 </div>
