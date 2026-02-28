@@ -717,32 +717,6 @@ export default function DocumentEditor({ month }) {
         }
       });
       
-      // Resumen por Meses
-      const mesesY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 80;
-      doc.setFontSize(14);
-      doc.setTextColor(30, 58, 138);
-      doc.text('Resumen por Meses', 14, mesesY);
-      
-      const mesesData = dashboard?.porMeses?.map(m => [
-        m.mes,
-        m.clientes.toString(),
-        `S/ ${m.monto.toFixed(2)}`,
-        `S/ ${m.ganancias.toFixed(2)}`
-      ]) || [];
-      
-      doc.autoTable({
-        head: [['Mes', 'Clientes', 'Monto Total (S/)', 'Ganancias (S/)']],
-        body: mesesData,
-        startY: mesesY + 5,
-        theme: 'grid',
-        styles: { 
-          fontSize: 9, 
-          cellPadding: 2,
-          fillColor: [255, 255, 255]
-        },
-        headStyles: { fillColor: pdfColor, textColor: 255 }
-      });
-      
       // Calcular y agregar resumen por días
       const diasData = calcularResumenPorDias(tableData).map(dia => [
         dia.dia,
