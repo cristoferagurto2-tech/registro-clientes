@@ -35,7 +35,9 @@ export default function Dashboard() {
     }
   }, [user, isAdmin, getTrialStatus]);
 
-// Si hay un mes seleccionado, mostrar el editor
+  const projectName = "ClientCode";
+
+  // Si hay un mes seleccionado, mostrar el editor
   if (currentMonth) {
     return (
       <div className="dashboard-container">
