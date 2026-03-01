@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import Logo from './Logo';
+import WelcomeIllustration from './WelcomeIllustration';
 import MonthSelector from './MonthSelector';
 import DocumentEditor from './DocumentEditor';
 import AdminPanel from './AdminPanel';
@@ -107,11 +108,12 @@ export default function Dashboard() {
               {projectName}
             </h1>
             <p className="welcome-subtitle">
-              {isAdmin 
+              {isAdmin
                 ? 'Gestione sus clientes y sus documentos de manera eficiente'
                 : 'Acceda a sus documentos personales de forma segura'}
             </p>
           </div>
+          {!isAdmin && <WelcomeIllustration />}
         </div>
       </section>
 
