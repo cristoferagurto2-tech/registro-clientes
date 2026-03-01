@@ -364,14 +364,14 @@ export default function DocumentEditor({ month }) {
         doc.setTextColor(pdfHeaderColor[0], pdfHeaderColor[1], pdfHeaderColor[2]);
         doc.text(`Datos de ${month} ${currentYear}`, 148, 15, { align: 'center' });
 
-        // Configurar colores de filas según observaciones
-        const rowStyles = tableData.map(row => {
-          const observacion = String(row[9] || '').toLowerCase();
-          if (observacion.includes('cobro')) return [254, 243, 199]; // Amarillo
-          if (observacion.includes('pendiente') || observacion.includes('espera')) return [220, 252, 231]; // Verde
-          if (observacion.includes('cancelado')) return [254, 226, 226]; // Rojo
+        // Configurar colores SOLO para la columna de observaciones (índice 9)
+        const getObservacionColor = (observacion) => {
+          const obs = String(observacion || '').toLowerCase().trim();
+          if (obs.includes('cobro')) return [254, 243, 199]; // Amarillo
+          if (obs.includes('pendiente') || obs.includes('espera')) return [220, 252, 231]; // Verde
+          if (obs.includes('cancelado')) return [254, 226, 226]; // Rojo
           return [255, 255, 255]; // Blanco
-        });
+        };
 
         doc.autoTable({
           head: [headers],
@@ -391,10 +391,11 @@ export default function DocumentEditor({ month }) {
             fontStyle: 'bold'
           },
           didParseCell: function(data) {
-            if (data.cell.section === 'body') {
-              const rowIndex = data.row.index;
-              const color = rowStyles[rowIndex];
-              if (color) {
+            // Aplicar color SOLO a la columna de observaciones (índice 9)
+            if (data.cell.section === 'body' && data.column.index === 9) {
+              const observacion = data.cell.raw;
+              const color = getObservacionColor(observacion);
+              if (color && color[0] !== 255) { // Solo si no es blanco
                 data.cell.styles.fillColor = color;
               }
             }
@@ -442,9 +443,42 @@ export default function DocumentEditor({ month }) {
             0: { fillColor: pdfHeaderColor, textColor: 255, fontStyle: 'bold' }
           }
         });
+
+        // PÁGINA 4: PRODUCTOS Y CONTEO
+        doc.addPage();
+        
+        // Título de productos
+        doc.setFontSize(18);
+        doc.setTextColor(pdfHeaderColor[0], pdfHeaderColor[1], pdfHeaderColor[2]);
+        doc.text('Productos y Conteo', 148, 15, { align: 'center' });
+
+        // Calcular conteo de productos
+        const productosConteo = productosList.map(prod => {
+          const count = tableData.filter(row => row[5] === prod).length;
+          return { producto: prod, total: count };
+        });
+
+        const productosData = productosConteo.map(p => [p.producto, p.total.toString()]);
+
+        doc.autoTable({
+          head: [['Producto', 'Total']],
+          body: productosData,
+          startY: 25,
+          theme: 'grid',
+          styles: { fontSize: 10 },
+          headStyles: { 
+            fillColor: pdfHeaderColor, 
+            textColor: 255, 
+            fontStyle: 'bold' 
+          },
+          columnStyles: {
+            0: { cellWidth: 'auto' },
+            1: { cellWidth: 80, halign: 'center' }
+          }
+        });
       }
 
-      // Calcular conteo de productos
+      // Calcular conteo de productos para guardar en metadata
       const productosConteo = productosList.map(prod => {
         const count = tableData.filter(row => row[5] === prod).length;
         return { producto: prod, total: count };
