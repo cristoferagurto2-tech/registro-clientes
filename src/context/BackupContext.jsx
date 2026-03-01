@@ -186,46 +186,18 @@ export function BackupProvider({ children }) {
     }
   }, [createBackup, exportToExcel, isBackingUp]);
 
-  // Función para verificar y ejecutar backup automático
+  // Función para verificar y ejecutar backup automático - DESACTIVADA
   const checkAndRunAutomaticBackup = useCallback(() => {
-    if (!isBackupEnabled || !user || isAdmin) return;
-    
-    const now = Date.now();
-    const savedTimestamp = localStorage.getItem(BACKUP_STORAGE_KEY);
-    
-    if (!savedTimestamp) {
-      // Primera vez - crear backup inicial (solo para clientes, no admin)
-      downloadBackup(true);
-      return;
-    }
-    
-    const lastBackupTime = parseInt(savedTimestamp);
-    const timeSinceLastBackup = now - lastBackupTime;
-    
-    if (timeSinceLastBackup >= BACKUP_INTERVAL_MS) {
-      // Han pasado 24 horas o más - crear backup (solo para clientes)
-      downloadBackup(true);
-    }
-  }, [isBackupEnabled, user, isAdmin, downloadBackup]);
+    // Backup automático desactivado - no se descarga nada al iniciar sesión
+    return;
+  }, []);
 
-  // Configurar verificación periódica
+  // Configurar verificación periódica - DESACTIVADA
   useEffect(() => {
-    if (!user || !isBackupEnabled || isAdmin) return;
-    
-    // Verificar inmediatamente al iniciar sesión (solo para clientes)
-    checkAndRunAutomaticBackup();
-    
-    // Verificar cada hora si es hora de hacer backup
-    backupTimerRef.current = setInterval(() => {
-      checkAndRunAutomaticBackup();
-    }, 60 * 60 * 1000); // Cada hora
-    
-    return () => {
-      if (backupTimerRef.current) {
-        clearInterval(backupTimerRef.current);
-      }
-    };
-  }, [user, isBackupEnabled, isAdmin, checkAndRunAutomaticBackup]);
+    // Backup automático completamente desactivado
+    // Los usuarios deben hacer backup manual si lo desean
+    return () => {};
+  }, []);
 
   // Función para backup manual
   const triggerManualBackup = useCallback(async () => {
