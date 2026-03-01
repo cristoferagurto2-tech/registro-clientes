@@ -5,166 +5,227 @@ const WelcomeIllustration = () => {
   return (
     <div className="welcome-illustration">
       <svg 
-        viewBox="0 0 300 280" 
+        viewBox="0 0 400 320" 
         xmlns="http://www.w3.org/2000/svg"
         className="illustration-svg"
       >
-        {/* Fondo circular decorativo */}
-        <circle cx="150" cy="140" r="120" fill="#e0f2fe" opacity="0.5" />
-        <circle cx="220" cy="80" r="40" fill="#dbeafe" opacity="0.6" />
-        <circle cx="80" cy="200" r="30" fill="#dbeafe" opacity="0.4" />
+        {/* Fondo con forma orgánica */}
+        <path
+          d="M50 200 
+             Q30 100, 150 80 
+             Q280 60, 320 150 
+             Q360 240, 250 280 
+             Q140 320, 50 200"
+          fill="#dbeafe"
+          opacity="0.6"
+        />
+
+        {/* Suelo/escena */}
+        <rect x="0" y="280" width="400" height="40" fill="#f1f5f9" />
+
+        {/* Silla decorativa */}
+        <g transform="translate(60, 160)">
+          {/* Asiento */}
+          <rect x="0" y="60" width="70" height="50" rx="4" fill="#fbbf24" />
+          <rect x="0" y="60" width="70" height="8" rx="2" fill="#f59e0b" />
+          
+          {/* Respaldo */}
+          <rect x="10" y="0" width="50" height="60" rx="4" fill="#fbbf24" />
+          <rect x="10" y="55" width="50" height="5" rx="1" fill="#f59e0b" />
+          
+          {/* Patas */}
+          <rect x="8" y="110" width="8" height="40" fill="#9ca3af" />
+          <rect x="54" y="110" width="8" height="40" fill="#9ca3af" />
+          <rect x="8" y="145" width="54" height="5" rx="2" fill="#6b7280" />
+        </g>
+
+        {/* Planta decorativa izquierda */}
+        <g transform="translate(30, 220)">
+          <path d="M20 50 Q10 30, 5 10" stroke="#22c55e" strokeWidth="3" fill="none" />
+          <path d="M20 50 Q20 25, 20 5" stroke="#16a34a" strokeWidth="3" fill="none" />
+          <path d="M20 50 Q30 30, 40 15" stroke="#22c55e" strokeWidth="3" fill="none" /
+          
+          <ellipse cx="5" cy="10" rx="8" ry="12" fill="#4ade80" transform="rotate(-20 5 10)" /
+          
+          <ellipse cx="20" cy="5" rx="8" ry="14" fill="#22c55e" /
+          
+          <ellipse cx="40" cy="15" rx="9" ry="13" fill="#4ade80" transform="rotate(20 40 15)" /
+          
+          {/* Maceta */}
+          <path d="M10 50 L30 50 L28 70 L12 70 Z" fill="#f97316" /
+          <rect x="8" y="48" width="24" height="6" rx="1" fill="#fb923c" /
+        </g>
+
+        {/* Planta decorativa derecha */}
+        <g transform="translate(330, 200)">
+          <path d="M25 60 Q15 35, 10 15" stroke="#22c55e" strokeWidth="3" fill="none" /
+          
+          <path d="M25 60 Q25 35, 30 10" stroke="#16a34a" strokeWidth="3" fill="none" /
+          
+          <path d="M25 60 Q35 35, 45 20" stroke="#22c55e" strokeWidth="3" fill="none" /
+          
+          
+          <ellipse cx="10" cy="15" rx="9" ry="13" fill="#4ade80" transform="rotate(-25 10 15)" /
+          
+          <ellipse cx="30" cy="10" rx="10" ry="15" fill="#22c55e" /
+          
+          <ellipse cx="45" cy="20" rx="9" ry="12" fill="#4ade80" transform="rotate(25 45 20)" /
+          
+          {/* Maceta redonda */}
+          <rect x="15" y="60" width="20" height="25" rx="3" fill="#8b5cf6" /
+          <rect x="13" y="58" width="24" height="8" rx="2" fill="#a78bfa" /
+        </g>
 
         {/* Personaje - Mujer profesional */}
-        <g transform="translate(85, 50)">
-          {/* Cabello - parte trasera */}
-          <path
-            d="M65 25 
-               Q30 30, 25 70 
-               Q20 100, 35 120
-               L95 120
-               Q110 100, 105 70
-               Q100 30, 65 25"
-            fill="#1e3a5f"
-          />
-
-          {/* Cuello */}
-          <rect x="55" y="95" width="20" height="25" fill="#fdba74" />
-
-          {/* Cara */}
-          <ellipse cx="65" cy="65" rx="32" ry="38" fill="#fdba74" />
+        <g transform="translate(180, 60)">
           
-          {/* Cabello - flequillo */}
+          {/* Piernas/pantalón */}
           <path
-            d="M33 45
-               Q40 25, 65 25
-               Q90 25, 97 45
-               Q95 35, 80 30
-               Q65 28, 50 30
-               Q35 35, 33 45"
-            fill="#1e3a5f"
-          />
-
-          {/* Ojos */}
-          <ellipse cx="52" cy="60" rx="6" ry="7" fill="white" />
-          <circle cx="52" cy="60" r="4" fill="#1e293b" />
-          <circle cx="53" cy="58" r="1.5" fill="white" />
-
-          <ellipse cx="78" cy="60" rx="6" ry="7" fill="white" />
-          <circle cx="78" cy="60" r="4" fill="#1e293b" />
-          <circle cx="79" cy="58" r="1.5" fill="white" />
-
-          {/* Cejas */}
-          <path d="M45 50 Q52 48, 59 50" stroke="#1e3a5f" strokeWidth="2" fill="none" />
-          <path d="M71 50 Q78 48, 85 50" stroke="#1e3a5f" strokeWidth="2" fill="none" />
-
-          {/* Nariz */}
-          <path d="M65 65 L62 75 L68 75" stroke="#f97316" strokeWidth="1.5" fill="none" opacity="0.6" />
-
-          {/* Sonrisa */}
-          <path d="M55 82 Q65 90, 75 82" stroke="#be123c" strokeWidth="2" fill="none" strokeLinecap="round" />
-
-          {/* Mejillas */}
-          <circle cx="45" cy="75" r="5" fill="#fca5a5" opacity="0.4" />
-          <circle cx="85" cy="75" r="5" fill="#fca5a5" opacity="0.4" />
-
-          {/* Gafas */}
-          <circle cx="52" cy="62" r="12" stroke="#1e3a5f" strokeWidth="2" fill="none" />
-          <circle cx="78" cy="62" r="12" stroke="#1e3a5f" strokeWidth="2" fill="none" />
-          <line x1="64" y1="62" x2="66" y2="62" stroke="#1e3a5f" strokeWidth="2" />
-          <line x1="40" y1="58" x2="35" y2="55" stroke="#1e3a5f" strokeWidth="2" />
-          <line x1="90" y1="58" x2="95" y2="55" stroke="#1e3a5f" strokeWidth="2" />
-
-          {/* Cuerpo - Blazer */}
-          <path
-            d="M35 120
-               L30 200
-               L100 200
-               L95 120
+            d="M35 180 
+               L35 220 
+               L45 220 
+               L50 180
+               L65 180
+               L70 220
+               L80 220
+               L75 180
                Z"
             fill="#1e3a8a"
-          />
+          /
           
-          {/* Cuello de camisa */}
+          {/* Zapatos */}
+          <ellipse cx="40" cy="222" rx="12" ry="6" fill="#1f2937" /
+          <ellipse cx="75" cy="222" rx="12" ry="6" fill="#1f2937" /
+          
+          {/* Cuerpo/blazer */}
           <path
-            d="M55 120
-               L65 140
-               L75 120"
+            d="M25 80
+               Q20 130, 25 180
+               L90 180
+               Q95 130, 90 80
+               Q90 70, 80 65
+               L35 65
+               Q25 70, 25 80"
+            fill="#1e40af"
+          /
+          
+          {/* Blazer - solapas */}
+          <path
+            d="M25 80
+               L40 130
+               L57 115
+               L35 65"
+            fill="#1e3a8a"
+          /
+          
+          <path
+            d="M90 80
+               L75 130
+               L58 115
+               L80 65"
+            fill="#1e3a8a"
+          /
+          
+          {/* Camisa blanca */}
+          <path
+            d="M40 65
+               L57 90
+               L74 65
+               L57 60
+               Z"
             fill="white"
-          />
-
-          {/* Blazer - solapa */}
+          /
+          
+          {/* Cuello */}
+          <rect x="52" y="55" width="10" height="12" fill="#fdba74" /
+          
+          {/* Cabeza/cara */}
+          <ellipse cx="57" cy="40" rx="22" ry="26" fill="#fdba74" /
+          
+          {/* Cabello */}
           <path
-            d="M35 120
-               L55 160
-               L65 140
-               L55 120"
-            fill="#1e40af"
-          />
+            d="M35 25
+               Q30 40, 35 55
+               L40 50
+               Q35 35, 40 20
+               Q57 15, 74 20
+               Q79 35, 74 50
+               L79 55
+               Q84 40, 79 25
+               Q79 5, 57 5
+               Q35 5, 35 25"
+            fill="#1f2937"
+          /
+          
+          {/* Flequillo */}
+          <path
+            d="M35 20
+               Q45 12, 57 15
+               Q69 12, 79 20
+               Q70 8, 57 8
+               Q44 8, 35 20"
+            fill="#1f2937"
+          /
+          
+          {/* Ojos */}
+          <circle cx="48" cy="38" r="3" fill="#1f2937" /
+          <circle cx="66" cy="38" r="3" fill="#1f2937" /
+          
+          {/* Sonrisa */}
+          <path d="M52 48 Q57 52, 62 48" stroke="#be123c" strokeWidth="2" fill="none" strokeLinecap="round" /
+          
+          {/* Brazos */}
+          <path
+            d="M25 85
+               Q15 110, 20 135"
+            stroke="#1e3a8a"
+            strokeWidth="12"
+            fill="none"
+            strokeLinecap="round"
+          /
           
           <path
-            d="M95 120
-               L75 160
-               L65 140
-               L75 120"
-            fill="#1e40af"
-          />
-
-          {/* Manos sosteniendo tablet/documentos */}
-          <ellipse cx="45" cy="165" rx="8" ry="12" fill="#fdba74" />
-          <ellipse cx="85" cy="165" rx="8" ry="12" fill="#fdba74" />
-
-          {/* Tablet/Documentos */}
-          <rect x="40" y="145" width="50" height="35" rx="3" fill="white" stroke="#1e3a8a" strokeWidth="2" />
-          <line x1="48" y1="155" x2="82" y2="155" stroke="#cbd5e1" strokeWidth="2" />
-          <line x1="48" y1="162" x2="75" y2="162" stroke="#cbd5e1" strokeWidth="2" />
-          <line x1="48" y1="169" x2="80" y2="169" stroke="#cbd5e1" strokeWidth="2" />
-
-          {/* Check mark en el documento */}
-          <circle cx="78" cy="152" r="8" fill="#22c55e" />
-          <path d="M74 152 L77 155 L82 149" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" />
+            d="M90 85
+               Q100 110, 75 120"
+            stroke="#1e3a8a"
+            strokeWidth="12"
+            fill="none"
+            strokeLinecap="round"
+          /
+          
+          {/* Manos */}
+          <circle cx="20" cy="138" r="7" fill="#fdba74" /
+          <circle cx="72" cy="122" r="7" fill="#fdba74" /
+          
+          {/* Laptop/Documentos */}
+          <g transform="translate(5, 95) rotate(-10)">
+            {/* Base laptop */}
+            <rect x="0" y="40" width="55" height="35" rx="3" fill="#374151" /
+            <rect x="2" y="42" width="51" height="31" rx="2" fill="#1f2937" /
+            
+            {/* Pantalla */}
+            <path d="M5 40 L10 10 L60 10 L55 40 Z" fill="#374151" /
+            
+            <rect x="12" y="14" width="46" height="24" rx="1" fill="#3b82f6" /
+            
+            {/* Contenido pantalla */}
+            <rect x="15" y="18" width="20" height="2" rx="1" fill="white" opacity="0.8" /
+            
+            <rect x="15" y="23" width="30" height="2" rx="1" fill="white" opacity="0.6" /
+            
+            <rect x="15" y="28" width="25" height="2" rx="1" fill="white" opacity="0.6" /
+            
+            {/* Checkmark */}
+            <circle cx="50" cy="22" r="5" fill="#22c55e" /
+            
+            <path d="M47 22 L49 24 L53 20" stroke="white" strokeWidth="1.5" fill="none" /
+          </g>
         </g>
 
-        {/* Documentos flotantes decorativos */}
-        <g transform="translate(200, 80)">
-          {/* Documento 1 */}
-          <rect x="0" y="0" width="35" height="45" rx="3" fill="white" stroke="#1e3a8a" strokeWidth="2" opacity="0.9" />
-          <line x1="6" y1="10" x2="29" y2="10" stroke="#3b82f6" strokeWidth="2" />
-          <line x1="6" y1="18" x2="25" y2="18" stroke="#93c5fd" strokeWidth="2" />
-          <line x1="6" y1="26" x2="28" y2="26" stroke="#93c5fd" strokeWidth="2" />
-          <rect x="6" y1="34" width="12" height="6" rx="1" fill="#dbeafe" />
-        </g>
-
-        <g transform="translate(30, 90)">
-          {/* Documento 2 */}
-          <rect x="0" y="0" width="30" height="40" rx="3" fill="white" stroke="#1e3a8a" strokeWidth="2" opacity="0.8" />
-          <line x1="5" y1="8" x2="25" y2="8" stroke="#60a5fa" strokeWidth="2" />
-          <line x1="5" y1="15" x2="22" y2="15" stroke="#bfdbfe" strokeWidth="2" />
-          <line x1="5" y1="22" x2="24" y2="22" stroke="#bfdbfe" strokeWidth="2" />
-          <circle cx="22" cy="30" r="5" fill="#22c55e" />
-          <path d="M19 30 L21 32 L25 27" stroke="white" strokeWidth="1.5" fill="none" />
-        </g>
-
-        <g transform="translate(220, 180)">
-          {/* Documento 3 */}
-          <rect x="0" y="0" width="28" height="36" rx="3" fill="white" stroke="#1e3a8a" strokeWidth="2" opacity="0.7" />
-          <line x1="4" y1="7" x2="24" y2="7" stroke="#93c5fd" strokeWidth="2" />
-          <line x1="4" y1="14" x2="20" y2="14" stroke="#dbeafe" strokeWidth="2" />
-          <line x1="4" y1="21" x2="22" y2="21" stroke="#dbeafe" strokeWidth="2" />
-        </g>
-
-        {/* Icono de gráfico */}
-        <g transform="translate(45, 180)">
-          <rect x="0" y="0" width="28" height="28" rx="14" fill="#dbeafe" />
-          <polyline points="5,18 10,12 15,16 23,8" stroke="#1e3a8a" strokeWidth="2" fill="none" strokeLinecap="round" />
-          <circle cx="23" cy="8" r="2" fill="#22c55e" />
-        </g>
-
-        {/* Icono de carpeta */}
-        <g transform="translate(190, 40)">
-          <rect x="0" y="5" width="30" height="22" rx="3" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1.5" />
-          <path d="M0 5 L5 0 L15 0 L20 5" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1.5" />
-          <rect x="20" y="12" width="8" height="8" rx="2" fill="white" opacity="0.6" />
-        </g>
+        {/* Elementos decorativos flotantes */}
+        <circle cx="140" cy="100" r="8" fill="#dbeafe" opacity="0.8" /
+        <circle cx="320" cy="130" r="6" fill="#fef3c7" opacity="0.8" /
+        <circle cx="150" cy="250" r="5" fill="#fce7f3" opacity="0.6" /
       </svg>
     </div>
   );
