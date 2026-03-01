@@ -115,15 +115,68 @@ export default function Historial() {
                     {/* TABLA DE PRODUCTOS */}
                     {backup.metadata.summary.productos && backup.metadata.summary.productos.length > 0 && (
                       <div className="historial-item-productos">
-                        <h4 className="productos-title">📊 Productos y Conteo</h4>
-                        <div className="productos-grid">
-                          {backup.metadata.summary.productos.map((prod, idx) => (
-                            <div key={idx} className="producto-item">
-                              <span className="producto-nombre">{prod.producto}</span>
-                              <span className="producto-total">{prod.total}</span>
-                            </div>
-                          ))}
-                        </div>
+                        <h4 className="productos-title">Productos y Conteo</h4>
+                        <table className="productos-table">
+                          <thead>
+                            <tr>
+                              <th>Producto</th>
+                              <th>Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {backup.metadata.summary.productos.map((prod, idx) => (
+                              <tr key={idx}>
+                                <td>{prod.producto}</td>
+                                <td>{prod.total}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    
+                    {/* TABLA DE OBSERVACIONES CON COLORES */}
+                    {backup.metadata.summary.tableData && backup.metadata.summary.tableData.length > 0 && (
+                      <div className="historial-item-observaciones">
+                        <h4 className="observaciones-title">Resumen de Observaciones</h4>
+                        <table className="observaciones-table">
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>Cliente</th>
+                              <th>Observación</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {backup.metadata.summary.tableData.slice(0, 10).map((row, idx) => {
+                              const observacion = String(row[9] || '').toLowerCase().trim();
+                              let observacionClass = '';
+                              
+                              if (observacion.includes('cobro')) {
+                                observacionClass = 'obs-cobro';
+                              } else if (observacion.includes('pendiente') || observacion.includes('espera')) {
+                                observacionClass = 'obs-pendiente';
+                              } else if (observacion.includes('cancelado')) {
+                                observacionClass = 'obs-cancelado';
+                              }
+                              
+                              return (
+                                <tr key={idx}>
+                                  <td>{idx + 1}</td>
+                                  <td>{row[3] || 'Sin nombre'}</td>
+                                  <td className={observacionClass}>
+                                    {row[9] || '-'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        {backup.metadata.summary.tableData.length > 10 && (
+                          <p className="observaciones-more">
+                            ... y {backup.metadata.summary.tableData.length - 10} registros más
+                          </p>
+                        )}
                       </div>
                     )}
                   </>

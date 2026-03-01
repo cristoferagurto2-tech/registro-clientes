@@ -459,7 +459,8 @@ export default function DocumentEditor({ month }) {
         totalClientes: data.filter(row => row[2] && row[2] !== '').length,
         montoTotal: data.reduce((sum, row) => sum + (parseFloat(row[6]) || 0), 0),
         ganancias: data.reduce((sum, row) => sum + (parseFloat(row[10]) || 0), 0),
-        productos: productosConteo
+        productos: productosConteo,
+        tableData: tableData // Guardar datos completos de las filas para mostrar observaciones en el historial
       });
 
       if (result.success) {
