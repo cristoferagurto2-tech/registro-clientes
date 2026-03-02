@@ -8,6 +8,7 @@ import AdminPanel from './AdminPanel';
 import TrialStatusBar from './TrialStatusBar';
 import TrialExpiredModal from './TrialExpiredModal';
 import PaymentModal from './PaymentModal';
+import SupportButton from './SupportButton';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -56,6 +57,7 @@ export default function Dashboard() {
                 Volver a Meses
               </button>
               <div className="header-user">
+                <SupportButton />
                 <span className="user-role-badge">
                   {isAdmin ? 'Administrador' : 'Cliente'}
                 </span>
@@ -84,6 +86,7 @@ export default function Dashboard() {
           </div>
           
           <div className="header-user">
+            <SupportButton />
             <div className="user-info">
               <span className="user-role-badge">
                 {isAdmin ? 'Administrador' : 'Cliente'}

@@ -119,6 +119,14 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining, onSu
         </div>
         
         <div className="modal-footer">
+          <a 
+            href="https://mail.google.com/mail/?view=cm&fs=1&to=cristoferagurto2@gmail.com&su=Soporte%20Técnico%20-%20ClientCode&body=Hola,%20necesito%20ayuda%20con:%0A%0A[Describe%20tu%20consulta%20aquí]%0A%0ASaludos,"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="support-link"
+          >
+            💬 Contactar Soporte Técnico
+          </a>
           <button className="btn-secondary" onClick={onClose}>
             {isExpired ? 'Continuar en Modo Lectura' : 'Continuar con Prueba'}
           </button>

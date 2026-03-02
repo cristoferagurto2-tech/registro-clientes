@@ -1,0 +1,42 @@
+.support-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.support-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.support-icon {
+  font-size: 16px;
+}
+
+.support-text {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .support-button {
+    padding: 8px 12px;
+  }
+  
+  .support-text {
+    display: none;
+  }
+  
+  .support-icon {
+    font-size: 20px;
+  }
+}
