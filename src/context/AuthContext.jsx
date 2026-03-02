@@ -60,7 +60,7 @@ const INITIAL_CLIENTS = [
     id: 'cliente-004', 
     email: 'Yudyagurto1983@gmail.com', 
     name: 'Yudy Agurto',
-    password: '123456',
+    password: 'Melissa1984',
     isRegistered: true 
   },
 ];
