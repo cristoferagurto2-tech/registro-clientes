@@ -6,8 +6,8 @@ const AuthContext = createContext();
 const ADMIN_EMAIL = 'cristoferagurto2@gmail.com';
 const ADMIN_PASSWORD = 'admin123'; // Contraseña fija para admin
 
-// Correo VIP (acceso gratuito permanente para familiar)
-const VIP_EMAIL = 'cristovalleagur@gmail.com'; // Acceso gratuito permanente
+// Correos VIP (acceso gratuito permanente para familiares)
+const VIP_EMAILS = ['cristovalleagur@gmail.com', 'Yudyagurto1983@gmail.com']; // Acceso gratuito permanente
 
 // Periodo de prueba: 7 días en milisegundos
 const TRIAL_PERIOD_DAYS = 7;
@@ -19,8 +19,8 @@ const getAllowedEmails = () => {
   if (saved) {
     return JSON.parse(saved);
   }
-  // Lista por defecto si no existe
-  const defaultList = ['cliente1@email.com', 'cliente2@email.com', 'cristovalleagur@gmail.com'];
+    // Lista por defecto si no existe
+  const defaultList = ['cliente1@email.com', 'cliente2@email.com', 'cristovalleagur@gmail.com', 'Yudyagurto1983@gmail.com'];
   localStorage.setItem('allowedEmails', JSON.stringify(defaultList));
   return defaultList;
 };
@@ -55,6 +55,13 @@ const INITIAL_CLIENTS = [
     password: '654321',
     isRegistered: true,
     registeredAt: new Date().toISOString()
+  },
+  { 
+    id: 'cliente-004', 
+    email: 'Yudyagurto1983@gmail.com', 
+    name: 'Yudy Agurto',
+    password: '123456',
+    isRegistered: true 
   },
 ];
 
@@ -237,12 +244,12 @@ export function AuthProvider({ children }) {
     
     if (!client) return null;
     
-    // El admin y el VIP tienen acceso permanente gratuito
+    // El admin y los VIP tienen acceso permanente gratuito
     if (normalizedEmail === ADMIN_EMAIL.toLowerCase() || 
-        normalizedEmail === VIP_EMAIL.toLowerCase()) {
+        VIP_EMAILS.includes(normalizedEmail)) {
       return {
         isAdmin: normalizedEmail === ADMIN_EMAIL.toLowerCase(),
-        isVIP: normalizedEmail === VIP_EMAIL.toLowerCase(),
+        isVIP: VIP_EMAILS.includes(normalizedEmail),
         isTrialActive: true,
         isSubscribed: true,
         daysRemaining: null,
