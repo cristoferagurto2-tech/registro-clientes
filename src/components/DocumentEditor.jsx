@@ -46,7 +46,10 @@ export default function DocumentEditor({ month }) {
   
   // NUEVO: Estado para el escáner OCR
   const [showImageScanner, setShowImageScanner] = useState(false);
-  
+
+  // NUEVO: Estado para mostrar/ocultar formulario móvil de agregar cliente
+  const [showMobileForm, setShowMobileForm] = useState(false);
+
   // Estado para el color del PDF (por defecto verde)
   const [pdfColor, setPdfColor] = useState(() => {
     const savedColor = localStorage.getItem('pdfHeaderColor');
@@ -315,6 +318,30 @@ export default function DocumentEditor({ month }) {
       if (prevData.length <= 1) return prevData;
       return prevData.slice(0, -1);
     });
+  };
+
+  // NUEVO: Función para agregar cliente desde formulario móvil
+  const handleAddClientFromMobile = (clientData) => {
+    setData(prevData => {
+      // Crear nueva fila con los datos del formulario
+      const newRow = [
+        clientData.fecha || '',           // Fecha (columna 0)
+        month.toLowerCase() + ' 2026',    // Mes (columna 1) - automático
+        clientData.dni || '',             // DNI (columna 2)
+        clientData.nombre || '',          // Nombre y Apellidos (columna 3)
+        clientData.celular || '',         // Celular (columna 4)
+        clientData.producto || '',        // Producto (columna 5)
+        clientData.monto || '',           // Monto (columna 6)
+        clientData.tasa || '',            // Tasa (columna 7)
+        clientData.lugar || '',           // Lugar (columna 8)
+        clientData.observacion || '',     // Observación (columna 9)
+        clientData.ganancias || ''        // Ganancias (columna 10)
+      ];
+      return [...prevData, newRow];
+    });
+    
+    // Cerrar el formulario
+    setShowMobileForm(false);
   };
 
   // NUEVO: Función para guardar datos finales del mes (genera PDF y lo almacena)
@@ -1039,7 +1066,32 @@ export default function DocumentEditor({ month }) {
             <span className="legend-item green">🟢 Pendiente/Espera</span>
             <span className="legend-item red">🔴 Cancelado</span>
           </div>
-          
+
+          {/* NUEVO: Botón para agregar cliente (solo visible en móvil) */}
+          {!readOnly && (
+            <div className="mobile-add-client-container">
+              <button
+                className="btn-add-client-mobile"
+                onClick={() => setShowMobileForm(true)}
+                disabled={saving}
+              >
+                ➕ Agregar Nuevo Cliente
+              </button>
+            </div>
+          )}
+
+          {/* NUEVO: Formulario móvil para agregar cliente */}
+          {showMobileForm && !readOnly && (
+            <MobileClientForm
+              month={month}
+              onSubmit={handleAddClientFromMobile}
+              onCancel={() => setShowMobileForm(false)}
+              productosList={productosList}
+              mesesList={mesesList}
+              getOpcionesDias={getOpcionesDias}
+            />
+          )}
+
           <div className="table-wrapper">
             <table className="data-table">
               <thead>
@@ -1437,4 +1489,174 @@ export default function DocumentEditor({ month }) {
     </div>
   );
 }
+
+// NUEVO: Componente de formulario móvil para agregar cliente
+function MobileClientForm({ month, onSubmit, onCancel, productosList, mesesList, getOpcionesDias }) {
+  const [formData, setFormData] = useState({
+    fecha: '',
+    dni: '',
+    nombre: '',
+    celular: '',
+    producto: '',
+    monto: '',
+    tasa: '',
+    lugar: '',
+    observacion: '',
+    ganancias: ''
+  });
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const diasOptions = getOpcionesDias();
+  const mesNumero = (mesesList.indexOf(month.toLowerCase() + ' 2026') + 1).toString().padStart(2, '0');
+
+  return (
+    <div className="mobile-client-form-overlay">
+      <div className="mobile-client-form">
+        <div className="form-header">
+          <h3>📝 Nuevo Cliente</h3>
+          <button className="btn-close" onClick={onCancel}>✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Fecha</label>
+            <select
+              value={formData.fecha}
+              onChange={(e) => handleChange('fecha', e.target.value)}
+              required
+            >
+              <option value="">Seleccione día...</option>
+              {diasOptions.map(dia => (
+                <option key={dia} value={`2026-${mesNumero}-${dia}`}>
+                  {dia}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>DNI</label>
+            <input
+              type="text"
+              value={formData.dni}
+              onChange={(e) => handleChange('dni', e.target.value)}
+              placeholder="Ingrese DNI"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Nombre y Apellidos</label>
+            <input
+              type="text"
+              value={formData.nombre}
+              onChange={(e) => handleChange('nombre', e.target.value)}
+              placeholder="Ingrese nombre completo"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Celular</label>
+            <input
+              type="text"
+              value={formData.celular}
+              onChange={(e) => handleChange('celular', e.target.value)}
+              placeholder="Ingrese número de celular"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Producto</label>
+            <select
+              value={formData.producto}
+              onChange={(e) => handleChange('producto', e.target.value)}
+              required
+            >
+              <option value="">Seleccione producto...</option>
+              {productosList.map(prod => (
+                <option key={prod} value={prod}>{prod}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Monto (S/)</label>
+            <input
+              type="text"
+              value={formData.monto}
+              onChange={(e) => handleChange('monto', e.target.value)}
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Tasa (%)</label>
+            <input
+              type="text"
+              value={formData.tasa}
+              onChange={(e) => handleChange('tasa', e.target.value)}
+              placeholder="Ej: 5"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Lugar</label>
+            <input
+              type="text"
+              value={formData.lugar}
+              onChange={(e) => handleChange('lugar', e.target.value)}
+              placeholder="Ingrese lugar"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Observación</label>
+            <select
+              value={formData.observacion}
+              onChange={(e) => handleChange('observacion', e.target.value)}
+            >
+              <option value="">Seleccione estado...</option>
+              <option value="Cobro">🟡 Cobro</option>
+              <option value="Pendiente">🟢 Pendiente/Espera</option>
+              <option value="Cancelado">🔴 Cancelado</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Ganancias (S/)</label>
+            <input
+              type="text"
+              value={formData.ganancias}
+              onChange={(e) => handleChange('ganancias', e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+
+          <div className="form-actions">
+            <button type="button" className="btn-cancel" onClick={onCancel}>
+              Cancelar
+            </button>
+            <button type="submit" className="btn-submit">
+              💾 Guardar Cliente
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // Force redeploy Tue Mar  3 14:38:18 HPS 2026
