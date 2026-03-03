@@ -223,10 +223,9 @@ export default function DocumentEditor({ month }) {
           if (colIndex === 1) {
             value = mesAutomatico;
           }
-          // Formatear Monto (columna 6) y Ganancias (columna 10) con formato peruano
-          if ((colIndex === 6 || colIndex === 10) && value) {
-            value = formatNumberPeruano(String(value));
-          }
+          // NO formatear automáticamente - mantener los valores tal cual están
+          // El usuario puede escribir: 3.000, 45.46, 50.000, etc.
+          // Los valores se mantendrán exactamente como fueron escritos
           // Asegurar que el valor sea un string
           initialEdits[`${rowIndex}-${colIndex}`] = value !== null && value !== undefined ? String(value) : '';
         });
@@ -293,18 +292,11 @@ export default function DocumentEditor({ month }) {
   };
 
   // Función para formatear el valor al perder el foco (solo para Monto y Ganancias)
+  // NOTA: Ahora NO se formatea automáticamente para permitir que el usuario escriba
+  // los valores exactamente como desea (ej: 3.000, 45.46, 50.000)
   const handleCellBlur = (rowIndex, colIndex, value) => {
-    const key = `${rowIndex}-${colIndex}`;
-    
-    // Si es columna de Monto (6) o Ganancias (10), formatear con formato peruano
-    if ((colIndex === 6 || colIndex === 10) && value) {
-      const formattedValue = formatNumberPeruano(value);
-      
-      setEditedData(prev => ({
-        ...prev,
-        [key]: formattedValue
-      }));
-    }
+    // No hacer ningún formateo automático - mantener el valor tal cual lo escribió el usuario
+    // El valor ya fue guardado en handleCellChange
   };
 
   const handleSave = async () => {

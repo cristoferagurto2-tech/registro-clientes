@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
+import { documentsAPI, syncService } from '../services/api';
 
 const DocumentsContext = createContext();
 
@@ -33,18 +34,36 @@ export function DocumentsProvider({ children }) {
   const [completedData, setCompletedData] = useState({});
   const [currentMonth, setCurrentMonth] = useState(null);
   const [selectedClientId, setSelectedClientId] = useState(null);
+  const [backendAvailable, setBackendAvailable] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState(null);
 
   useEffect(() => {
-    const savedDocs = localStorage.getItem('clientDocuments');
-    const savedData = localStorage.getItem('completedData');
+    const initializeDocuments = async () => {
+      // Verificar disponibilidad del backend
+      const isAvailable = await syncService.isBackendAvailable();
+      setBackendAvailable(isAvailable);
+      
+      // Cargar desde localStorage primero (para mostrar algo rápido)
+      const savedDocs = localStorage.getItem('clientDocuments');
+      const savedData = localStorage.getItem('completedData');
+      
+      if (savedDocs) {
+        setClientDocuments(JSON.parse(savedDocs));
+      }
+      if (savedData) {
+        setCompletedData(JSON.parse(savedData));
+      }
+      
+      // Si hay backend y usuario autenticado, intentar sincronizar
+      const token = localStorage.getItem('token');
+      if (isAvailable && token && selectedClientId) {
+        await syncFromBackend(selectedClientId);
+      }
+    };
     
-    if (savedDocs) {
-      setClientDocuments(JSON.parse(savedDocs));
-    }
-    if (savedData) {
-      setCompletedData(JSON.parse(savedData));
-    }
-  }, []);
+    initializeDocuments();
+  }, [selectedClientId]);
 
   useEffect(() => {
     localStorage.setItem('clientDocuments', JSON.stringify(clientDocuments));
@@ -162,6 +181,73 @@ export function DocumentsProvider({ children }) {
     }
   };
 
+  // ==================== SYNC FUNCTIONS ====================
+  
+  // Sincronizar documentos desde el backend
+  const syncFromBackend = async (clientId) => {
+    if (!backendAvailable || !clientId) return;
+    
+    setIsSyncing(true);
+    setSyncError(null);
+    
+    try {
+      // Sincronizar todos los meses
+      for (const month of MESES) {
+        try {
+          await syncService.syncDocumentFromBackend(clientId, month);
+        } catch (error) {
+          console.log(`No hay documento para ${month} en el backend`);
+        }
+      }
+      
+      // Recargar desde localStorage
+      const savedDocs = localStorage.getItem('clientDocuments');
+      const savedData = localStorage.getItem('completedData');
+      
+      if (savedDocs) {
+        setClientDocuments(JSON.parse(savedDocs));
+      }
+      if (savedData) {
+        setCompletedData(JSON.parse(savedData));
+      }
+    } catch (error) {
+      console.error('Error sincronizando desde backend:', error);
+      setSyncError(error.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+  
+  // Sincronizar documentos al backend
+  const syncToBackend = async (clientId) => {
+    if (!backendAvailable || !clientId) return { success: false, error: 'No disponible' };
+    
+    setIsSyncing(true);
+    setSyncError(null);
+    
+    try {
+      const results = [];
+      
+      for (const month of MESES) {
+        const result = await syncService.syncDocumentToBackend(clientId, month);
+        if (result.success) {
+          results.push(month);
+        }
+      }
+      
+      return { 
+        success: true, 
+        message: `Sincronizados ${results.length} meses`,
+        syncedMonths: results 
+      };
+    } catch (error) {
+      setSyncError(error.message);
+      return { success: false, error: error.message };
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // Obtener datos de ambas hojas
   const getMergedData = (clientId, month) => {
     const doc = clientDocuments[clientId]?.[month];
@@ -186,8 +272,8 @@ export function DocumentsProvider({ children }) {
     };
   };
 
-  // Actualizar datos completados y también el documento original
-  const updateCompletedData = (clientId, month, rowIndex, columnIndex, value) => {
+  // Actualizar datos completados y también el documento original (con sincronización a backend)
+  const updateCompletedData = async (clientId, month, rowIndex, columnIndex, value) => {
     const key = `${clientId}-${month}`;
     
     // Guardar en completedData (para seguimiento de cambios)
@@ -231,6 +317,16 @@ export function DocumentsProvider({ children }) {
       newDocs[clientId] = { ...newDocs[clientId], [month]: doc };
       return newDocs;
     });
+    
+    // Si hay backend disponible, sincronizar la celda
+    if (backendAvailable) {
+      try {
+        await documentsAPI.updateCell(month, rowIndex, columnIndex, value);
+      } catch (error) {
+        console.log('Error sincronizando celda con backend:', error);
+        // No interrumpimos si falla el backend
+      }
+    }
   };
 
   // Subir documento a TODOS los meses de una sola vez
@@ -349,6 +445,9 @@ export function DocumentsProvider({ children }) {
       setCurrentMonth,
       selectedClientId,
       setSelectedClientId,
+      backendAvailable,
+      isSyncing,
+      syncError,
       uploadDocument,
       uploadDocumentToAllMonths,
       downloadOriginalFile,
@@ -359,7 +458,9 @@ export function DocumentsProvider({ children }) {
       getAvailableMonths,
       getClientDocuments,
       getClientsWithDocuments,
-      clientHasAnyDocument
+      clientHasAnyDocument,
+      syncFromBackend,
+      syncToBackend
     }}>
       {children}
     </DocumentsContext.Provider>

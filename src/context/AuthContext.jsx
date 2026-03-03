@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI, syncService } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -19,45 +20,24 @@ const getAllowedEmails = () => {
   if (saved) {
     return JSON.parse(saved);
   }
-    // Lista por defecto si no existe
-  const defaultList = ['cliente1@email.com', 'cliente2@email.com', 'cristovalleagur@gmail.com', 'yudyagurto1983@gmail.com'];
+    // Lista por defecto - SOLO VIPs inicialmente
+  const defaultList = ['cristovalleagur@gmail.com', 'yudyagurto1983@gmail.com'];
   localStorage.setItem('allowedEmails', JSON.stringify(defaultList));
   return defaultList;
 };
 
-// Lista inicial de clientes autorizados con sus IDs
+// Lista inicial de clientes - SOLO VIPs (tú y tu familiar)
+// Para agregar nuevos clientes, usa el panel de administrador
 const INITIAL_CLIENTS = [
   { 
     id: 'cliente-001', 
-    email: 'cliente1@email.com', 
-    name: 'Cliente 1',
-    password: 'cliente123',
-    isRegistered: true 
-  },
-  { 
-    id: 'cliente-002', 
-    email: 'cliente2@email.com', 
-    name: 'Cliente 2',
-    password: 'cliente123',
-    isRegistered: true 
-  },
-  { 
-    id: 'cliente-003', 
     email: 'cristovalleagur@gmail.com', 
     name: 'Cristo Agurto',
     password: '123456',
     isRegistered: true 
   },
   { 
-    id: 'cliente-prueba', 
-    email: 'prueba@clientcore.com', 
-    name: 'Usuario de Prueba',
-    password: '654321',
-    isRegistered: true,
-    registeredAt: new Date().toISOString()
-  },
-  { 
-    id: 'cliente-004', 
+    id: 'cliente-002', 
     email: 'yudyagurto1983@gmail.com', 
     name: 'Yudy Agurto',
     password: 'Melissa1983',
@@ -71,6 +51,8 @@ export function AuthProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [clients, setClients] = useState([]);
   const [resetCodes, setResetCodes] = useState({});
+  const [backendAvailable, setBackendAvailable] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Función para sincronizar VIPs en la lista de clientes
   const syncVipsInClients = (existingClients) => {
@@ -97,7 +79,43 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    // Verificar si hay sesión guardada
+    const initializeAuth = async () => {
+      setIsLoading(true);
+      
+      // Verificar disponibilidad del backend
+      const isAvailable = await syncService.isBackendAvailable();
+      setBackendAvailable(isAvailable);
+      
+      // Intentar cargar sesión del backend primero
+      const token = localStorage.getItem('token');
+      if (isAvailable && token) {
+        try {
+          const response = await authAPI.getProfile();
+          if (response.success) {
+            const userData = response.user;
+            setUser(userData);
+            setIsAuthenticated(true);
+            setIsAdmin(userData.role === 'admin' || userData.email === ADMIN_EMAIL);
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (error) {
+          console.log('Error cargando perfil del backend:', error);
+          // Si falla, usar localStorage como respaldo
+          loadFromLocalStorage();
+        }
+      } else {
+        // Usar localStorage
+        loadFromLocalStorage();
+      }
+      
+      setIsLoading(false);
+    };
+    
+    initializeAuth();
+  }, []);
+  
+  const loadFromLocalStorage = () => {
+    // Verificar si hay sesión guardada en localStorage
     const savedUser = localStorage.getItem('user');
     const savedClients = localStorage.getItem('clients');
     
@@ -105,7 +123,7 @@ export function AuthProvider({ children }) {
       const userData = JSON.parse(savedUser);
       setUser(userData);
       setIsAuthenticated(true);
-      setIsAdmin(userData.email === ADMIN_EMAIL);
+      setIsAdmin(userData.email === ADMIN_EMAIL || userData.role === 'admin');
     }
     
     // Cargar clientes o usar los iniciales
@@ -120,7 +138,7 @@ export function AuthProvider({ children }) {
       setClients(INITIAL_CLIENTS);
       localStorage.setItem('clients', JSON.stringify(INITIAL_CLIENTS));
     }
-  }, []);
+  };
 
   // Guardar clientes cuando cambien
   useEffect(() => {
@@ -359,10 +377,28 @@ export function AuthProvider({ children }) {
     return { success: true, message: 'Suscripción activada correctamente' };
   };
 
-  // Login de usuario
-  const login = (email, password) => {
+  // Login de usuario con soporte híbrido (backend + localStorage)
+  const login = async (email, password) => {
     const normalizedEmail = email.toLowerCase().trim();
     
+    // Intentar login en el backend primero si está disponible
+    if (backendAvailable) {
+      try {
+        const response = await authAPI.login(email, password);
+        if (response.success) {
+          const userData = response.user;
+          setUser(userData);
+          setIsAuthenticated(true);
+          setIsAdmin(userData.role === 'admin' || userData.email === ADMIN_EMAIL);
+          return { success: true, user: userData, backend: true };
+        }
+      } catch (error) {
+        console.log('Login en backend falló, intentando localStorage:', error);
+        // Si falla el backend, continuamos con localStorage
+      }
+    }
+    
+    // Fallback a localStorage (tu código original)
     // Verificar si es admin
     if (normalizedEmail === ADMIN_EMAIL.toLowerCase() && password === ADMIN_PASSWORD) {
       const adminUser = {
@@ -374,7 +410,7 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(true);
       setIsAdmin(true);
       localStorage.setItem('user', JSON.stringify(adminUser));
-      return { success: true, user: adminUser };
+      return { success: true, user: adminUser, backend: false };
     }
     
     // Verificar si es cliente registrado
@@ -409,14 +445,15 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(true);
       setIsAdmin(false);
       localStorage.setItem('user', JSON.stringify(clientUser));
-      return { success: true, user: clientUser };
+      return { success: true, user: clientUser, backend: false };
     }
     
     return { success: false, error: 'Correo o contraseña incorrectos' };
   };
 
-  // Logout
+  // Logout - limpia tanto backend como localStorage
   const logout = () => {
+    authAPI.logout();
     setUser(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
@@ -430,8 +467,8 @@ export function AuthProvider({ children }) {
     return allowedEmails.includes(normalizedEmail);
   };
 
-  // Registrar nuevo cliente
-  const registerClient = (email, password, name) => {
+  // Registrar nuevo cliente con soporte híbrido (backend + localStorage)
+  const registerClient = async (email, password, name) => {
     const normalizedEmail = email.toLowerCase().trim();
     
     // Verificar si está en lista blanca
@@ -439,6 +476,39 @@ export function AuthProvider({ children }) {
       return { success: false, error: 'Este correo no está autorizado para registrarse. Contacte al administrador.' };
     }
     
+    // Intentar registro en backend primero si está disponible
+    if (backendAvailable) {
+      try {
+        const response = await authAPI.register(name, email, password);
+        if (response.success) {
+          // También guardar en localStorage para compatibilidad
+          const newClient = {
+            id: response.user.id || `cliente-${Date.now()}`,
+            email: normalizedEmail,
+            name: name,
+            password: password,
+            isRegistered: true,
+            registeredAt: new Date().toISOString(),
+            isSubscribed: false,
+            backendId: response.user.id
+          };
+          
+          const updatedClients = [...clients, newClient];
+          setClients(updatedClients);
+          localStorage.setItem('clients', JSON.stringify(updatedClients));
+          
+          return { success: true, message: 'Registro exitoso', backend: true };
+        }
+      } catch (error) {
+        console.log('Registro en backend falló, usando localStorage:', error);
+        if (error.error?.includes('existe')) {
+          return { success: false, error: error.error };
+        }
+        // Si falla, continuamos con localStorage
+      }
+    }
+    
+    // Fallback a localStorage (tu código original)
     // Verificar si ya existe
     if (clients.some(c => c.email.toLowerCase() === normalizedEmail)) {
       return { success: false, error: 'Ya existe una cuenta con este correo' };
@@ -460,7 +530,7 @@ export function AuthProvider({ children }) {
     setClients(updatedClients);
     localStorage.setItem('clients', JSON.stringify(updatedClients));
     
-    return { success: true, message: 'Registro exitoso' };
+    return { success: true, message: 'Registro exitoso', backend: false };
   };
 
   // Obtener cliente por email
@@ -500,12 +570,42 @@ export function AuthProvider({ children }) {
     ));
   };
 
+  // Sincronizar usuario con backend (útil para migrar usuarios existentes)
+  const syncUserWithBackend = async (email, password, name) =>> {
+    if (!backendAvailable) {
+      return { success: false, error: 'Backend no disponible' };
+    }
+    
+    try {
+      // Intentar registrar primero
+      try {
+        const response = await authAPI.register(name, email, password);
+        if (response.success) {
+          return { success: true, message: 'Usuario sincronizado con backend' };
+        }
+      } catch (regError) {
+        // Si ya existe, intentar login
+        if (regError.error?.includes('existe')) {
+          const loginResponse = await authAPI.login(email, password);
+          if (loginResponse.success) {
+            return { success: true, message: 'Usuario ya existía en backend' };
+          }
+        }
+        throw regError;
+      }
+    } catch (error) {
+      return { success: false, error: error.error || error.message };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user, 
       isAuthenticated, 
       isAdmin, 
       clients,
+      backendAvailable,
+      isLoading,
       allowedEmails: getAllowedEmails(),
       login, 
       logout,
@@ -523,6 +623,7 @@ export function AuthProvider({ children }) {
       canCreateCredits,
       isReadOnlyMode,
       subscribeClient,
+      syncUserWithBackend,
       TRIAL_PERIOD_DAYS
     }}>
       {children}
