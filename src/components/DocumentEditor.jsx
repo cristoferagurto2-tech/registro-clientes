@@ -211,13 +211,24 @@ export default function DocumentEditor({ month }) {
     
     if (isNaN(numValue)) return '0,00';
     
-    // Formatear con 2 decimales
-    const formatted = numValue.toLocaleString('es-PE', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+    // Formatear manualmente para garantizar formato peruano
+    // Separar parte entera y decimal
+    const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
     
-    return formatted;
+    // Formatear la parte entera con puntos cada 3 dígitos (de derecha a izquierda)
+    let formattedInteger = '';
+    let count = 0;
+    for (let i = integerPart.length - 1; i >= 0; i--) {
+      if (count === 3) {
+        formattedInteger = '.' + formattedInteger;
+        count = 0;
+      }
+      formattedInteger = integerPart[i] + formattedInteger;
+      count++;
+    }
+    
+    // Combinar con coma para decimales (formato peruano)
+    return `${formattedInteger},${decimalPart}`;
   };
 
   const handleCellChange = (rowIndex, colIndex, value) => {
@@ -249,12 +260,9 @@ export default function DocumentEditor({ month }) {
   const handleCellBlur = (rowIndex, colIndex, value) => {
     const key = `${rowIndex}-${colIndex}`;
     
-    console.log('handleCellBlur called:', { rowIndex, colIndex, value });
-    
     // Si es columna de Monto (6) o Ganancias (10), formatear con formato peruano
     if ((colIndex === 6 || colIndex === 10) && value) {
       const formattedValue = formatNumberPeruano(value);
-      console.log('Formatted value:', formattedValue);
       
       setEditedData(prev => ({
         ...prev,
