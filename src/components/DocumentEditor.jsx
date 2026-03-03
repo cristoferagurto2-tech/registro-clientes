@@ -101,17 +101,49 @@ export default function DocumentEditor({ month }) {
   ];
 
   // Función para parsear montos correctamente manejando separadores de miles y decimales
-  // Formato peruano/latinoamericano: puntos para miles, coma para decimales
-  // Ejemplos: "5.000,50" -> 5000.50, "1.000" -> 1000, "500,50" -> 500.50
+  // Soporta tanto formato peruano (5.000,50) como formato directo (5.909)
+  // Ejemplos: "5.000,50" -> 5000.50, "1.000" -> 1000, "5.909" -> 5.909
   const parseMonto = (value) => {
     if (!value || value === '') return 0;
     const str = String(value).trim();
     
-    // Formato peruano: puntos son separadores de miles, coma es separador decimal
-    // Eliminar puntos (separadores de miles) y reemplazar coma por punto para decimales
-    const normalizedValue = str.replace(/\./g, '').replace(',', '.');
+    // Contar separadores
+    const dotCount = (str.match(/\./g) || []).length;
+    const commaCount = (str.match(/,/g) || []).length;
     
-    return parseFloat(normalizedValue) || 0;
+    // Si hay una coma, asumimos formato peruano/latinoamericano
+    // Ejemplo: "5.000,50" o "500,50"
+    if (commaCount > 0) {
+      // Eliminar puntos (miles) y reemplazar coma por punto (decimal)
+      const normalizedValue = str.replace(/\./g, '').replace(',', '.');
+      return parseFloat(normalizedValue) || 0;
+    }
+    
+    // Si solo hay puntos
+    if (dotCount > 0) {
+      // Si hay más de un punto, son separadores de miles (ej: "5.000")
+      if (dotCount > 1) {
+        return parseFloat(str.replace(/\./g, '')) || 0;
+      }
+      
+      // Si hay solo un punto, verificar si es decimal o miles
+      // Si hay 1-2 dígitos después del punto, es decimal (ej: "5.90")
+      // Si hay 3 dígitos después del punto, es separador de miles (ej: "5.000")
+      const parts = str.split('.');
+      if (parts.length === 2) {
+        const afterDot = parts[1];
+        if (afterDot.length <= 2) {
+          // Es decimal: "5.90" -> 5.90
+          return parseFloat(str) || 0;
+        } else {
+          // Es separador de miles: "5.000" -> 5000
+          return parseFloat(str.replace(/\./g, '')) || 0;
+        }
+      }
+    }
+    
+    // Sin separadores, parsear directamente
+    return parseFloat(str) || 0;
   };
 
   // Función para obtener los días del mes según calendario 2026
@@ -204,13 +236,14 @@ export default function DocumentEditor({ month }) {
   }, [month, clientId, getMergedData]);
 
   // Función para formatear números con formato peruano: puntos para miles, coma para decimales
-  // Ejemplo: 5000.50 -> "5.000,50", 1000 -> "1.000,00"
+  // Ejemplo: 5000.50 -> "5.000,50", 1000 -> "1.000,00", 5.909 -> "5,91"
   const formatNumberPeruano = (value) => {
     if (!value || value === '' || value === '0') return '0,00';
     
-    // Limpiar el valor: quitar separadores existentes y convertir a número
-    const cleanValue = String(value).replace(/\./g, '').replace(',', '.');
-    const numValue = parseFloat(cleanValue);
+    const str = String(value).trim();
+    
+    // Usar parseMonto para obtener el valor numérico correcto
+    const numValue = parseMonto(str);
     
     if (isNaN(numValue)) return '0,00';
     
