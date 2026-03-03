@@ -29,7 +29,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (user && !isAdmin) {
       const trialStatus = getTrialStatus(user.email);
-      if (trialStatus && (trialStatus.daysRemaining <= 2 || !trialStatus.isTrialActive)) {
+      // No mostrar modal si es VIP (acceso gratuito permanente)
+      if (trialStatus && !trialStatus.isVIP && (trialStatus.daysRemaining <= 2 || !trialStatus.isTrialActive)) {
         // Mostrar modal si quedan 2 días o menos, o si ya expiró
         setShowTrialModal(true);
       }

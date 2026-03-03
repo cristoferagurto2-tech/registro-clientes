@@ -17,12 +17,14 @@ import { savePDFBackup, hasPDFBackup } from '../services/pdfBackupService';
 export default function DocumentEditor({ month }) {
   const { user, isReadOnlyMode, getTrialStatus, isAdmin } = useAuth();
   
-  // Verificar si el usuario puede descargar PDF (solo suscritos o admin)
+  // Verificar si el usuario puede descargar PDF (admin, suscritos, VIP o período de prueba activo)
   const canDownloadPDF = () => {
     if (isAdmin) return true;
     if (user?.isSubscribed) return true;
-    // Permitir durante el período de prueba
     const trialStatus = getTrialStatus(user?.email);
+    // VIP tienen acceso permanente gratuito
+    if (trialStatus?.isVIP) return true;
+    // Permitir durante el período de prueba
     return trialStatus?.isTrialActive || false;
   };
   const { getMergedData, updateCompletedData, downloadOriginalFile } = useDocuments();

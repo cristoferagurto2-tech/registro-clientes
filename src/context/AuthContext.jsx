@@ -292,8 +292,9 @@ export function AuthProvider({ children }) {
     const status = getTrialStatus(clientEmail);
     if (!status) return false;
     
-    // Admin siempre puede crear
+    // Admin y VIP siempre pueden crear
     if (status.isAdmin) return true;
+    if (status.isVIP) return true;
     
     // Si está suscrito, puede crear
     if (status.isSubscribed) return true;
@@ -306,8 +307,9 @@ export function AuthProvider({ children }) {
     const status = getTrialStatus(clientEmail);
     if (!status) return true;
     
-    // Admin nunca está en modo solo lectura
+    // Admin y VIP nunca están en modo solo lectura
     if (status.isAdmin) return false;
+    if (status.isVIP) return false;
     
     // Si está suscrito, no está en modo solo lectura
     if (status.isSubscribed) return false;

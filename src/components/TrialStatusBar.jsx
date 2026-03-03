@@ -10,7 +10,8 @@ export default function TrialStatusBar({ onSubscribe }) {
   
   const trialStatus = getTrialStatus(user.email);
   
-  if (!trialStatus || trialStatus.isAdmin) return null;
+  // No mostrar barra si es admin o VIP (acceso gratuito permanente)
+  if (!trialStatus || trialStatus.isAdmin || trialStatus.isVIP) return null;
   
   const { isTrialActive, isSubscribed, daysRemaining, trialEndDate } = trialStatus;
   
