@@ -439,7 +439,11 @@ export function AuthProvider({ children }) {
       isSubscribed: false
     };
     
-    setClients(prev => [...prev, newClient]);
+    // Actualizar estado y guardar inmediatamente en localStorage
+    const updatedClients = [...clients, newClient];
+    setClients(updatedClients);
+    localStorage.setItem('clients', JSON.stringify(updatedClients));
+    
     return { success: true, message: 'Registro exitoso' };
   };
 
