@@ -72,6 +72,30 @@ export function AuthProvider({ children }) {
   const [clients, setClients] = useState([]);
   const [resetCodes, setResetCodes] = useState({});
 
+  // Función para sincronizar VIPs en la lista de clientes
+  const syncVipsInClients = (existingClients) => {
+    const updatedClients = [...existingClients];
+    
+    VIP_EMAILS.forEach(vipEmail => {
+      const normalizedVip = vipEmail.toLowerCase().trim();
+      const exists = updatedClients.some(c => 
+        c.email.toLowerCase().trim() === normalizedVip
+      );
+      
+      if (!exists) {
+        // Buscar en INITIAL_CLIENTS
+        const vipClient = INITIAL_CLIENTS.find(c => 
+          c.email.toLowerCase().trim() === normalizedVip
+        );
+        if (vipClient) {
+          updatedClients.push(vipClient);
+        }
+      }
+    });
+    
+    return updatedClients;
+  };
+
   useEffect(() => {
     // Verificar si hay sesión guardada
     const savedUser = localStorage.getItem('user');
@@ -86,7 +110,12 @@ export function AuthProvider({ children }) {
     
     // Cargar clientes o usar los iniciales
     if (savedClients) {
-      setClients(JSON.parse(savedClients));
+      const parsedClients = JSON.parse(savedClients);
+      // Sincronizar VIPs que puedan faltar
+      const clientsWithVips = syncVipsInClients(parsedClients);
+      setClients(clientsWithVips);
+      // Guardar la lista actualizada
+      localStorage.setItem('clients', JSON.stringify(clientsWithVips));
     } else {
       setClients(INITIAL_CLIENTS);
       localStorage.setItem('clients', JSON.stringify(INITIAL_CLIENTS));
