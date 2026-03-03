@@ -14,6 +14,9 @@ import './DocumentEditor.css';
 import SaveFinalDataModal from './SaveFinalDataModal';
 import { savePDFBackup, hasPDFBackup } from '../services/pdfBackupService';
 
+// NUEVO: Importación para escáner de imágenes OCR
+import ImageScanner from './ImageScanner';
+
 export default function DocumentEditor({ month }) {
   const { user, isReadOnlyMode, getTrialStatus, isAdmin } = useAuth();
   
@@ -40,6 +43,9 @@ export default function DocumentEditor({ month }) {
   // NUEVO: Estados para el sistema de guardado final
   const [showSaveFinalModal, setShowSaveFinalModal] = useState(false);
   const [savingFinal, setSavingFinal] = useState(false);
+  
+  // NUEVO: Estado para el escáner OCR
+  const [showImageScanner, setShowImageScanner] = useState(false);
   
   // Estado para el color del PDF (por defecto verde)
   const [pdfColor, setPdfColor] = useState(() => {
@@ -513,6 +519,30 @@ export default function DocumentEditor({ month }) {
     }
   };
 
+  // NUEVO: Función para manejar datos extraídos del escáner OCR
+  const handleScannedData = (scannedData) => {
+    // Agregar una nueva fila con los datos escaneados
+    const newRow = [
+      scannedData.fecha || new Date().toLocaleDateString(), // Fecha
+      month, // Mes
+      scannedData.dni || '', // DNI
+      scannedData.nombre || '', // Nombre y Apellidos
+      scannedData.celular || '', // Celular
+      scannedData.producto || '', // Producto
+      scannedData.monto || '', // Monto
+      scannedData.tasa || '', // Tasa
+      scannedData.lugar || '', // Lugar
+      scannedData.observacion || '', // Observación
+      scannedData.ganancias || '' // Ganancias
+    ];
+
+    // Agregar la nueva fila al inicio de los datos
+    setData(prevData => [newRow, ...(prevData || [])]);
+    
+    // Mostrar mensaje de éxito
+    alert(`✅ Datos del cliente "${scannedData.nombre || 'Nuevo'}" agregados correctamente desde la imagen.\n\nPuedes editar los campos si es necesario antes de guardar.`);
+  };
+
   // Función para obtener el color según la observación
   const getRowColor = (row) => {
     const observacion = String(row[9] || '').toLowerCase().trim();
@@ -972,6 +1002,16 @@ export default function DocumentEditor({ month }) {
                 {saving ? 'Guardando...' : 'Guardar Cambios'}
               </button>
               
+              {/* NUEVO: Botón para escanear imagen con OCR */}
+              <button 
+                className="btn-scan-image"
+                onClick={() => setShowImageScanner(true)}
+                disabled={saving || savingFinal}
+                title="Escanear imagen y extraer datos automáticamente"
+              >
+                📷 Escanear Imagen
+              </button>
+              
               {/* NUEVO: Botón para guardar datos finales del mes */}
               <button 
                 className="btn-save-final"
@@ -1386,6 +1426,14 @@ export default function DocumentEditor({ month }) {
         month={month}
         year={2026}
       />
+
+      {/* NUEVO: Modal para escanear imagen con OCR */}
+      {showImageScanner && (
+        <ImageScanner
+          onDataExtracted={handleScannedData}
+          onClose={() => setShowImageScanner(false)}
+        />
+      )}
     </div>
   );
 }
