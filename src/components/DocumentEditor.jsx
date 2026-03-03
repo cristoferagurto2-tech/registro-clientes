@@ -249,9 +249,12 @@ export default function DocumentEditor({ month }) {
   const handleCellBlur = (rowIndex, colIndex, value) => {
     const key = `${rowIndex}-${colIndex}`;
     
+    console.log('handleCellBlur called:', { rowIndex, colIndex, value });
+    
     // Si es columna de Monto (6) o Ganancias (10), formatear con formato peruano
     if ((colIndex === 6 || colIndex === 10) && value) {
       const formattedValue = formatNumberPeruano(value);
+      console.log('Formatted value:', formattedValue);
       
       setEditedData(prev => ({
         ...prev,
