@@ -11,6 +11,9 @@ import PaymentModal from './PaymentModal';
 import SupportButton from './SupportButton';
 import './Dashboard.css';
 
+// Lista de correos VIP (debe coincidir con AuthContext)
+const VIP_EMAILS = ['cristovalleagur@gmail.com', 'yudyagurto1983@gmail.com'];
+
 export default function Dashboard() {
   const { user, isAdmin, logout, getTrialStatus, isReadOnlyMode, subscribeClient } = useAuth();
   const { currentMonth, setCurrentMonth } = useDocuments();
@@ -25,9 +28,20 @@ export default function Dashboard() {
     setShowPaymentModal(true);
   };
 
+  // Función para verificar si un email es VIP
+  const isVipEmail = (email) => {
+    return VIP_EMAILS.includes(email?.toLowerCase()?.trim());
+  };
+
   // Verificar estado del período de prueba al cargar
   useEffect(() => {
     if (user && !isAdmin) {
+      // Primero verificar si es VIP directamente
+      if (isVipEmail(user.email)) {
+        console.log('Usuario VIP detectado, no se muestra modal de trial');
+        return; // No mostrar nada para VIPs
+      }
+      
       const trialStatus = getTrialStatus(user.email);
       // No mostrar modal si es VIP (acceso gratuito permanente)
       if (trialStatus && !trialStatus.isVIP && (trialStatus.daysRemaining <= 2 || !trialStatus.isTrialActive)) {
