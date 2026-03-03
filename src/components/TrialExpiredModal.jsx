@@ -39,7 +39,7 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining, onSu
                   </div>
                   <div className="plan-period">/mes</div>
                   <ul className="plan-features">
-                    <li>✓ Hasta 100 créditos activos</li>
+                    <li>✓ Hasta 30 créditos activos</li>
                     <li>✓ 1 usuario por cuenta</li>
                     <li>✓ Dashboard estándar</li>
                     <li>✓ Soporte por email</li>
