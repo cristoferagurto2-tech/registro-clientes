@@ -269,6 +269,33 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.email-item.vip {
+  background: linear-gradient(135deg, #fef3c7, #fffbeb);
+  border-color: #fbbf24;
+}
+
+.email-item.vip:hover {
+  border-color: #f59e0b;
+}
+
+.vip-badge {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #92400e;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.btn-remove:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+}
+
 .email-number {
   width: 28px;
   height: 28px;

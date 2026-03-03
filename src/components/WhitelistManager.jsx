@@ -1,23 +1,48 @@
 import { useState, useEffect } from 'react';
 import './WhitelistManager.css';
 
+// Correos VIP que no se pueden eliminar (acceso gratuito permanente)
+const VIP_EMAILS = ['cristovalleagur@gmail.com', 'yudyagurto1983@gmail.com'];
+
 export default function WhitelistManager() {
   const [allowedEmails, setAllowedEmails] = useState([]);
   const [newEmail, setNewEmail] = useState('');
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Función para asegurar que los VIPs estén siempre en la lista
+  const ensureVipsInList = (emails) => {
+    const normalizedVips = VIP_EMAILS.map(email => email.toLowerCase().trim());
+    const normalizedEmails = emails.map(email => email.toLowerCase().trim());
+    
+    // Agregar VIPs que falten
+    normalizedVips.forEach(vip => {
+      if (!normalizedEmails.includes(vip)) {
+        normalizedEmails.push(vip);
+      }
+    });
+    
+    return normalizedEmails;
+  };
+
   // Cargar emails al iniciar
   useEffect(() => {
     const saved = localStorage.getItem('allowedEmails');
     if (saved) {
-      setAllowedEmails(JSON.parse(saved));
+      const parsedEmails = JSON.parse(saved);
+      // Asegurar que los VIPs estén en la lista
+      const emailsWithVips = ensureVipsInList(parsedEmails);
+      setAllowedEmails(emailsWithVips);
+      // Guardar la lista actualizada con VIPs
+      localStorage.setItem('allowedEmails', JSON.stringify(emailsWithVips));
     } else {
-      // Lista por defecto si no hay nada guardado
+      // Lista por defecto si no hay nada guardado (incluye VIPs)
       const defaultEmails = [
         'cliente1@email.com',
         'cliente2@email.com',
-        'prueba@clientcore.com'
+        'prueba@clientcore.com',
+        'cristovalleagur@gmail.com',
+        'yudyagurto1983@gmail.com'
       ];
       setAllowedEmails(defaultEmails);
       localStorage.setItem('allowedEmails', JSON.stringify(defaultEmails));
@@ -51,7 +76,18 @@ export default function WhitelistManager() {
     setTimeout(() => setMessage(''), 3000);
   };
 
+  const isVipEmail = (email) => {
+    return VIP_EMAILS.includes(email.toLowerCase().trim());
+  };
+
   const handleRemoveEmail = (emailToRemove) => {
+    // No permitir eliminar correos VIP
+    if (isVipEmail(emailToRemove)) {
+      setMessage('Error: Este correo es VIP y no puede ser eliminado');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+
     if (window.confirm(`¿Eliminar ${emailToRemove} de la lista blanca?\n\nLos usuarios con este correo no podrán registrarse.`)) {
       setAllowedEmails(allowedEmails.filter(email => email !== emailToRemove));
       setMessage(`Correo eliminado: ${emailToRemove}`);
@@ -60,9 +96,11 @@ export default function WhitelistManager() {
   };
 
   const handleClearAll = () => {
-    if (window.confirm('¿Eliminar TODOS los correos de la lista blanca?\n\nEsta acción no se puede deshacer.')) {
-      setAllowedEmails([]);
-      setMessage('Lista blanca vaciada');
+    if (window.confirm('¿Eliminar TODOS los correos de la lista blanca?\n\nLos correos VIP no serán eliminados.\n\nEsta acción no se puede deshacer.')) {
+      // Mantener solo los correos VIP
+      const vipsOnly = allowedEmails.filter(email => isVipEmail(email));
+      setAllowedEmails(vipsOnly);
+      setMessage(`Lista limpiada. ${vipsOnly.length} correo(s) VIP protegido(s).`);
       setTimeout(() => setMessage(''), 3000);
     }
   };
@@ -198,15 +236,19 @@ export default function WhitelistManager() {
         ) : (
           <div className="email-list">
             {filteredEmails.map((email, index) => (
-              <div key={email} className="email-item">
+              <div key={email} className={`email-item ${isVipEmail(email) ? 'vip' : ''}`}>
                 <span className="email-number">{index + 1}</span>
                 <span className="email-address">{email}</span>
+                {isVipEmail(email) && (
+                  <span className="vip-badge" title="VIP - Acceso gratuito permanente">VIP</span>
+                )}
                 <button
                   onClick={() => handleRemoveEmail(email)}
                   className="btn-remove"
-                  title="Eliminar correo"
+                  title={isVipEmail(email) ? "VIP - No puede ser eliminado" : "Eliminar correo"}
+                  disabled={isVipEmail(email)}
                 >
-                  Eliminar
+                  {isVipEmail(email) ? 'Protegido' : 'Eliminar'}
                 </button>
               </div>
             ))}
@@ -222,6 +264,7 @@ export default function WhitelistManager() {
           <li>Puede importar múltiples correos desde un archivo .txt o .csv</li>
           <li>Los cambios se guardan automáticamente</li>
           <li>Para registrar un nuevo cliente, primero debe agregar su correo a esta lista</li>
+          <li><strong>Correos VIP (marcados en amarillo):</strong> Tienen acceso gratuito permanente y no pueden ser eliminados</li>
         </ul>
         
         <div className="browser-note">
