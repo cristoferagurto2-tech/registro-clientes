@@ -787,6 +787,102 @@
     min-width: 80px;
     font-size: 12px;
   }
+
+  /* Vista de tarjetas para móvil */
+  .data-table,
+  .data-table thead,
+  .data-table tbody,
+  .data-table th,
+  .data-table td,
+  .data-table tr {
+    display: block;
+  }
+
+  /* Ocultar encabezados de tabla en móvil */
+  .data-table thead {
+    display: none;
+  }
+
+  /* Cada fila se convierte en una tarjeta */
+  .data-table tbody tr {
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: relative;
+  }
+
+  /* La celda del número de fila se convierte en título de la tarjeta */
+  .data-table td.row-num {
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    margin-bottom: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    text-align: center;
+    width: auto;
+    height: auto !important;
+    display: inline-block;
+  }
+
+  /* Las demás celdas se muestran como filas con etiquetas */
+  .data-table td:not(.row-num) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    height: auto !important;
+    min-height: 44px;
+  }
+
+  .data-table td:not(.row-num):last-child {
+    border-bottom: none;
+  }
+
+  /* Mostrar la etiqueta de la columna usando data-label */
+  .data-table td:not(.row-num)::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #1e3a8a;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+
+  /* Ajustar inputs para que ocupen el espacio disponible */
+  .data-table td:not(.row-num) .data-input,
+  .data-table td:not(.row-num) select {
+    flex: 1;
+    min-width: 0;
+    max-width: 60%;
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+
+  /* Ajustar el input con prefijo S/ */
+  .data-table td:not(.row-num) .input-with-prefix {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    max-width: 60%;
+  }
+
+  .data-table td:not(.row-num) .input-prefix {
+    margin-right: 6px;
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  /* Ajustar altura de filas */
+  .data-table tbody tr {
+    height: auto !important;
+  }
 }
 
 /* Color Legend for Row Status */

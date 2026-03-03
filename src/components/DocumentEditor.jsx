@@ -1023,7 +1023,7 @@ export default function DocumentEditor({ month }) {
                   
                   return (
                     <tr key={rowIndex} style={{ backgroundColor: rowColor }}>
-                      <td className="row-num">{rowIndex + 1}</td>
+                      <td className="row-num" data-label="#">{rowIndex + 1}</td>
                       {row.map((cell, colIndex) => {
                         const key = `${rowIndex}-${colIndex}`;
                         const value = editedData[key] !== undefined ? editedData[key] : cell;
@@ -1032,7 +1032,7 @@ export default function DocumentEditor({ month }) {
                         if (colIndex === 5) {
                           const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
                           return (
-                            <td key={colIndex}>
+                            <td key={colIndex} data-label={headers[colIndex]}>
                               <select
                                 value={safeValue}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
@@ -1053,7 +1053,7 @@ export default function DocumentEditor({ month }) {
                           const diasOptions = getOpcionesDias();
                           const mesNumero = (mesesList.indexOf(month.toLowerCase() + ' 2026') + 1).toString().padStart(2, '0');
                           return (
-                            <td key={colIndex}>
+                            <td key={colIndex} data-label={headers[colIndex]}>
                               <select
                                 value={value && value !== 'undefined' ? value : ''}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
@@ -1075,7 +1075,7 @@ export default function DocumentEditor({ month }) {
                         if (colIndex === 1) {
                           const mesAutomatico = month.toLowerCase() + ' 2026';
                           return (
-                            <td key={colIndex}>
+                            <td key={colIndex} data-label={headers[colIndex]}>
                               <input
                                 type="text"
                                 value={mesAutomatico}
@@ -1091,7 +1091,7 @@ export default function DocumentEditor({ month }) {
                         if (colIndex === 6) {
                           const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
                           return (
-                            <td key={colIndex}>
+                            <td key={colIndex} data-label={headers[colIndex]}>
                               <div className="input-with-prefix">
                                 <span className="input-prefix">S/</span>
                                 <input
@@ -1111,7 +1111,7 @@ export default function DocumentEditor({ month }) {
                         if (colIndex === 10) {
                           const safeValue = value !== null && value !== undefined && value !== 'undefined' ? value : '';
                           return (
-                            <td key={colIndex}>
+                            <td key={colIndex} data-label={headers[colIndex]}>
                               <div className="input-with-prefix">
                                 <span className="input-prefix">S/</span>
                                 <input
@@ -1128,7 +1128,7 @@ export default function DocumentEditor({ month }) {
                         }
                         
                         return (
-                          <td key={colIndex}>
+                          <td key={colIndex} data-label={headers[colIndex]}>
                             <input
                               type="text"
                               value={value !== null && value !== undefined && value !== 'undefined' ? value : ''}
