@@ -571,7 +571,7 @@ export function AuthProvider({ children }) {
   };
 
   // Sincronizar usuario con backend (útil para migrar usuarios existentes)
-  const syncUserWithBackend = async (email, password, name) =>> {
+  const syncUserWithBackend = async (email, password, name) => {
     if (!backendAvailable) {
       return { success: false, error: 'Backend no disponible' };
     }
