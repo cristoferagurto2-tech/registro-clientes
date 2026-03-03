@@ -272,3 +272,104 @@
     padding: 0 20px 20px;
   }
 }
+
+/* NUEVO: Sección de sincronización de datos */
+.data-transfer-section {
+  padding: 0 40px 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.data-transfer-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.data-transfer-card h4 {
+  margin: 0 0 8px 0;
+  color: #1e3a8a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.data-transfer-card p {
+  margin: 0 0 20px 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.data-transfer-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-export {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4);
+}
+
+.btn-import {
+  padding: 12px 24px;
+  background: white;
+  color: #1e3a8a;
+  border: 2px solid #1e3a8a;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-import:hover {
+  background: #f0f7ff;
+  transform: translateY(-1px);
+}
+
+.import-message {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  color: #166534;
+  font-size: 14px;
+  white-space: pre-line;
+}
+
+@media (max-width: 768px) {
+  .data-transfer-section {
+    padding: 0 20px 20px;
+  }
+
+  .data-transfer-card {
+    padding: 20px;
+  }
+
+  .data-transfer-buttons {
+    flex-direction: column;
+  }
+
+  .btn-export,
+  .btn-import {
+    width: 100%;
+    text-align: center;
+  }
+}
