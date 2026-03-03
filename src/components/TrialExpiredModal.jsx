@@ -40,8 +40,10 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining, onSu
                   <div className="plan-period">/mes</div>
                   <ul className="plan-features">
                     <li>✓ Hasta 30 créditos activos</li>
-                    <li>✓ 1 usuario por cuenta</li>
+                    <li>✓ Historial de 6 meses</li>
                     <li>✓ Dashboard estándar</li>
+                    <li>✓ Colores fijos</li>
+                    <li>✓ Requiere internet</li>
                     <li>✓ Soporte por email</li>
                   </ul>
                   <button 
@@ -61,8 +63,10 @@ export default function TrialExpiredModal({ isOpen, onClose, daysRemaining, onSu
                   <div className="plan-period">/mes</div>
                   <ul className="plan-features">
                     <li>✓ Créditos ilimitados</li>
-                    <li>✓ Hasta 3 usuarios por cuenta</li>
+                    <li>✓ Historial ilimitado (2 años)</li>
                     <li>✓ Dashboard avanzado</li>
+                    <li>✓ Personalización de colores y campos</li>
+                    <li>✓ Modo offline</li>
                     <li>✓ Descarga de PDF</li>
                     <li>✓ Soporte prioritario</li>
                   </ul>

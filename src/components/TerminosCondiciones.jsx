@@ -59,9 +59,11 @@ export default function TerminosCondiciones({ onAccept, isOpen }) {
                   <h4>Plan Básico</h4>
                   <p className="price">S/ 30.00 / mes</p>
                   <ul>
-                    <li>Hasta 100 créditos activos</li>
-                    <li>1 usuario por cuenta</li>
+                    <li>Hasta 30 créditos activos</li>
+                    <li>Historial de 6 meses</li>
                     <li>Dashboard estándar</li>
+                    <li>Colores fijos</li>
+                    <li>Requiere internet</li>
                     <li>Soporte por correo electrónico</li>
                   </ul>
                 </div>
@@ -70,8 +72,10 @@ export default function TerminosCondiciones({ onAccept, isOpen }) {
                   <p className="price">S/ 60.00 / mes</p>
                   <ul>
                     <li>Créditos ilimitados</li>
-                    <li>Hasta 3 usuarios por cuenta</li>
+                    <li>Historial ilimitado (2 años)</li>
                     <li>Dashboard avanzado</li>
+                    <li>Personalización de colores y campos</li>
+                    <li>Modo offline</li>
                     <li>Descarga de PDF</li>
                     <li>Soporte prioritario</li>
                   </ul>
