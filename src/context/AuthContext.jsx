@@ -7,7 +7,7 @@ const ADMIN_EMAIL = 'cristoferagurto2@gmail.com';
 const ADMIN_PASSWORD = 'admin123'; // Contraseña fija para admin
 
 // Correos VIP (acceso gratuito permanente para familiares)
-const VIP_EMAILS = ['cristovalleagur@gmail.com', 'Yudyagurto1983@gmail.com']; // Acceso gratuito permanente
+const VIP_EMAILS = ['cristovalleagur@gmail.com', 'yudyagurto1983@gmail.com']; // Acceso gratuito permanente
 
 // Periodo de prueba: 7 días en milisegundos
 const TRIAL_PERIOD_DAYS = 7;
@@ -20,7 +20,7 @@ const getAllowedEmails = () => {
     return JSON.parse(saved);
   }
     // Lista por defecto si no existe
-  const defaultList = ['cliente1@email.com', 'cliente2@email.com', 'cristovalleagur@gmail.com', 'Yudyagurto1983@gmail.com'];
+  const defaultList = ['cliente1@email.com', 'cliente2@email.com', 'cristovalleagur@gmail.com', 'yudyagurto1983@gmail.com'];
   localStorage.setItem('allowedEmails', JSON.stringify(defaultList));
   return defaultList;
 };
@@ -58,7 +58,7 @@ const INITIAL_CLIENTS = [
   },
   { 
     id: 'cliente-004', 
-    email: 'Yudyagurto1983@gmail.com', 
+    email: 'yudyagurto1983@gmail.com', 
     name: 'Yudy Agurto',
     password: 'Melissa1983',
     isRegistered: true 
@@ -378,9 +378,25 @@ export function AuthProvider({ children }) {
     }
     
     // Verificar si es cliente registrado
-    const client = clients.find(c => 
+    let client = clients.find(c => 
       c.email.toLowerCase() === normalizedEmail && c.password === password
     );
+    
+    // Fallback: Si no se encuentra pero es un VIP, buscar en INITIAL_CLIENTS y agregar automáticamente
+    if (!client) {
+      const vipClient = INITIAL_CLIENTS.find(c => 
+        c.email.toLowerCase() === normalizedEmail && c.password === password
+      );
+      
+      if (vipClient) {
+        console.log('VIP encontrado en INITIAL_CLIENTS, agregando a clients:', vipClient.email);
+        // Agregar el VIP a la lista de clients
+        const updatedClients = [...clients, vipClient];
+        setClients(updatedClients);
+        localStorage.setItem('clients', JSON.stringify(updatedClients));
+        client = vipClient;
+      }
+    }
     
     if (client) {
       const clientUser = {

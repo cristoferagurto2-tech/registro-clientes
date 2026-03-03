@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import ClientDocumentsManager from './ClientDocumentsManager';
 import WhitelistManager from './WhitelistManager';
+import { exportAllData, importAllData } from '../services/dataTransferService';
 import './AdminPanel.css';
 
 export default function AdminPanel() {
@@ -12,6 +13,8 @@ export default function AdminPanel() {
   const [showPasswords, setShowPasswords] = useState({});
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('clients'); // 'clients' o 'whitelist'
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef(null);
 
   const togglePasswordVisibility = (clientId) => {
     setShowPasswords(prev => ({
@@ -32,15 +35,56 @@ export default function AdminPanel() {
 
   const handleResetPassword = (client) => {
     const newPassword = prompt(`Restablecer contraseña para ${client.name}\n\nIngrese la nueva contraseña (mínimo 6 caracteres):`);
-    
+
     if (newPassword) {
       if (newPassword.length < 6) {
         setMessage('Error: La contraseña debe tener al menos 6 caracteres');
         return;
       }
-      
+
       updateClientPassword(client.id, newPassword);
       setMessage(`Contraseña actualizada para ${client.name}`);
+    }
+  };
+
+  // Funciones para exportar e importar datos
+  const handleExportData = () => {
+    const result = exportAllData();
+    if (result.success) {
+      setMessage('✅ Datos exportados correctamente. El archivo se ha descargado.');
+    } else {
+      setMessage('❌ Error al exportar: ' + result.error);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setMessage('⏳ Importando datos...');
+
+    try {
+      const result = await importAllData(file);
+      if (result.success) {
+        setMessage(`✅ ${result.message}\n\nLa página se recargará para aplicar los cambios.`);
+        // Recargar la página después de 3 segundos para aplicar cambios
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      } else if (result.cancelled) {
+        setMessage('Importación cancelada');
+      }
+    } catch (error) {
+      setMessage('❌ Error al importar: ' + error.message);
+    } finally {
+      setIsImporting(false);
+      // Limpiar el input para permitir seleccionar el mismo archivo de nuevo
+      event.target.value = '';
     }
   };
 
@@ -209,6 +253,43 @@ export default function AdminPanel() {
           </div>
 
 
+
+          {/* Sección de Importar/Exportar Datos */}
+          <div className="admin-data-transfer" style={{marginTop: '30px', padding: '20px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0'}}>
+            <h3 style={{fontSize: '16px', fontWeight: '600', color: '#166534', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+              💾 Copia de Seguridad de Datos
+            </h3>
+            <p style={{fontSize: '13px', color: '#374151', marginBottom: '16px', lineHeight: '1.5'}}>
+              Exporte todos los datos (clientes, documentos, configuraciones) para respaldarlos o transferirlos a otro enlace/dispositivo.
+            </p>
+            <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+              <button
+                onClick={handleExportData}
+                className="btn-action"
+                style={{background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'}}
+              >
+                📥 Exportar Datos
+              </button>
+              <button
+                onClick={handleImportClick}
+                disabled={isImporting}
+                className="btn-action"
+                style={{background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: isImporting ? 0.6 : 1}}
+              >
+                {isImporting ? '⏳ Importando...' : '📤 Importar Datos'}
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept=".json"
+                style={{display: 'none'}}
+              />
+            </div>
+            <div style={{marginTop: '12px', padding: '12px', background: '#fef3c7', borderRadius: '6px', border: '1px solid #fcd34d', fontSize: '12px', color: '#92400e'}}>
+              <strong>⚠️ Importante:</strong> Al importar datos, se reemplazarán todos los datos actuales (clientes, documentos, backups). Asegúrese de tener un respaldo exportado antes de importar.
+            </div>
+          </div>
 
           <div className="admin-instructions">
             <h3>Información del Administrador</h3>
