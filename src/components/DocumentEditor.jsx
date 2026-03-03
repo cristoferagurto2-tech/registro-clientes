@@ -188,9 +188,9 @@ export default function DocumentEditor({ month }) {
           if (colIndex === 1) {
             value = mesAutomatico;
           }
-          // Formatear Monto (columna 6) y Ganancias (columna 10) con puntos
+          // Formatear Monto (columna 6) y Ganancias (columna 10) con formato peruano
           if ((colIndex === 6 || colIndex === 10) && value) {
-            value = formatNumberWithDots(String(value));
+            value = formatNumberPeruano(String(value));
           }
           // Asegurar que el valor sea un string
           initialEdits[`${rowIndex}-${colIndex}`] = value !== null && value !== undefined ? String(value) : '';
@@ -206,8 +206,8 @@ export default function DocumentEditor({ month }) {
     if (!value || value === '' || value === '0') return '0,00';
     
     // Limpiar el valor: quitar separadores existentes y convertir a número
-    const cleanValue = String(value).replace(/[.,]/g, '');
-    const numValue = parseFloat(cleanValue) / 100; // Dividir por 100 porque el input da centavos
+    const cleanValue = String(value).replace(/\./g, '').replace(',', '.');
+    const numValue = parseFloat(cleanValue);
     
     if (isNaN(numValue)) return '0,00';
     
@@ -249,29 +249,14 @@ export default function DocumentEditor({ month }) {
   const handleCellBlur = (rowIndex, colIndex, value) => {
     const key = `${rowIndex}-${colIndex}`;
     
-    // Si es columna de Monto (6) o Ganancias (10), formatear con separadores de miles
+    // Si es columna de Monto (6) o Ganancias (10), formatear con formato peruano
     if ((colIndex === 6 || colIndex === 10) && value) {
-      // Primero limpiar el valor: reemplazar coma por punto para decimales
-      let cleanValue = value.replace(/,/g, '.');
+      const formattedValue = formatNumberPeruano(value);
       
-      // Intentar parsear como número
-      const numValue = parseFloat(cleanValue);
-      
-      if (!isNaN(numValue)) {
-        // Separar parte entera y decimal
-        const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
-        
-        // Formatear la parte entera con puntos como separadores de miles
-        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        
-        // Combinar con la parte decimal usando coma (formato peruano)
-        const formattedValue = decimalPart ? `${formattedInteger},${decimalPart}` : formattedInteger;
-        
-        setEditedData(prev => ({
-          ...prev,
-          [key]: formattedValue
-        }));
-      }
+      setEditedData(prev => ({
+        ...prev,
+        [key]: formattedValue
+      }));
     }
   };
 
