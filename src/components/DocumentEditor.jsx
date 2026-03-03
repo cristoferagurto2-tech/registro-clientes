@@ -98,53 +98,17 @@ export default function DocumentEditor({ month }) {
   ];
 
   // Función para parsear montos correctamente manejando separadores de miles y decimales
-  // Formatos soportados: "1.000", "1.000,50", "1000", "1000.50", "1,000.50"
+  // Formato peruano/latinoamericano: puntos para miles, coma para decimales
+  // Ejemplos: "5.000,50" -> 5000.50, "1.000" -> 1000, "500,50" -> 500.50
   const parseMonto = (value) => {
     if (!value || value === '') return 0;
     const str = String(value).trim();
     
-    // Detectar el formato basado en la posición de puntos y comas
-    const lastDot = str.lastIndexOf('.');
-    const lastComma = str.lastIndexOf(',');
+    // Formato peruano: puntos son separadores de miles, coma es separador decimal
+    // Eliminar puntos (separadores de miles) y reemplazar coma por punto para decimales
+    const normalizedValue = str.replace(/\./g, '').replace(',', '.');
     
-    // Si hay tanto punto como coma, el último es el separador decimal
-    if (lastDot !== -1 && lastComma !== -1) {
-      if (lastComma > lastDot) {
-        // Formato europeo: 1.000,50
-        return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
-      } else {
-        // Formato americano: 1,000.50
-        return parseFloat(str.replace(/,/g, '')) || 0;
-      }
-    }
-    
-    // Si solo hay punto
-    if (lastDot !== -1) {
-      const afterDot = str.substring(lastDot + 1);
-      // Si después del punto hay 1-2 dígitos, es separador decimal
-      // Si hay 3 dígitos, es separador de miles
-      if (afterDot.length <= 2) {
-        return parseFloat(str) || 0;
-      } else {
-        // Es separador de miles, eliminarlo
-        return parseFloat(str.replace(/\./g, '')) || 0;
-      }
-    }
-    
-    // Si solo hay coma
-    if (lastComma !== -1) {
-      const afterComma = str.substring(lastComma + 1);
-      // Si después de la coma hay 1-2 dígitos, es separador decimal
-      if (afterComma.length <= 2) {
-        return parseFloat(str.replace(',', '.')) || 0;
-      } else {
-        // Es separador de miles, eliminarlo
-        return parseFloat(str.replace(/,/g, '')) || 0;
-      }
-    }
-    
-    // Sin separadores, parsear directamente
-    return parseFloat(str) || 0;
+    return parseFloat(normalizedValue) || 0;
   };
 
   // Función para obtener los días del mes según calendario 2026
@@ -236,26 +200,34 @@ export default function DocumentEditor({ month }) {
     }
   }, [month, clientId, getMergedData]);
 
-  // Función para formatear números con separadores de miles (puntos)
-  const formatNumberWithDots = (value) => {
-    // Remover todo excepto números
-    const numbersOnly = value.replace(/[^0-9]/g, '');
-    // Formatear con puntos cada 3 dígitos
-    return numbersOnly.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  // Función para formatear números con formato peruano: puntos para miles, coma para decimales
+  // Ejemplo: 5000.50 -> "5.000,50", 1000 -> "1.000,00"
+  const formatNumberPeruano = (value) => {
+    if (!value || value === '' || value === '0') return '0,00';
+    
+    // Limpiar el valor: quitar separadores existentes y convertir a número
+    const cleanValue = String(value).replace(/[.,]/g, '');
+    const numValue = parseFloat(cleanValue) / 100; // Dividir por 100 porque el input da centavos
+    
+    if (isNaN(numValue)) return '0,00';
+    
+    // Formatear con 2 decimales
+    const formatted = numValue.toLocaleString('es-PE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    
+    return formatted;
   };
 
   const handleCellChange = (rowIndex, colIndex, value) => {
     const key = `${rowIndex}-${colIndex}`;
     
-    // Si es columna de Monto (6) o Ganancias (10), formatear con puntos
-    let processedValue = value;
-    if ((colIndex === 6 || colIndex === 10) && value) {
-      processedValue = formatNumberWithDots(value);
-    }
-    
+    // Guardar el valor tal cual lo escribe el usuario (sin formatear automáticamente)
+    // El formateo se hará al perder el foco o al guardar
     setEditedData(prev => ({
       ...prev,
-      [key]: processedValue
+      [key]: value
     }));
 
     // Si cambia la fecha (columna 0), actualizar mes automáticamente (columna 1)
@@ -268,6 +240,36 @@ export default function DocumentEditor({ month }) {
         setEditedData(prev => ({
           ...prev,
           [`${rowIndex}-1`]: mesNombre
+        }));
+      }
+    }
+  };
+
+  // Función para formatear el valor al perder el foco (solo para Monto y Ganancias)
+  const handleCellBlur = (rowIndex, colIndex, value) => {
+    const key = `${rowIndex}-${colIndex}`;
+    
+    // Si es columna de Monto (6) o Ganancias (10), formatear con separadores de miles
+    if ((colIndex === 6 || colIndex === 10) && value) {
+      // Primero limpiar el valor: reemplazar coma por punto para decimales
+      let cleanValue = value.replace(/,/g, '.');
+      
+      // Intentar parsear como número
+      const numValue = parseFloat(cleanValue);
+      
+      if (!isNaN(numValue)) {
+        // Separar parte entera y decimal
+        const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
+        
+        // Formatear la parte entera con puntos como separadores de miles
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        // Combinar con la parte decimal usando coma (formato peruano)
+        const formattedValue = decimalPart ? `${formattedInteger},${decimalPart}` : formattedInteger;
+        
+        setEditedData(prev => ({
+          ...prev,
+          [key]: formattedValue
         }));
       }
     }
@@ -1138,6 +1140,7 @@ export default function DocumentEditor({ month }) {
                                   type="text"
                                   value={safeValue}
                                   onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                                  onBlur={(e) => handleCellBlur(rowIndex, colIndex, e.target.value)}
                                   className="data-input prefixed"
                                   placeholder="0.00"
                                   disabled={readOnly}
@@ -1158,6 +1161,7 @@ export default function DocumentEditor({ month }) {
                                   type="text"
                                   value={safeValue}
                                   onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
+                                  onBlur={(e) => handleCellBlur(rowIndex, colIndex, e.target.value)}
                                   className="data-input prefixed"
                                   placeholder="0.00"
                                   disabled={readOnly}
@@ -1437,3 +1441,4 @@ export default function DocumentEditor({ month }) {
     </div>
   );
 }
+// Force redeploy Tue Mar  3 14:38:18 HPS 2026
