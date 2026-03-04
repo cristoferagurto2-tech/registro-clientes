@@ -31,10 +31,30 @@ const connectDB = async () => {
 connectDB();
 
 // Middleware CORS - DEBE IR PRIMERO antes de cualquier ruta
+const allowedOrigins = [
+  'https://clientcode.pages.dev',
+  'https://www.clientcode.pages.dev',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*', // En producción especifica tu dominio
+  origin: function(origin, callback) {
+    // Permitir requests sin origin (como los de curl o Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.FRONTEND_URL === origin) {
+      callback(null, true);
+    } else {
+      console.log('CORS bloqueado para origen:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // Health check endpoint - DESPUÉS del CORS middleware
