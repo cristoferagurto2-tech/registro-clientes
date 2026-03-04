@@ -16,16 +16,6 @@ const dashboardRoutes = require('./routes/dashboard');
 const adminRoutes = require('./routes/admin');
 const backupRoutes = require('./routes/backup');
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'ClientCore Backend',
-    version: '2.0.0'
-  });
-});
-
 // Conectar a MongoDB
 const connectDB = async () => {
   try {
@@ -40,12 +30,22 @@ const connectDB = async () => {
 // Conectar a la base de datos
 connectDB();
 
-// Middleware
+// Middleware CORS - DEBE IR PRIMERO antes de cualquier ruta
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*', // En producción especifica tu dominio
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Health check endpoint - DESPUÉS del CORS middleware
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'ClientCore Backend',
+    version: '2.0.0'
+  });
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
