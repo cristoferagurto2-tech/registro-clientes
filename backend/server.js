@@ -16,6 +16,16 @@ const dashboardRoutes = require('./routes/dashboard');
 const adminRoutes = require('./routes/admin');
 const backupRoutes = require('./routes/backup');
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'ClientCore Backend',
+    version: '2.0.0'
+  });
+});
+
 // Conectar a MongoDB
 const connectDB = async () => {
   try {
