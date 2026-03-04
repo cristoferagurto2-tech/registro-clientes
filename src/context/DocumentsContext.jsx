@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { documentsAPI, syncService } from '../services/api';
+import { documentsAPI, syncService, adminAPI } from '../services/api';
 
 const DocumentsContext = createContext();
 
@@ -54,16 +54,33 @@ export function DocumentsProvider({ children }) {
       if (savedData) {
         setCompletedData(JSON.parse(savedData));
       }
-      
-      // Si hay backend y usuario autenticado, intentar sincronizar
-      const token = localStorage.getItem('token');
-      if (isAvailable && token && selectedClientId) {
-        await syncFromBackend(selectedClientId);
-      }
     };
     
     initializeDocuments();
-  }, [selectedClientId]);
+  }, []);
+
+  // Efecto para sincronizar automáticamente cuando hay un usuario logueado
+  useEffect(() => {
+    const autoSyncOnLogin = async () => {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if (backendAvailable && token && user?.id) {
+        console.log('Sincronizando documentos automáticamente para usuario:', user.id);
+        setIsSyncing(true);
+        try {
+          await syncFromBackend(user.id);
+          console.log('Sincronización automática completada');
+        } catch (error) {
+          console.error('Error en sincronización automática:', error);
+        } finally {
+          setIsSyncing(false);
+        }
+      }
+    };
+    
+    autoSyncOnLogin();
+  }, [backendAvailable]);
 
   useEffect(() => {
     localStorage.setItem('clientDocuments', JSON.stringify(clientDocuments));
@@ -74,11 +91,11 @@ export function DocumentsProvider({ children }) {
   }, [completedData]);
 
   // Subir documento con múltiples hojas
-  const uploadDocument = (clientId, month, file) => {
-    return new Promise((resolve, reject) => {
+  const uploadDocument = async (clientId, month, file) => {
+    return new Promise(async (resolve, reject) => {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const arrayBuffer = e.target.result;
           const base64Data = arrayBufferToBase64(arrayBuffer);
@@ -97,6 +114,10 @@ export function DocumentsProvider({ children }) {
           const firstSheetName = workbook.SheetNames[0];
           const firstSheetData = allSheets[firstSheetName];
           
+          const headers = firstSheetData[0] || [];
+          const sheetData = firstSheetData.slice(1); // Datos SIN el header
+          
+          // Guardar en localStorage
           setClientDocuments(prev => ({
             ...prev,
             [clientId]: {
@@ -104,16 +125,37 @@ export function DocumentsProvider({ children }) {
               [month]: {
                 name: file.name,
                 originalFile: base64Data,
-                originalWorkbook: base64Data, // Guardar el workbook original
+                originalWorkbook: base64Data,
                 sheets: allSheets,
                 sheetNames: workbook.SheetNames,
-                headers: firstSheetData[0] || [],
-                data: firstSheetData.slice(1), // Datos SIN el header
+                headers: headers,
+                data: sheetData,
                 uploadedAt: new Date().toISOString(),
                 clientId: clientId
               }
             }
           }));
+          
+          // Sincronizar con backend automáticamente
+          if (backendAvailable) {
+            try {
+              setIsSyncing(true);
+              await adminAPI.uploadDocumentForClient(clientId, month, {
+                headers: headers,
+                data: sheetData,
+                completedData: [],
+                year: 2026
+              });
+              console.log(`Documento de ${month} sincronizado con backend correctamente`);
+              setSyncError(null);
+            } catch (syncError) {
+              console.error('Error sincronizando con backend:', syncError);
+              setSyncError('Error sincronizando con servidor');
+              // No rechazamos la promesa, el documento se guardó localmente
+            } finally {
+              setIsSyncing(false);
+            }
+          }
           
           resolve();
         } catch (error) {

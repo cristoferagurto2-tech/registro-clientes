@@ -284,4 +284,57 @@ export const syncService = {
   },
 };
 
+// ==================== ADMIN API ====================
+export const adminAPI = {
+  // Subir documento para un cliente (admin)
+  uploadDocumentForClient: async (clientId, month, data) => {
+    try {
+      const response = await api.post(`/admin/clients/${clientId}/documents/${month}`, data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Obtener documentos de un cliente
+  getClientDocuments: async (clientId) => {
+    try {
+      const response = await api.get(`/admin/clients/${clientId}/documents`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Eliminar documento de un cliente
+  deleteClientDocument: async (clientId, month, year) => {
+    try {
+      const response = await api.delete(`/admin/clients/${clientId}/documents/${month}?year=${year || 2026}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Obtener todos los clientes
+  getAllClients: async () => {
+    try {
+      const response = await api.get('/admin/clients');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Suscribir/desuscribir cliente
+  updateClientSubscription: async (clientId, isSubscribed) => {
+    try {
+      const response = await api.put(`/admin/clients/${clientId}/subscribe`, { isSubscribed });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+};
+
 export default api;

@@ -145,6 +145,102 @@ router.get('/clients/:clientId/documents', protect, adminOnly, async (req, res) 
   }
 });
 
+// @route   POST /api/admin/clients/:clientId/documents/:month
+// @desc    Subir/actualizar documento para un cliente (admin)
+// @access  Admin Only
+router.post('/clients/:clientId/documents/:month', protect, adminOnly, async (req, res) => {
+  try {
+    const { clientId, month } = req.params;
+    const { headers, data, completedData, year } = req.body;
+
+    // Verificar que el cliente existe
+    const client = await User.findById(clientId);
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cliente no encontrado'
+      });
+    }
+
+    // Buscar documento existente o crear nuevo
+    let document = await Document.findOne({ clientId, month, year: year || 2026 });
+
+    if (document) {
+      // Actualizar documento existente
+      document.headers = headers || document.headers;
+      document.data = data || document.data;
+      if (completedData) {
+        document.completedData = completedData;
+      }
+      document.lastModified = new Date();
+      await document.save();
+    } else {
+      // Crear nuevo documento
+      document = await Document.create({
+        clientId,
+        month,
+        year: year || 2026,
+        headers: headers || [],
+        data: data || [],
+        completedData: completedData || [],
+        uploadedAt: new Date(),
+        lastModified: new Date()
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Documento de ${month} guardado correctamente`,
+      document: {
+        id: document._id,
+        month: document.month,
+        year: document.year,
+        lastModified: document.lastModified
+      }
+    });
+  } catch (error) {
+    console.error('Error guardando documento:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error guardando documento del cliente'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/clients/:clientId/documents/:month
+// @desc    Eliminar documento de un cliente
+// @access  Admin Only
+router.delete('/clients/:clientId/documents/:month', protect, adminOnly, async (req, res) => {
+  try {
+    const { clientId, month } = req.params;
+    const { year } = req.query;
+
+    const result = await Document.deleteOne({
+      clientId,
+      month,
+      year: year || 2026
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Documento no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Documento de ${month} eliminado correctamente`
+    });
+  } catch (error) {
+    console.error('Error eliminando documento:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error eliminando documento'
+    });
+  }
+});
+
 // @route   GET /api/admin/dashboard
 // @desc    Obtener dashboard global (todos los clientes)
 // @access  Admin Only
