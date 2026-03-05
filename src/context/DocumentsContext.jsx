@@ -425,6 +425,38 @@ export function DocumentsProvider({ children }) {
             return newDocs;
           });
           
+          // Sincronizar con backend automáticamente
+          if (backendAvailable) {
+            try {
+              setIsSyncing(true);
+              console.log('Sincronizando documentos con backend para todos los meses...');
+              
+              // Sincronizar todos los meses con el backend
+              const syncPromises = MESES.map(month => 
+                adminAPI.uploadDocumentForClient(clientId, month, {
+                  headers: baseDocument.headers,
+                  data: baseDocument.data,
+                  completedData: [],
+                  year: 2026
+                }).catch(err => {
+                  console.error(`Error sincronizando ${month}:`, err);
+                  return { success: false, month };
+                })
+              );
+              
+              const results = await Promise.all(syncPromises);
+              const successfulSyncs = results.filter(r => r.success !== false).length;
+              
+              console.log(`${successfulSyncs} de 12 meses sincronizados correctamente con backend`);
+              setSyncError(null);
+            } catch (syncError) {
+              console.error('Error sincronizando con backend:', syncError);
+              setSyncError('Error sincronizando con servidor');
+            } finally {
+              setIsSyncing(false);
+            }
+          }
+          
           resolve();
         } catch (error) {
           reject(error);
