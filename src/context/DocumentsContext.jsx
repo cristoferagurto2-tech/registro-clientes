@@ -1,3 +1,4 @@
+// Force redeploy - Cloudflare Pages fix
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { documentsAPI, syncService, adminAPI } from '../services/api';
