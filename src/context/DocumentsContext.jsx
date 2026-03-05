@@ -377,7 +377,7 @@ export function DocumentsProvider({ children }) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const arrayBuffer = e.target.result;
           const base64Data = arrayBufferToBase64(arrayBuffer);
