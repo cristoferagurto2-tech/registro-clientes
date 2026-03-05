@@ -133,9 +133,13 @@ export const documentsAPI = {
   },
 
   // Guardar documento completo
-  saveDocument: async (month, data) => {
+  saveDocument: async (month, data, targetClientId = null) => {
     try {
-      const response = await api.post(`/documents/${month}`, data);
+      const payload = { ...data };
+      if (targetClientId) {
+        payload.targetClientId = targetClientId;
+      }
+      const response = await api.post(`/documents/${month}`, payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || { success: false, error: error.message };

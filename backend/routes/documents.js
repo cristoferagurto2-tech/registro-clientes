@@ -93,8 +93,11 @@ router.get('/:month', protect, checkSubscription, async (req, res) => {
 router.post('/:month', protect, checkSubscription, async (req, res) => {
   try {
     const { month } = req.params;
-    const { headers, data } = req.body;
-    const clientId = req.user._id;
+    const { headers, data, targetClientId } = req.body;
+    // Si es admin y proporciona targetClientId, usar ese
+    const clientId = (req.user.role === 'admin' && targetClientId)
+      ? targetClientId
+      : req.user._id;
 
     // Validar mes
     const validMonths = [
