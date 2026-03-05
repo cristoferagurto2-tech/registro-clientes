@@ -34,6 +34,8 @@ connectDB();
 const allowedOrigins = [
   'https://clientcode.pages.dev',
   'https://www.clientcode.pages.dev',
+  // Permitir previews de Cloudflare Pages (URLs con hash aleatorio)
+  /^https:\/\/([a-z0-9-]+)\.clientcode\.pages\.dev$/,
   'http://localhost:5173',
   'http://localhost:3000'
 ];
@@ -43,7 +45,13 @@ app.use(cors({
     // Permitir requests sin origin (como los de curl o Postman)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.FRONTEND_URL === origin) {
+    // Validar contra allowedOrigins (soporta strings y regex)
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) return allowed.test(origin);
+      return allowed === origin;
+    });
+    
+    if (isAllowed || process.env.FRONTEND_URL === origin) {
       callback(null, true);
     } else {
       console.log('CORS bloqueado para origen:', origin);
