@@ -427,7 +427,8 @@ export function DocumentsProvider({ children }) {
           });
           
           // Sincronizar con backend automáticamente
-          if (backendAvailable) {
+          const token = localStorage.getItem('token');
+          if (backendAvailable && token) {
             try {
               setIsSyncing(true);
               console.log('Sincronizando documentos con backend para todos los meses...');
@@ -441,21 +442,31 @@ export function DocumentsProvider({ children }) {
                   year: 2026
                 }).catch(err => {
                   console.error(`Error sincronizando ${month}:`, err);
-                  return { success: false, month };
+                  return { success: false, month, error: err.message || 'Error desconocido' };
                 })
               );
               
               const results = await Promise.all(syncPromises);
               const successfulSyncs = results.filter(r => r.success !== false).length;
+              const failedSyncs = results.filter(r => r.success === false);
               
               console.log(`${successfulSyncs} de 12 meses sincronizados correctamente con backend`);
-              setSyncError(null);
+              
+              if (failedSyncs.length > 0) {
+                console.warn(`${failedSyncs.length} meses fallaron al sincronizar:`, failedSyncs.map(r => r.month || r.error).join(', '));
+                setSyncError(`${failedSyncs.length} meses no se pudieron sincronizar. Verifica que estés logueado como administrador.`);
+              } else {
+                setSyncError(null);
+              }
             } catch (syncError) {
               console.error('Error sincronizando con backend:', syncError);
-              setSyncError('Error sincronizando con servidor');
+              setSyncError('Error sincronizando con servidor. Verifica tu conexión y que estés logueado.');
             } finally {
               setIsSyncing(false);
             }
+          } else if (backendAvailable && !token) {
+            console.warn('No se puede sincronizar: Usuario no autenticado (no hay token)');
+            setSyncError('Documentos guardados localmente. Inicia sesión como administrador para sincronizar con el servidor.');
           }
           
           resolve();
