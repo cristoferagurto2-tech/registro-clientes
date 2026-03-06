@@ -35,10 +35,33 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Verificar si el usuario ya existe
+    // Verificar si el usuario ya existe en MongoDB
     const userExists = await User.findOne({ email: email.toLowerCase() });
 
     if (userExists) {
+      // Si el usuario existe pero está inactivo, permitir reactivación
+      if (!userExists.isActive) {
+        // Reactivar usuario
+        userExists.isActive = true;
+        userExists.password = password; // Actualizar contraseña
+        await userExists.save();
+        
+        const token = generateToken(userExists._id);
+        return res.status(200).json({
+          success: true,
+          message: 'Cuenta reactivada exitosamente',
+          token,
+          user: {
+            id: userExists._id,
+            name: userExists.name,
+            email: userExists.email,
+            role: userExists.role,
+            isSubscribed: userExists.isSubscribed,
+            trialStatus: userExists.getTrialStatus()
+          }
+        });
+      }
+      
       return res.status(400).json({
         success: false,
         error: 'Ya existe una cuenta con este correo'

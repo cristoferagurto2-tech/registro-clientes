@@ -535,11 +535,47 @@ export function AuthProvider({ children }) {
           return { success: true, message: 'Registro exitoso', backend: true };
         }
       } catch (error) {
-        console.log('Registro en backend falló, usando localStorage:', error);
-        if (error.error?.includes('existe')) {
+        console.log('Registro en backend falló:', error);
+        
+        // Si el backend dice que ya existe pero no tenemos backendId,
+        // intentar hacer login para obtener el backendId
+        if (error.error?.includes('existe') || error.error?.includes('Ya existe')) {
+          const existingClient = clients.find(c => c.email.toLowerCase() === normalizedEmail);
+          
+          if (existingClient && !existingClient.backendId) {
+            console.log('Cliente existe en localStorage pero sin backendId, intentando login...');
+            try {
+              const loginResponse = await authAPI.login(email, password);
+              if (loginResponse.success) {
+                // Actualizar el cliente existente con el backendId
+                const updatedClient = {
+                  ...existingClient,
+                  backendId: loginResponse.user.id,
+                  name: loginResponse.user.name || existingClient.name
+                };
+                
+                setClients(prev => prev.map(c => 
+                  c.id === existingClient.id ? updatedClient : c
+                ));
+                
+                console.log('Cliente sincronizado con backend ID:', updatedClient.backendId);
+                return { 
+                  success: true, 
+                  message: 'Cuenta sincronizada con el servidor', 
+                  backend: true,
+                  user: loginResponse.user 
+                };
+              }
+            } catch (loginError) {
+              console.log('Login también falló:', loginError);
+              // Si el login falla, significa que realmente no existe en el backend
+              // Continuar con el flujo normal de registro
+            }
+          }
+          
           return { success: false, error: error.error };
         }
-        // Si falla, continuamos con localStorage
+        // Si falla por otro motivo, continuamos con localStorage
       }
     }
     
