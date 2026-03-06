@@ -78,6 +78,41 @@ export function AuthProvider({ children }) {
     return updatedClients;
   };
 
+  // Función para sincronizar un cliente con el backend y obtener su backendId
+  const syncClientBackendId = async (client) => {
+    if (!backendAvailable) return client;
+    
+    try {
+      // Intentar login con las credenciales del cliente para obtener su backend ID
+      const response = await authAPI.login(client.email, client.password);
+      if (response.success && response.user) {
+        // Guardar el backendId (MongoDB ObjectId) en el cliente
+        const updatedClient = {
+          ...client,
+          backendId: response.user.id || response.user._id
+        };
+        
+        // Actualizar en la lista de clientes
+        setClients(prev => prev.map(c => 
+          c.id === client.id ? updatedClient : c
+        ));
+        
+        console.log(`Cliente ${client.email} sincronizado con backend ID:`, updatedClient.backendId);
+        return updatedClient;
+      }
+    } catch (error) {
+      console.warn(`No se pudo sincronizar cliente ${client.email} con backend:`, error.message);
+    }
+    
+    return client;
+  };
+
+  // Función para obtener el backendId de un cliente por su ID
+  const getClientBackendId = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    return client?.backendId || clientId;
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       setIsLoading(true);
@@ -624,6 +659,8 @@ export function AuthProvider({ children }) {
       isReadOnlyMode,
       subscribeClient,
       syncUserWithBackend,
+      syncClientBackendId,
+      getClientBackendId,
       TRIAL_PERIOD_DAYS
     }}>
       {children}

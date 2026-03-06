@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { documentsAPI, syncService, adminAPI } from '../services/api';
+import { useAuth } from './AuthContext';
 
 const DocumentsContext = createContext();
 
@@ -38,6 +39,9 @@ export function DocumentsProvider({ children }) {
   const [backendAvailable, setBackendAvailable] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState(null);
+  
+  // Obtener funciones de AuthContext para sincronización de IDs
+  const { getClientBackendId, syncClientBackendId } = useAuth();
 
   useEffect(() => {
     const initializeDocuments = async () => {
@@ -138,10 +142,28 @@ export function DocumentsProvider({ children }) {
           }));
           
           // Sincronizar con backend automáticamente
-          if (backendAvailable) {
+          const token = localStorage.getItem('token');
+          if (backendAvailable && token) {
             try {
               setIsSyncing(true);
-              await adminAPI.uploadDocumentForClient(clientId, month, {
+              
+              // Obtener el backendId del cliente (MongoDB ObjectId)
+              let effectiveClientId = getClientBackendId(clientId);
+              
+              // Si el cliente no tiene backendId, intentar sincronizarlo
+              if (effectiveClientId === clientId) {
+                console.log(`Cliente ${clientId} no tiene backendId, intentando sincronizar...`);
+                const { clients } = require('./AuthContext').useAuth();
+                const client = clients.find(c => c.id === clientId);
+                if (client) {
+                  const syncedClient = await syncClientBackendId(client);
+                  effectiveClientId = syncedClient.backendId || clientId;
+                }
+              }
+              
+              console.log(`Sincronizando documento de ${month} con backend usando ID: ${effectiveClientId}`);
+              
+              await adminAPI.uploadDocumentForClient(effectiveClientId, month, {
                 headers: headers,
                 data: sheetData,
                 completedData: [],
@@ -151,11 +173,14 @@ export function DocumentsProvider({ children }) {
               setSyncError(null);
             } catch (syncError) {
               console.error('Error sincronizando con backend:', syncError);
-              setSyncError('Error sincronizando con servidor');
+              setSyncError('Error sincronizando con servidor. Inicia sesión como administrador.');
               // No rechazamos la promesa, el documento se guardó localmente
             } finally {
               setIsSyncing(false);
             }
+          } else if (backendAvailable && !token) {
+            console.warn('No se puede sincronizar: Usuario no autenticado (no hay token)');
+            setSyncError('Documento guardado localmente. Inicia sesión como administrador para sincronizar.');
           }
           
           resolve();
@@ -433,9 +458,26 @@ export function DocumentsProvider({ children }) {
               setIsSyncing(true);
               console.log('Sincronizando documentos con backend para todos los meses...');
               
-              // Sincronizar todos los meses con el backend
+              // Obtener el backendId del cliente (MongoDB ObjectId)
+              let effectiveClientId = getClientBackendId(clientId);
+              
+              // Si el cliente no tiene backendId, intentar sincronizarlo
+              if (effectiveClientId === clientId) {
+                console.log(`Cliente ${clientId} no tiene backendId, intentando sincronizar...`);
+                // Buscar el cliente en la lista
+                const { clients } = require('./AuthContext').useAuth();
+                const client = clients.find(c => c.id === clientId);
+                if (client) {
+                  const syncedClient = await syncClientBackendId(client);
+                  effectiveClientId = syncedClient.backendId || clientId;
+                }
+              }
+              
+              console.log(`Usando backendId para sincronización: ${effectiveClientId}`);
+              
+              // Sincronizar todos los meses con el backend usando el backendId
               const syncPromises = MESES.map(month => 
-                adminAPI.uploadDocumentForClient(clientId, month, {
+                adminAPI.uploadDocumentForClient(effectiveClientId, month, {
                   headers: baseDocument.headers,
                   data: baseDocument.data,
                   completedData: [],
