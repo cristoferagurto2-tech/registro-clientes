@@ -55,6 +55,39 @@ export function AuthProvider({ children }) {
   const [backendAvailable, setBackendAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Función para eliminar clientes duplicados por email (mantener el que tenga backendId)
+  const removeDuplicateClients = (clients) => {
+    const uniqueClients = [];
+    const emailMap = new Map();
+    
+    // Primero, agrupar por email
+    clients.forEach(client => {
+      const normalizedEmail = client.email.toLowerCase().trim();
+      if (!emailMap.has(normalizedEmail)) {
+        emailMap.set(normalizedEmail, []);
+      }
+      emailMap.get(normalizedEmail).push(client);
+    });
+    
+    // Para cada email, mantener solo el que tenga backendId, o el primero si ninguno lo tiene
+    emailMap.forEach((clientsWithSameEmail, email) => {
+      if (clientsWithSameEmail.length === 1) {
+        uniqueClients.push(clientsWithSameEmail[0]);
+      } else {
+        // Hay duplicados, buscar el que tenga backendId
+        const withBackendId = clientsWithSameEmail.find(c => c.backendId);
+        if (withBackendId) {
+          uniqueClients.push(withBackendId);
+        } else {
+          // Si ninguno tiene backendId, mantener el primero
+          uniqueClients.push(clientsWithSameEmail[0]);
+        }
+      }
+    });
+    
+    return uniqueClients;
+  };
+
   // Función para sincronizar VIPs en la lista de clientes
   const syncVipsInClients = (existingClients) => {
     const updatedClients = [...existingClients];
@@ -76,7 +109,8 @@ export function AuthProvider({ children }) {
       }
     });
     
-    return updatedClients;
+    // Eliminar duplicados antes de retornar
+    return removeDuplicateClients(updatedClients);
   };
 
   // Función para sincronizar un cliente con el backend y obtener su backendId
