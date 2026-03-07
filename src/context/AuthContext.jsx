@@ -41,7 +41,8 @@ const INITIAL_CLIENTS = [
     email: 'yudyagurto1983@gmail.com', 
     name: 'Yudy Agurto',
     password: 'Melissa1983',
-    isRegistered: true 
+    isRegistered: true,
+    backendId: '69ab44840529792adcf6a723'
   },
 ];
 
