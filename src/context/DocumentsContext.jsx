@@ -65,31 +65,26 @@ export function DocumentsProvider({ children }) {
   }, []);
 
   // Efecto para sincronizar automáticamente cuando hay un usuario logueado
-  // OPTIMIZACIÓN: Sincronización en segundo plano sin bloquear UI
   useEffect(() => {
     const autoSyncOnLogin = async () => {
       const token = localStorage.getItem('token');
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       
       if (backendAvailable && token && user?.id) {
-        console.log('Iniciando sincronización en segundo plano para usuario:', user.id);
-        // No bloqueamos con setIsSyncing(true) para que la UI sea inmediata
+        console.log('Sincronizando documentos automáticamente para usuario:', user.id);
+        setIsSyncing(true);
         try {
-          // Sincronizar en segundo plano (no bloquea)
-          syncFromBackend(user.id).then(() => {
-            console.log('Sincronización en segundo plano completada');
-          }).catch((error) => {
-            console.error('Error en sincronización automática:', error);
-          });
+          await syncFromBackend(user.id);
+          console.log('Sincronización automática completada');
         } catch (error) {
-          console.error('Error iniciando sincronización:', error);
+          console.error('Error en sincronización automática:', error);
+        } finally {
+          setIsSyncing(false);
         }
       }
     };
     
-    // Ejecutar después de un pequeño delay para no bloquear la carga inicial
-    const timer = setTimeout(autoSyncOnLogin, 500);
-    return () => clearTimeout(timer);
+    autoSyncOnLogin();
   }, [backendAvailable]);
 
   useEffect(() => {
@@ -264,19 +259,14 @@ export function DocumentsProvider({ children }) {
     setSyncError(null);
     
     try {
-      // OPTIMIZACIÓN: Sincronizar todos los meses EN PARALELO (más rápido)
-      const syncPromises = MESES.map(async (month) => {
+      // Sincronizar todos los meses
+      for (const month of MESES) {
         try {
           await syncService.syncDocumentFromBackend(clientId, month);
-          return { month, success: true };
         } catch (error) {
           console.log(`No hay documento para ${month} en el backend`);
-          return { month, success: false };
         }
-      });
-      
-      // Esperar que todas las sincronizaciones terminen en paralelo
-      await Promise.all(syncPromises);
+      }
       
       // Recargar desde localStorage
       const savedDocs = localStorage.getItem('clientDocuments');
