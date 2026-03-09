@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDocuments } from '../context/DocumentsContext';
 import ClientDocumentsManager from './ClientDocumentsManager';
 import WhitelistManager from './WhitelistManager';
+import OfficialTemplateManager from './OfficialTemplateManager';
 
 import './AdminPanel.css';
 
@@ -12,7 +13,7 @@ export default function AdminPanel() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [showPasswords, setShowPasswords] = useState({});
   const [message, setMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('clients'); // 'clients' o 'whitelist'
+  const [activeTab, setActiveTab] = useState('clients'); // 'clients', 'whitelist' o 'template'
 
   const togglePasswordVisibility = (clientId) => {
     setShowPasswords(prev => ({
@@ -82,11 +83,19 @@ export default function AdminPanel() {
         >
           Lista Blanca
         </button>
+        <button 
+          className={`tab-button ${activeTab === 'template' ? 'active' : ''}`}
+          onClick={() => setActiveTab('template')}
+        >
+          Documento Oficial
+        </button>
       </div>
 
       {/* Contenido según tab seleccionado */}
       {activeTab === 'whitelist' ? (
         <WhitelistManager />
+      ) : activeTab === 'template' ? (
+        <OfficialTemplateManager />
       ) : (
         <>
           {/* Lista de Clientes */}
@@ -218,10 +227,10 @@ export default function AdminPanel() {
             <div className="workflow-info" style={{marginTop: '20px', padding: '16px', background: '#eff6ff', borderRadius: '6px', border: '1px solid #dbeafe'}}>
               <h4 style={{fontSize: '13px', fontWeight: '600', color: '#1e40af', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.025em'}}>Flujo de trabajo:</h4>
               <ol style={{margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#374151', lineHeight: '1.8'}}>
-                <li><strong>Paso 1:</strong> Agregue el email del nuevo cliente a la <strong>Lista Blanca</strong></li>
-                <li><strong>Paso 2:</strong> El cliente se registra por sí mismo eligiendo su propia contraseña</li>
-                <li><strong>Paso 3:</strong> Usted puede ver la contraseña que el cliente eligió en esta tabla</li>
-                <li><strong>Paso 4:</strong> Asigne documentos al cliente según sea necesario</li>
+                <li><strong>Paso 1:</strong> Configure el <strong>Documento Oficial</strong> en la pestaña correspondiente</li>
+                <li><strong>Paso 2:</strong> Agregue el email del nuevo cliente a la <strong>Lista Blanca</strong></li>
+                <li><strong>Paso 3:</strong> El cliente se registra y recibe automáticamente el documento oficial</li>
+                <li><strong>Paso 4:</strong> El cliente puede comenzar a ingresar sus datos inmediatamente</li>
               </ol>
             </div>
           </div>

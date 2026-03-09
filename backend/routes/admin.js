@@ -1,10 +1,19 @@
 const express = require('express');
+const multer = require('multer');
+const XLSX = require('xlsx');
 const User = require('../models/User');
 const Document = require('../models/Document');
 const Client = require('../models/Client');
+const DocumentTemplate = require('../models/DocumentTemplate');
 const { protect, adminOnly } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Meses del año
+const MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
 
 // @route   GET /api/admin/clients
 // @desc    Obtener todos los clientes
@@ -442,6 +451,475 @@ router.post('/create-admin', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error creando administrador'
+    });
+  }
+});
+
+// ============================================
+// ENDPOINTS PARA GESTIÓN DE PLANTILLAS
+// ============================================
+
+// @route   GET /api/admin/templates
+// @desc    Obtener todas las plantillas
+// @access  Admin Only
+router.get('/templates', protect, adminOnly, async (req, res) => {
+  try {
+    const templates = await DocumentTemplate.find({ isActive: true })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: templates.length,
+      templates: templates.map(t => ({
+        id: t._id,
+        name: t.name,
+        description: t.description,
+        isOfficial: t.isOfficial,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt
+      }))
+    });
+  } catch (error) {
+    console.error('Error obteniendo plantillas:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo plantillas'
+    });
+  }
+});
+
+// @route   GET /api/admin/templates/official
+// @desc    Obtener la plantilla oficial
+// @access  Admin Only
+router.get('/templates/official', protect, adminOnly, async (req, res) => {
+  try {
+    const template = await DocumentTemplate.getOfficialTemplate();
+
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'No hay plantilla oficial configurada'
+      });
+    }
+
+    res.json({
+      success: true,
+      template: {
+        id: template._id,
+        name: template.name,
+        description: template.description,
+        headers: template.headers,
+        data: template.data,
+        completedData: template.completedData,
+        isOfficial: template.isOfficial,
+        createdAt: template.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error obteniendo plantilla oficial:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo plantilla oficial'
+    });
+  }
+});
+
+// @route   POST /api/admin/templates
+// @desc    Crear nueva plantilla
+// @access  Admin Only
+router.post('/templates', protect, adminOnly, async (req, res) => {
+  try {
+    const { name, description, headers, data, completedData, isOfficial } = req.body;
+
+    if (!name || !headers || !data) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nombre, headers y datos son obligatorios'
+      });
+    }
+
+    const template = await DocumentTemplate.create({
+      name,
+      description: description || '',
+      headers,
+      data,
+      completedData: completedData || [],
+      isOfficial: isOfficial || false,
+      createdBy: req.user._id
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Plantilla creada correctamente',
+      template: {
+        id: template._id,
+        name: template.name,
+        description: template.description,
+        isOfficial: template.isOfficial,
+        createdAt: template.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error creando plantilla:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error creando plantilla'
+    });
+  }
+});
+
+// @route   PUT /api/admin/templates/:id
+// @desc    Actualizar plantilla
+// @access  Admin Only
+router.put('/templates/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, headers, data, completedData } = req.body;
+
+    const template = await DocumentTemplate.findById(id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'Plantilla no encontrada'
+      });
+    }
+
+    // Actualizar campos
+    if (name) template.name = name;
+    if (description !== undefined) template.description = description;
+    if (headers) template.headers = headers;
+    if (data) template.data = data;
+    if (completedData) template.completedData = completedData;
+
+    await template.save();
+
+    res.json({
+      success: true,
+      message: 'Plantilla actualizada correctamente',
+      template: {
+        id: template._id,
+        name: template.name,
+        description: template.description,
+        isOfficial: template.isOfficial,
+        updatedAt: template.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error actualizando plantilla:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error actualizando plantilla'
+    });
+  }
+});
+
+// @route   PUT /api/admin/templates/:id/official
+// @desc    Establecer plantilla como oficial
+// @access  Admin Only
+router.put('/templates/:id/official', protect, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const template = await DocumentTemplate.findById(id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'Plantilla no encontrada'
+      });
+    }
+
+    // Marcar como oficial (el middleware pre-save desactivará las demás)
+    template.isOfficial = true;
+    await template.save();
+
+    res.json({
+      success: true,
+      message: 'Plantilla establecida como oficial',
+      template: {
+        id: template._id,
+        name: template.name,
+        isOfficial: template.isOfficial
+      }
+    });
+  } catch (error) {
+    console.error('Error estableciendo plantilla oficial:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error estableciendo plantilla oficial'
+    });
+  }
+});
+
+// @route   DELETE /api/admin/templates/:id
+// @desc    Eliminar plantilla (desactivar)
+// @access  Admin Only
+router.delete('/templates/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const template = await DocumentTemplate.findById(id);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'Plantilla no encontrada'
+      });
+    }
+
+    // Desactivar en lugar de eliminar físicamente
+    template.isActive = false;
+    if (template.isOfficial) {
+      template.isOfficial = false;
+    }
+    await template.save();
+
+    res.json({
+      success: true,
+      message: 'Plantilla eliminada correctamente'
+    });
+  } catch (error) {
+    console.error('Error eliminando plantilla:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error eliminando plantilla'
+    });
+  }
+});
+
+// @route   POST /api/admin/apply-template/:clientId
+// @desc    Aplicar plantilla oficial a un cliente específico
+// @access  Admin Only
+router.post('/apply-template/:clientId', protect, adminOnly, async (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const { year } = req.body;
+
+    // Verificar que el cliente existe
+    const client = await User.findById(clientId);
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cliente no encontrado'
+      });
+    }
+
+    // Obtener plantilla oficial
+    const template = await DocumentTemplate.getOfficialTemplate();
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'No hay plantilla oficial configurada'
+      });
+    }
+
+    const targetYear = year || 2026;
+
+    // Eliminar documentos existentes del cliente para ese año
+    await Document.deleteMany({ clientId, year: targetYear });
+
+    // Crear nuevos documentos desde la plantilla
+    const documentsToCreate = MONTHS.map(month => ({
+      clientId,
+      month,
+      year: targetYear,
+      headers: template.headers,
+      data: template.data,
+      completedData: template.completedData || [],
+      originalFile: template.originalFile
+    }));
+
+    await Document.insertMany(documentsToCreate);
+
+    res.json({
+      success: true,
+      message: `Plantilla oficial aplicada correctamente a ${client.name} para el año ${targetYear}`,
+      documentsCreated: MONTHS.length
+    });
+  } catch (error) {
+    console.error('Error aplicando plantilla:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error aplicando plantilla al cliente'
+    });
+  }
+});
+
+// Configuración de multer para archivos Excel
+const excelStorage = multer.memoryStorage();
+const uploadExcel = multer({
+  storage: excelStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB límite
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'application/octet-stream'
+    ];
+    const allowedExtensions = ['.xlsx', '.xls'];
+    const fileExtension = file.originalname.toLowerCase();
+    
+    const hasValidExtension = allowedExtensions.some(ext => fileExtension.endsWith(ext));
+    
+    if (allowedTypes.includes(file.mimetype) || hasValidExtension) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de archivo no permitido. Solo archivos Excel (.xlsx, .xls)'), false);
+    }
+  }
+});
+
+// @route   POST /api/admin/templates/upload
+// @desc    Subir archivo Excel como plantilla oficial
+// @access  Admin Only
+router.post('/templates/upload', protect, adminOnly, uploadExcel.single('templateFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se recibió ningún archivo'
+      });
+    }
+
+    console.log('📄 Archivo recibido:', req.file.originalname);
+
+    // Leer el archivo Excel
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    
+    // Obtener la primera hoja
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    console.log('📊 Procesando hoja:', firstSheetName);
+
+    // Convertir a array de arrays (incluye headers)
+    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+    if (!rawData || rawData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'El archivo Excel está vacío'
+      });
+    }
+
+    // Extraer headers (primera fila)
+    const headers = rawData[0] || [];
+    
+    if (headers.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se encontraron headers en el archivo Excel'
+      });
+    }
+
+    // Limpiar headers (quitar espacios en blanco)
+    const cleanHeaders = headers.map(h => String(h || '').trim());
+
+    // Crear estructura de datos vacía manteniendo el formato
+    // 50 filas vacías por defecto
+    const numCols = cleanHeaders.length;
+    const emptyData = Array(50).fill(null).map(() => Array(numCols).fill(''));
+
+    // Convertir archivo a Base64 para almacenar
+    const fileBase64 = req.file.buffer.toString('base64');
+
+    // Crear nombre de plantilla basado en el archivo
+    const templateName = req.body.name || `Plantilla: ${req.file.originalname.replace(/\.[^/.]+$/, '')}`;
+    const templateDescription = req.body.description || `Subida desde archivo: ${req.file.originalname}`;
+
+    console.log('💾 Creando plantilla:', templateName);
+    console.log('📋 Headers encontrados:', cleanHeaders.length);
+
+    // Crear la plantilla
+    const template = await DocumentTemplate.create({
+      name: templateName,
+      description: templateDescription,
+      headers: cleanHeaders,
+      data: emptyData,
+      completedData: [],
+      originalFile: fileBase64,
+      isOfficial: true, // Automáticamente oficial
+      createdBy: req.user._id
+    });
+
+    console.log('✅ Plantilla creada exitosamente:', template.name);
+
+    res.status(201).json({
+      success: true,
+      message: 'Archivo Excel subido y establecido como plantilla oficial',
+      template: {
+        id: template._id,
+        name: template.name,
+        description: template.description,
+        headers: template.headers,
+        isOfficial: template.isOfficial,
+        createdAt: template.createdAt,
+        fileName: req.file.originalname,
+        fileSize: req.file.size
+      }
+    });
+
+  } catch (error) {
+    console.error('Error subiendo archivo Excel:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Error procesando el archivo Excel'
+    });
+  }
+});
+
+// @route   POST /api/admin/apply-template-all
+// @desc    Aplicar plantilla oficial a TODOS los clientes existentes
+// @access  Admin Only
+router.post('/apply-template-all', protect, adminOnly, async (req, res) => {
+  try {
+    const { year } = req.body;
+
+    // Obtener plantilla oficial
+    const template = await DocumentTemplate.getOfficialTemplate();
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'No hay plantilla oficial configurada'
+      });
+    }
+
+    const targetYear = year || 2026;
+
+    // Obtener todos los clientes
+    const clients = await User.find({ role: 'client' });
+    let totalDocumentsCreated = 0;
+
+    // Aplicar plantilla a cada cliente
+    for (const client of clients) {
+      // Eliminar documentos existentes del cliente para ese año
+      await Document.deleteMany({ clientId: client._id, year: targetYear });
+
+      // Crear nuevos documentos desde la plantilla
+      const documentsToCreate = MONTHS.map(month => ({
+        clientId: client._id,
+        month,
+        year: targetYear,
+        headers: template.headers,
+        data: template.data,
+        completedData: template.completedData || [],
+        originalFile: template.originalFile
+      }));
+
+      await Document.insertMany(documentsToCreate);
+      totalDocumentsCreated += MONTHS.length;
+    }
+
+    res.json({
+      success: true,
+      message: `Plantilla oficial aplicada a ${clients.length} clientes`,
+      clientsUpdated: clients.length,
+      documentsCreated: totalDocumentsCreated,
+      year: targetYear
+    });
+  } catch (error) {
+    console.error('Error aplicando plantilla a todos los clientes:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error aplicando plantilla a todos los clientes'
     });
   }
 });

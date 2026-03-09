@@ -2,9 +2,51 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Client = require('../models/Client');
+const Document = require('../models/Document');
+const DocumentTemplate = require('../models/DocumentTemplate');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
+
+// Meses del año para crear documentos
+const MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+// Función para crear documentos desde plantilla oficial
+const createDocumentsFromTemplate = async (clientId) => {
+  try {
+    // Buscar plantilla oficial
+    const template = await DocumentTemplate.getOfficialTemplate();
+    
+    if (!template) {
+      console.log('No hay plantilla oficial configurada. Los documentos se crearán vacíos bajo demanda.');
+      return false;
+    }
+    
+    console.log(`Creando documentos para cliente ${clientId} desde plantilla oficial: ${template.name}`);
+    
+    // Crear documentos para todos los meses
+    const documentsToCreate = MONTHS.map(month => ({
+      clientId,
+      month,
+      year: 2026,
+      headers: template.headers,
+      data: template.data,
+      completedData: template.completedData || [],
+      originalFile: template.originalFile
+    }));
+    
+    await Document.insertMany(documentsToCreate);
+    console.log(`✅ ${MONTHS.length} documentos creados exitosamente desde plantilla oficial`);
+    return true;
+    
+  } catch (error) {
+    console.error('Error creando documentos desde plantilla:', error);
+    return false;
+  }
+};
 
 // Generar JWT
 const generateToken = (id) => {
@@ -80,6 +122,9 @@ router.post('/register', async (req, res) => {
     await Client.create({
       userId: user._id
     });
+
+    // Crear documentos desde plantilla oficial (si existe)
+    await createDocumentsFromTemplate(user._id);
 
     // Generar token
     const token = generateToken(user._id);

@@ -87,7 +87,7 @@ app.use('/api/backup', backupRoutes);
 
 // Configuración de multer para recibir archivos
 const storage = multer.memoryStorage();
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB límite
   fileFilter: (req, file, cb) => {
@@ -99,6 +99,32 @@ const upload = multer({
     }
   }
 });
+
+// Configuración de multer para archivos Excel
+const excelStorage = multer.memoryStorage();
+const uploadExcel = multer({
+  storage: excelStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB límite para Excel
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel', // .xls
+      'application/octet-stream' // Algunos navegadores envían Excel con este MIME type
+    ];
+    // También verificar por extensión de archivo
+    const allowedExtensions = ['.xlsx', '.xls'];
+    const fileExtension = path.extname(file.originalname).toLowerCase();
+
+    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de archivo no permitido. Solo archivos Excel (.xlsx, .xls)'), false);
+    }
+  }
+});
+
+// Exportar configuración de multer para usar en rutas
+module.exports = { upload, uploadExcel };
 
 // Configuración de Nodemailer con Gmail SMTP
 const transporter = nodemailer.createTransport({

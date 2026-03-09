@@ -339,6 +339,107 @@ export const adminAPI = {
       throw error.response?.data || { success: false, error: error.message };
     }
   },
+
+  // ==================== PLANTILLAS (TEMPLATES) ====================
+  
+  // Obtener todas las plantillas
+  getTemplates: async () => {
+    try {
+      const response = await api.get('/admin/templates');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Obtener plantilla oficial
+  getOfficialTemplate: async () => {
+    try {
+      const response = await api.get('/admin/templates/official');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Crear nueva plantilla
+  createTemplate: async (templateData) => {
+    try {
+      const response = await api.post('/admin/templates', templateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Actualizar plantilla
+  updateTemplate: async (templateId, templateData) => {
+    try {
+      const response = await api.put(`/admin/templates/${templateId}`, templateData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Establecer plantilla como oficial
+  setTemplateAsOfficial: async (templateId) => {
+    try {
+      const response = await api.put(`/admin/templates/${templateId}/official`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Eliminar plantilla
+  deleteTemplate: async (templateId) => {
+    try {
+      const response = await api.delete(`/admin/templates/${templateId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Aplicar plantilla oficial a un cliente específico
+  applyTemplateToClient: async (clientId, year = 2026) => {
+    try {
+      const response = await api.post(`/admin/apply-template/${clientId}`, { year });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Aplicar plantilla oficial a TODOS los clientes
+  applyTemplateToAllClients: async (year = 2026) => {
+    try {
+      const response = await api.post('/admin/apply-template-all', { year });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Subir archivo Excel como plantilla oficial
+  uploadTemplateFile: async (file, name = '', description = '') => {
+    try {
+      const formData = new FormData();
+      formData.append('templateFile', file);
+      if (name) formData.append('name', name);
+      if (description) formData.append('description', description);
+
+      const response = await api.post('/admin/templates/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
 };
 
 export default api;
