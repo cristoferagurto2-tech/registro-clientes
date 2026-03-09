@@ -4,6 +4,57 @@ const { protect, ownerOrAdmin, checkSubscription } = require('../middleware/auth
 
 const router = express.Router();
 
+// Función para parsear números en formato español/latinoamericano
+// Maneja: 1.234,56 (mil doscientos) o 1,234.56 o 1234,56 o 1234.56
+function parseNumberES(value) {
+  if (!value) return 0;
+  
+  const str = value.toString().trim();
+  
+  // Si tiene ambos separadores (coma y punto)
+  if (str.includes(',') && str.includes('.')) {
+    // Determinar cuál es el separador decimal (el último)
+    const lastComma = str.lastIndexOf(',');
+    const lastDot = str.lastIndexOf('.');
+    
+    if (lastComma > lastDot) {
+      // Formato: 1.234,56 (coma es decimal)
+      return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+    } else {
+      // Formato: 1,234.56 (punto es decimal)
+      return parseFloat(str.replace(/,/g, '')) || 0;
+    }
+  }
+  
+  // Si solo tiene coma
+  if (str.includes(',')) {
+    const parts = str.split(',');
+    if (parts.length === 2 && parts[1].length <= 2) {
+      // Probablemente es decimal: 1234,56
+      return parseFloat(str.replace(',', '.')) || 0;
+    } else {
+      // Probablemente es separador de miles: 1,234
+      return parseFloat(str.replace(/,/g, '')) || 0;
+    }
+  }
+  
+  // Si solo tiene punto
+  if (str.includes('.')) {
+    const parts = str.split('.');
+    if (parts.length === 2 && parts[1].length <= 2) {
+      // Probablemente es decimal: 1234.56
+      return parseFloat(str) || 0;
+    } else {
+      // Probablemente es separador de miles: 1.234 o 5.000
+      // En formato español, el punto es separador de miles
+      return parseFloat(str.replace(/\./g, '')) || 0;
+    }
+  }
+  
+  // Sin separadores
+  return parseFloat(str) || 0;
+}
+
 // Productos disponibles
 const productosList = [
   'Préstamo personal',
@@ -52,19 +103,16 @@ router.get('/summary', protect, checkSubscription, async (req, res) => {
           totalClientes++;
 
           // Monto (columna 6)
-          const montoStr = row[6] ? row[6].toString().replace(/[^0-9.-]/g, '') : '0';
-          const monto = parseFloat(montoStr) || 0;
+          const monto = parseNumberES(row[6]);
           montoTotal += monto;
           sumaMontos += monto;
 
           // Tasa (columna 7)
-          const tasaStr = row[7] ? row[7].toString().replace(/[^0-9.-]/g, '') : '0';
-          const tasa = parseFloat(tasaStr) || 0;
+          const tasa = parseNumberES(row[7]);
           sumaPonderadaTasas += tasa * monto;
 
           // Ganancias (columna 10)
-          const gananciaStr = row[10] ? row[10].toString().replace(/[^0-9.-]/g, '') : '0';
-          const ganancia = parseFloat(gananciaStr) || 0;
+          const ganancia = parseNumberES(row[10]);
           totalGanancias += ganancia;
 
           processedRows.push({
@@ -138,11 +186,8 @@ router.get('/by-months', protect, checkSubscription, async (req, res) => {
           if (row[2] && row[2].toString().trim() !== '') {
             porMeses[mesIndex].clientes++;
 
-            const montoStr = row[6] ? row[6].toString().replace(/[^0-9.-]/g, '') : '0';
-            porMeses[mesIndex].monto += parseFloat(montoStr) || 0;
-
-            const gananciaStr = row[10] ? row[10].toString().replace(/[^0-9.-]/g, '') : '0';
-            porMeses[mesIndex].ganancias += parseFloat(gananciaStr) || 0;
+            porMeses[mesIndex].monto += parseNumberES(row[6]);
+            porMeses[mesIndex].ganancias += parseNumberES(row[10]);
           }
         });
       }
@@ -259,11 +304,8 @@ router.get('/by-days/:month', protect, checkSubscription, async (req, res) => {
 
       resumenPorDia[dia].clientes++;
 
-      const montoStr = row[6] ? row[6].toString().replace(/[^0-9.-]/g, '') : '0';
-      resumenPorDia[dia].monto += parseFloat(montoStr) || 0;
-
-      const gananciaStr = row[10] ? row[10].toString().replace(/[^0-9.-]/g, '') : '0';
-      resumenPorDia[dia].ganancias += parseFloat(gananciaStr) || 0;
+      resumenPorDia[dia].monto += parseNumberES(row[6]);
+      resumenPorDia[dia].ganancias += parseNumberES(row[10]);
     });
 
     // Convertir a array y ordenar por día
@@ -335,17 +377,14 @@ router.get('/full', protect, checkSubscription, async (req, res) => {
           // Totales generales
           totalClientes++;
 
-          const montoStr = row[6] ? row[6].toString().replace(/[^0-9.-]/g, '') : '0';
-          const monto = parseFloat(montoStr) || 0;
+          const monto = parseNumberES(row[6]);
           montoTotal += monto;
           sumaMontos += monto;
 
-          const tasaStr = row[7] ? row[7].toString().replace(/[^0-9.-]/g, '') : '0';
-          const tasa = parseFloat(tasaStr) || 0;
+          const tasa = parseNumberES(row[7]);
           sumaPonderadaTasas += tasa * monto;
 
-          const gananciaStr = row[10] ? row[10].toString().replace(/[^0-9.-]/g, '') : '0';
-          const ganancia = parseFloat(gananciaStr) || 0;
+          const ganancia = parseNumberES(row[10]);
           totalGanancias += ganancia;
 
           // Por meses
