@@ -4,55 +4,95 @@ const { protect, ownerOrAdmin, checkSubscription } = require('../middleware/auth
 
 const router = express.Router();
 
-// Función para parsear números en formato español/latinoamericano
-// Maneja: 1.234,56 (mil doscientos) o 1,234.56 o 1234,56 o 1234.56
+// Función para parsear números en formato peruano/español
+// Formato estándar: punto (.) = separador de miles, coma (,) = decimal
+// Ejemplos: 5.000 = 5000, 99,65 = 99.65, 1.234,56 = 1234.56
 function parseNumberES(value) {
-  if (!value) return 0;
+  if (!value || value === '' || value === '0' || value === '0,0' || value === '0.0') return 0;
   
-  const str = value.toString().trim();
+  let str = value.toString().trim();
+  
+  // Limpiar símbolo de moneda si existe
+  str = str.replace(/^S\/\s*/i, '');
+  str = str.replace(/^S\//, '');
   
   // Si tiene ambos separadores (coma y punto)
   if (str.includes(',') && str.includes('.')) {
-    // Determinar cuál es el separador decimal (el último)
     const lastComma = str.lastIndexOf(',');
     const lastDot = str.lastIndexOf('.');
     
     if (lastComma > lastDot) {
-      // Formato: 1.234,56 (coma es decimal)
-      return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+      // Formato: 1.234,56 (coma es decimal, punto es miles)
+      // Eliminar puntos, cambiar coma por punto
+      const cleaned = str.replace(/\./g, '').replace(',', '.');
+      const result = parseFloat(cleaned);
+      return isNaN(result) ? 0 : result;
     } else {
-      // Formato: 1,234.56 (punto es decimal)
-      return parseFloat(str.replace(/,/g, '')) || 0;
+      // Formato: 1,234.56 (punto es decimal, coma es miles)
+      // Eliminar comas
+      const cleaned = str.replace(/,/g, '');
+      const result = parseFloat(cleaned);
+      return isNaN(result) ? 0 : result;
     }
   }
   
   // Si solo tiene coma
   if (str.includes(',')) {
     const parts = str.split(',');
-    if (parts.length === 2 && parts[1].length <= 2) {
-      // Probablemente es decimal: 1234,56
-      return parseFloat(str.replace(',', '.')) || 0;
+    if (parts.length === 2) {
+      const afterComma = parts[1];
+      // Si tiene 1-2 dígitos después de la coma → es decimal (99,65 = 99.65)
+      // Si tiene 3 dígitos → podría ser miles, pero en formato español eso es raro
+      // Asumimos que coma siempre es decimal en formato español puro
+      const cleaned = str.replace(',', '.');
+      const result = parseFloat(cleaned);
+      return isNaN(result) ? 0 : result;
     } else {
-      // Probablemente es separador de miles: 1,234
-      return parseFloat(str.replace(/,/g, '')) || 0;
+      // Múltiples comas (error), eliminar todas
+      const cleaned = str.replace(/,/g, '');
+      const result = parseFloat(cleaned);
+      return isNaN(result) ? 0 : result;
     }
   }
   
   // Si solo tiene punto
   if (str.includes('.')) {
     const parts = str.split('.');
-    if (parts.length === 2 && parts[1].length <= 2) {
-      // Probablemente es decimal: 1234.56
-      return parseFloat(str) || 0;
-    } else {
-      // Probablemente es separador de miles: 1.234 o 5.000
-      // En formato español, el punto es separador de miles
-      return parseFloat(str.replace(/\./g, '')) || 0;
+    
+    // Si tiene múltiples puntos → todos son separadores de miles (5.000.000)
+    if (parts.length > 2) {
+      const cleaned = str.replace(/\./g, '');
+      const result = parseFloat(cleaned);
+      return isNaN(result) ? 0 : result;
+    }
+    
+    // Si tiene solo un punto
+    if (parts.length === 2) {
+      const afterDot = parts[1];
+      
+      // Si tiene exactamente 3 dígitos después del punto → es separador de miles (5.000 = 5000)
+      if (afterDot.length === 3) {
+        const cleaned = str.replace(/\./g, '');
+        const result = parseFloat(cleaned);
+        return isNaN(result) ? 0 : result;
+      }
+      
+      // Si tiene 1-2 dígitos después del punto → es decimal (5.50 = 5.5)
+      if (afterDot.length <= 2) {
+        const result = parseFloat(str);
+        return isNaN(result) ? 0 : result;
+      }
+      
+      // Más de 3 dígitos → asumir miles (aunque es raro)
+      const cleaned = str.replace(/\./g, '');
+      const result = parseFloat(cleaned);
+      return isNaN(result) ? 0 : result;
     }
   }
   
-  // Sin separadores
-  return parseFloat(str) || 0;
+  // Sin separadores (número entero simple)
+  const result = parseFloat(str);
+  return isNaN(result) ? 0 : result;
 }
 
 // Productos disponibles
