@@ -5,13 +5,17 @@ const { protect, ownerOrAdmin, checkSubscription } = require('../middleware/auth
 const router = express.Router();
 
 // Función para formatear números al formato peruano
-// Convierte 5000 → "5.000,00" (separador de miles con punto, decimal con coma)
+// Convierte 5000 → "5.000" (sin decimales si son .00)
+// Convierte 1234.56 → "1.234,56" (con decimales si existen)
 function formatNumberES(value) {
-  if (value === null || value === undefined || isNaN(value)) return '0,00';
+  if (value === null || value === undefined || isNaN(value)) return '0';
   
-  // Convertir a número y fijar 2 decimales
+  // Convertir a número
   const num = parseFloat(value);
-  if (isNaN(num)) return '0,00';
+  if (isNaN(num)) return '0';
+  
+  // Verificar si tiene decimales significativos
+  const hasDecimals = num % 1 !== 0;
   
   // Separar parte entera y decimal
   const parts = num.toFixed(2).split('.');
@@ -21,8 +25,15 @@ function formatNumberES(value) {
   // Agregar separador de miles (punto cada 3 dígitos)
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   
-  // Combinar con coma para decimales
-  return `${formattedInteger},${decimalPart}`;
+  // Solo mostrar decimales si existen y no son .00
+  if (hasDecimals && decimalPart !== '00') {
+    // Eliminar ceros al final si los hay (ej: 50 → 5, 5.500,50 → 5.500,5)
+    const cleanDecimal = decimalPart.replace(/0+$/, '');
+    return `${formattedInteger},${cleanDecimal}`;
+  }
+  
+  // Sin decimales
+  return formattedInteger;
 }
 
 // Función para parsear números en formato peruano/español
