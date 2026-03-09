@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useDocuments } from '../context/DocumentsContext';
-import ClientDocumentsManager from './ClientDocumentsManager';
 import WhitelistManager from './WhitelistManager';
 import OfficialTemplateManager from './OfficialTemplateManager';
 
@@ -9,8 +7,6 @@ import './AdminPanel.css';
 
 export default function AdminPanel() {
   const { clients, removeClient, updateClientPassword, subscribeClient, getTrialStatus } = useAuth();
-  const { clientHasAnyDocument } = useDocuments();
-  const [selectedClient, setSelectedClient] = useState(null);
   const [showPasswords, setShowPasswords] = useState({});
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('clients'); // 'clients', 'whitelist' o 'template'
@@ -25,9 +21,6 @@ export default function AdminPanel() {
   const handleRemoveClient = (clientId, clientEmail) => {
     if (window.confirm(`¿Eliminar al cliente ${clientEmail}?\n\nEsta acción también eliminará todos sus documentos.`)) {
       removeClient(clientId);
-      if (selectedClient?.id === clientId) {
-        setSelectedClient(null);
-      }
       setMessage('Cliente eliminado');
     }
   };
@@ -45,16 +38,6 @@ export default function AdminPanel() {
       setMessage(`Contraseña actualizada para ${client.name}`);
     }
   };
-
-  // Si hay un cliente seleccionado, mostrar su gestor de documentos
-  if (selectedClient) {
-    return (
-      <ClientDocumentsManager 
-        client={selectedClient} 
-        onBack={() => setSelectedClient(null)}
-      />
-    );
-  }
 
   return (
     <div className="admin-panel">
@@ -112,19 +95,17 @@ export default function AdminPanel() {
             ) : (
               <div className="clients-table-container">
                 <table className="clients-table">
-                  <thead>
+                   <thead>
                     <tr>
                       <th>Cliente</th>
                       <th>Email</th>
                       <th>Contraseña</th>
-                      <th>Documentos</th>
                       <th>Suscripción</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {clients.map((client) => {
-                      const hasDocs = clientHasAnyDocument(client.id);
                       const showPass = showPasswords[client.id];
                       const trialStatus = getTrialStatus(client.email);
                       const isSubscribed = trialStatus?.isSubscribed;
@@ -156,13 +137,6 @@ export default function AdminPanel() {
                               </button>
                             </div>
                           </td>
-                          <td className="docs-cell">
-                            {hasDocs ? (
-                              <span className="badge-docs yes">Si</span>
-                            ) : (
-                              <span className="badge-docs no">No</span>
-                            )}
-                          </td>
                           <td className="subscription-cell">
                             {isSubscribed ? (
                               <span className="badge-subscription active">Activa</span>
@@ -173,13 +147,6 @@ export default function AdminPanel() {
                             )}
                           </td>
                           <td className="actions-cell">
-                            <button 
-                              className="btn-action manage"
-                              onClick={() => setSelectedClient(client)}
-                              title="Gestionar documentos"
-                            >
-                              Documentos
-                            </button>
                             <button 
                               className="btn-action password"
                               onClick={() => handleResetPassword(client)}
