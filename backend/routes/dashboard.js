@@ -4,6 +4,27 @@ const { protect, ownerOrAdmin, checkSubscription } = require('../middleware/auth
 
 const router = express.Router();
 
+// Función para formatear números al formato peruano
+// Convierte 5000 → "5.000,00" (separador de miles con punto, decimal con coma)
+function formatNumberES(value) {
+  if (value === null || value === undefined || isNaN(value)) return '0,00';
+  
+  // Convertir a número y fijar 2 decimales
+  const num = parseFloat(value);
+  if (isNaN(num)) return '0,00';
+  
+  // Separar parte entera y decimal
+  const parts = num.toFixed(2).split('.');
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+  
+  // Agregar separador de miles (punto cada 3 dígitos)
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  
+  // Combinar con coma para decimales
+  return `${formattedInteger},${decimalPart}`;
+}
+
 // Función para parsear números en formato peruano/español
 // Formato estándar: punto (.) = separador de miles, coma (,) = decimal
 // Ejemplos: 5.000 = 5000, 99,65 = 99.65, 1.234,56 = 1234.56
@@ -177,9 +198,11 @@ router.get('/summary', protect, checkSubscription, async (req, res) => {
       success: true,
       summary: {
         totalClientes,
-        montoTotal: parseFloat(montoTotal.toFixed(2)),
+        montoTotal: formatNumberES(montoTotal),
+        montoTotalRaw: montoTotal, // Valor numérico para cálculos si es necesario
         promedioTasa: parseFloat(promedioTasa.toFixed(2)),
-        totalGanancias: parseFloat(totalGanancias.toFixed(2)),
+        totalGanancias: formatNumberES(totalGanancias),
+        totalGananciasRaw: totalGanancias,
         totalDocuments: documents.length
       },
       trialWarning: req.trialWarning || null
@@ -233,15 +256,16 @@ router.get('/by-months', protect, checkSubscription, async (req, res) => {
       }
     });
 
-    // Redondear valores
-    porMeses.forEach(mes => {
-      mes.monto = parseFloat(mes.monto.toFixed(2));
-      mes.ganancias = parseFloat(mes.ganancias.toFixed(2));
-    });
+    // Formatear valores al formato peruano
+    const porMesesFormatted = porMeses.map(mes => ({
+      ...mes,
+      monto: formatNumberES(mes.monto),
+      ganancias: formatNumberES(mes.ganancias)
+    }));
 
     res.json({
       success: true,
-      porMeses,
+      porMeses: porMesesFormatted,
       trialWarning: req.trialWarning || null
     });
   } catch (error) {
@@ -353,8 +377,8 @@ router.get('/by-days/:month', protect, checkSubscription, async (req, res) => {
       .sort((a, b) => parseInt(a.dia) - parseInt(b.dia))
       .map(dia => ({
         ...dia,
-        monto: parseFloat(dia.monto.toFixed(2)),
-        ganancias: parseFloat(dia.ganancias.toFixed(2))
+        monto: formatNumberES(dia.monto),
+        ganancias: formatNumberES(dia.ganancias)
       }));
 
     res.json({
@@ -449,21 +473,24 @@ router.get('/full', protect, checkSubscription, async (req, res) => {
     // Calcular promedio ponderado
     const promedioTasa = sumaMontos > 0 ? (sumaPonderadaTasas / sumaMontos) : 0;
 
-    // Redondear valores
-    porMeses.forEach(mes => {
-      mes.monto = parseFloat(mes.monto.toFixed(2));
-      mes.ganancias = parseFloat(mes.ganancias.toFixed(2));
-    });
+    // Formatear valores al formato peruano
+    const porMesesFormatted = porMeses.map(mes => ({
+      ...mes,
+      monto: formatNumberES(mes.monto),
+      ganancias: formatNumberES(mes.ganancias)
+    }));
 
     res.json({
       success: true,
       dashboard: {
         totalClientes,
-        montoTotal: parseFloat(montoTotal.toFixed(2)),
+        montoTotal: formatNumberES(montoTotal),
+        montoTotalRaw: montoTotal,
         promedioTasa: parseFloat(promedioTasa.toFixed(2)),
-        totalGanancias: parseFloat(totalGanancias.toFixed(2)),
+        totalGanancias: formatNumberES(totalGanancias),
+        totalGananciasRaw: totalGanancias,
         totalDocuments: documents.length,
-        porMeses,
+        porMeses: porMesesFormatted,
         porProductos
       },
       trialWarning: req.trialWarning || null
