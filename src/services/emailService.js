@@ -2,7 +2,7 @@
 // SERVICIO DE EMAIL - CONECTA CON BACKEND
 // ============================================
 
-const API_URL = 'https://clientcore-backend.onrender.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://clientcode.onrender.com';
 
 // Función para hacer fetch con timeout
 const fetchWithTimeout = async (url, options, timeout = 60000) => {

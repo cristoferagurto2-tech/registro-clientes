@@ -41,7 +41,7 @@ export function DocumentsProvider({ children }) {
   const [syncError, setSyncError] = useState(null);
   
   // Obtener funciones de AuthContext para sincronización de IDs
-  const { getClientBackendId, syncClientBackendId } = useAuth();
+  const { getClientBackendId, syncClientBackendId, clients } = useAuth();
 
   useEffect(() => {
     const initializeDocuments = async () => {
@@ -153,7 +153,6 @@ export function DocumentsProvider({ children }) {
               // Si el cliente no tiene backendId, intentar sincronizarlo
               if (effectiveClientId === clientId) {
                 console.log(`Cliente ${clientId} no tiene backendId, intentando sincronizar...`);
-                const { clients } = require('./AuthContext').useAuth();
                 const client = clients.find(c => c.id === clientId);
                 if (client) {
                   const syncedClient = await syncClientBackendId(client);
@@ -465,7 +464,6 @@ export function DocumentsProvider({ children }) {
               if (effectiveClientId === clientId) {
                 console.log(`Cliente ${clientId} no tiene backendId, intentando sincronizar...`);
                 // Buscar el cliente en la lista
-                const { clients } = require('./AuthContext').useAuth();
                 const client = clients.find(c => c.id === clientId);
                 if (client) {
                   const syncedClient = await syncClientBackendId(client);

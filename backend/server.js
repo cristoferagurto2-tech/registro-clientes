@@ -123,9 +123,6 @@ const uploadExcel = multer({
   }
 });
 
-// Exportar configuración de multer para usar en rutas
-module.exports = { upload, uploadExcel };
-
 // Configuración de Nodemailer con Gmail SMTP
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -230,16 +227,6 @@ app.post('/api/send-payment', upload.single('comprobante'), async (req, res) => 
   }
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Backend funcionando correctamente',
-    database: mongoose.connection.readyState === 1 ? 'conectada' : 'desconectada',
-    timestamp: new Date().toISOString()
-  });
-});
-
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -263,3 +250,6 @@ app.listen(PORT, () => {
   console.log(`📧 Configurado para enviar emails a: ${process.env.EMAIL_USER || 'No configurado'}`);
   console.log(`🌐 MongoDB URI configurada: ${process.env.MONGODB_URI ? 'Sí' : 'No'}`);
 });
+
+// Exportar configuración de multer para usar en rutas
+module.exports = { upload, uploadExcel };
