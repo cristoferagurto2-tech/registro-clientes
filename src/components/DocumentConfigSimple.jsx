@@ -26,14 +26,50 @@ export default function DocumentConfigSimple() {
   const loadConfig = async () => {
     try {
       setLoading(true);
+      setMessage('');
       const response = await adminAPI.getDocumentConfig();
-      if (response.success) {
+      
+      if (response.success && response.config && Array.isArray(response.config.headers)) {
         setHeaders(response.config.headers);
         setOriginalHeaders(response.config.headers);
+      } else {
+        // Usar valores por defecto si no hay configuración
+        const defaultHeaders = [
+          'Fecha',
+          'Mes',
+          'DNI',
+          'Nombre y Apellidos',
+          'Celular',
+          'Producto',
+          'Monto',
+          'Tasa',
+          'Lugar',
+          'Observación',
+          'Ganancias'
+        ];
+        setHeaders(defaultHeaders);
+        setOriginalHeaders(defaultHeaders);
+        setMessage('Usando configuración por defecto');
       }
     } catch (error) {
       console.error('Error cargando configuración:', error);
-      setMessage('Error cargando configuración');
+      // Usar valores por defecto en caso de error
+      const defaultHeaders = [
+        'Fecha',
+        'Mes',
+        'DNI',
+        'Nombre y Apellidos',
+        'Celular',
+        'Producto',
+        'Monto',
+        'Tasa',
+        'Lugar',
+        'Observación',
+        'Ganancias'
+      ];
+      setHeaders(defaultHeaders);
+      setOriginalHeaders(defaultHeaders);
+      setMessage('Error al cargar. Usando configuración por defecto.');
     } finally {
       setLoading(false);
     }
@@ -113,7 +149,14 @@ export default function DocumentConfigSimple() {
       setSaving(true);
       setMessage('');
       
-      const validHeaders = headers.filter(h => h.trim() !== '');
+      // Verificar que headers sea un array
+      if (!Array.isArray(headers)) {
+        setMessage('Error: No hay columnas para guardar');
+        setTimeout(() => setMessage(''), 3000);
+        return;
+      }
+      
+      const validHeaders = headers.filter(h => h && typeof h === 'string' && h.trim() !== '');
       
       if (validHeaders.length === 0) {
         setMessage('Error: Debe haber al menos una columna válida');
@@ -128,10 +171,13 @@ export default function DocumentConfigSimple() {
         setHeaders(validHeaders);
         setMessage('Configuración guardada correctamente');
         setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Error: ' + (response.error || 'No se pudo guardar'));
+        setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       console.error('Error guardando:', error);
-      setMessage('Error guardando configuración');
+      setMessage('Error guardando configuración: ' + (error.message || 'Error de conexión'));
       setTimeout(() => setMessage(''), 3000);
     } finally {
       setSaving(false);
@@ -224,7 +270,18 @@ export default function DocumentConfigSimple() {
                 {...provided.droppableProps}
               >
                 <div className="headers-table">
-                  {headers.map((header, index) => (
+                  {headers.length === 0 ? (
+                    <div className="no-columns-message">
+                      <p>No hay columnas configuradas</p>
+                      <button 
+                        className="btn-add-first"
+                        onClick={() => handleAddHeader()}
+                      >
+                        + Agregar primera columna
+                      </button>
+                    </div>
+                  ) : (
+                    headers.map((header, index) => (
                     <Draggable 
                       key={`header-${index}`} 
                       draggableId={`header-${index}`} 
@@ -307,6 +364,7 @@ export default function DocumentConfigSimple() {
                     <span className="plus-icon">+</span>
                     <span className="btn-text">Agregar</span>
                   </button>
+                  )}
                 </div>
               </div>
             )}
