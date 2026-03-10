@@ -281,7 +281,8 @@ export default function DocumentConfigSimple() {
                       </button>
                     </div>
                   ) : (
-                    headers.map((header, index) => (
+                    <>
+                    {headers.map((header, index) => (
                     <Draggable 
                       key={`header-${index}`} 
                       draggableId={`header-${index}`} 
@@ -364,8 +365,9 @@ export default function DocumentConfigSimple() {
                     <span className="plus-icon">+</span>
                     <span className="btn-text">Agregar</span>
                   </button>
-                  )}
-                </div>
+                  </>
+                )}
+            </div>
               </div>
             )}
           </Droppable>
