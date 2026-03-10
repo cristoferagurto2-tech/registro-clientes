@@ -488,8 +488,8 @@ export default function DocumentEditor({ month }) {
 
         const resumenData = [
           ['Total de Clientes', totalClientes.toString()],
-          ['Monto Total (S/)', `S/ ${montoTotal.toFixed(2)}`],
-          ['Total Ganancias (S/)', `S/ ${totalGanancias.toFixed(2)}`]
+          ['Monto Total (S/)', `S/ ${formatNumberPeruano(montoTotal)}`],
+          ['Total Ganancias (S/)', `S/ ${formatNumberPeruano(totalGanancias)}`]
         ];
 
         doc.autoTable({
@@ -830,9 +830,9 @@ export default function DocumentEditor({ month }) {
       
       const summaryData = [
         ['Total de Clientes', dashboard?.totalClientes?.toString() || '0'],
-        ['Monto Total (S/)', `S/ ${(dashboard?.montoTotal || 0).toFixed(2)}`],
-        ['Promedio Ponderado (%)', `${(dashboard?.promedioTasa || 0).toFixed(2)}%`],
-        ['Total Ganancias (S/)', `S/ ${(dashboard?.totalGanancias || 0).toFixed(2)}`]
+        ['Monto Total (S/)', `S/ ${formatNumberPeruano(dashboard?.montoTotal || 0)}`],
+        ['Promedio Ponderado (%)', `${formatNumberPeruano(dashboard?.promedioTasa || 0)}%`],
+        ['Total Ganancias (S/)', `S/ ${formatNumberPeruano(dashboard?.totalGanancias || 0)}`]
       ];
       
       doc.autoTable({
@@ -854,8 +854,8 @@ export default function DocumentEditor({ month }) {
       const diasData = calcularResumenPorDias(tableData).map(dia => [
         dia.dia,
         dia.clientes.toString(),
-        `S/ ${dia.monto.toFixed(2)}`,
-        `S/ ${dia.ganancias.toFixed(2)}`
+        `S/ ${formatNumberPeruano(dia.monto)}`,
+        `S/ ${formatNumberPeruano(dia.ganancias)}`
       ]);
       
       if (diasData.length > 0) {
@@ -1413,15 +1413,15 @@ export default function DocumentEditor({ month }) {
                         </div>
                         <div className="preview-stat-item">
                           <span className="preview-stat-label">Monto Total (S/)</span>
-                          <span className="preview-stat-value">S/ {previewData.dashboard.montoTotal?.toFixed(2) || '0.00'}</span>
+                          <span className="preview-stat-value">S/ {formatNumberPeruano(previewData.dashboard.montoTotal) || '0,00'}</span>
                         </div>
                         <div className="preview-stat-item">
                           <span className="preview-stat-label">Promedio Ponderado (%)</span>
-                          <span className="preview-stat-value">{previewData.dashboard.promedioTasa ? previewData.dashboard.promedioTasa.toFixed(2) + '%' : '#¡DIV/0!'}</span>
+                          <span className="preview-stat-value">{previewData.dashboard.promedioTasa ? formatNumberPeruano(previewData.dashboard.promedioTasa) + '%' : '#¡DIV/0!'}</span>
                         </div>
                         <div className="preview-stat-item">
                           <span className="preview-stat-label">Total Ganancias (S/)</span>
-                          <span className="preview-stat-value">S/ {previewData.dashboard.totalGanancias?.toFixed(2) || '0.00'}</span>
+                          <span className="preview-stat-value">S/ {formatNumberPeruano(previewData.dashboard.totalGanancias) || '0,00'}</span>
                         </div>
                       </div>
                     </div>
@@ -1445,8 +1445,8 @@ export default function DocumentEditor({ month }) {
                                 <tr key={idx}>
                                   <td className="col-dia">{dia.dia}</td>
                                   <td className="col-cliente">{dia.clientes}</td>
-                                  <td className="col-numero">S/ {dia.monto.toFixed(2)}</td>
-                                  <td className="col-numero">S/ {dia.ganancias.toFixed(2)}</td>
+                                  <td className="col-numero">S/ {formatNumberPeruano(dia.monto)}</td>
+                                  <td className="col-numero">S/ {formatNumberPeruano(dia.ganancias)}</td>
                                 </tr>
                               ))
                             ) : (

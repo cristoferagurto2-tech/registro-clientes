@@ -52,7 +52,19 @@ export default function Historial() {
   };
 
   const formatCurrency = (value) => {
-    return `S/ ${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+    const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
+    let formattedInteger = '';
+    let count = 0;
+    for (let i = integerPart.length - 1; i >= 0; i--) {
+      if (count === 3) {
+        formattedInteger = '.' + formattedInteger;
+        count = 0;
+      }
+      formattedInteger = integerPart[i] + formattedInteger;
+      count++;
+    }
+    return `S/ ${formattedInteger},${decimalPart}`;
   };
 
   return (

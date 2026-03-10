@@ -39,6 +39,23 @@ export default function PDFViewerModal({ isOpen, onClose, backup }) {
     });
   };
 
+  // Función para formatear números con formato peruano
+  const formatNumberPeruano = (value) => {
+    const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+    const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
+    let formattedInteger = '';
+    let count = 0;
+    for (let i = integerPart.length - 1; i >= 0; i--) {
+      if (count === 3) {
+        formattedInteger = '.' + formattedInteger;
+        count = 0;
+      }
+      formattedInteger = integerPart[i] + formattedInteger;
+      count++;
+    }
+    return `${formattedInteger},${decimalPart}`;
+  };
+
   return (
     <div className="pdf-viewer-modal-overlay" onClick={onClose}>
       <div className="pdf-viewer-modal" onClick={e => e.stopPropagation()}>
@@ -78,7 +95,7 @@ export default function PDFViewerModal({ isOpen, onClose, backup }) {
                 {' • '}
                 {metadata.summary.totalClientes || 0} clientes
                 {' • '}
-                S/ {(metadata.summary.montoTotal || 0).toLocaleString()}
+                S/ {formatNumberPeruano(metadata.summary.montoTotal || 0)}
               </>
             )}
           </div>

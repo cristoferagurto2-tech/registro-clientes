@@ -58,6 +58,32 @@ export default function AvanceAnual() {
     return parseFloat(str) || 0;
   };
 
+  // Función para formatear números con formato peruano: puntos para miles, coma para decimales
+  const formatNumberPeruano = (value) => {
+    if (!value || value === '' || value === 0) return '0,00';
+    
+    const numValue = typeof value === 'number' ? value : parseFloat(value);
+    
+    if (isNaN(numValue)) return '0,00';
+    
+    // Separar parte entera y decimal
+    const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
+    
+    // Formatear la parte entera con puntos cada 3 dígitos
+    let formattedInteger = '';
+    let count = 0;
+    for (let i = integerPart.length - 1; i >= 0; i--) {
+      if (count === 3) {
+        formattedInteger = '.' + formattedInteger;
+        count = 0;
+      }
+      formattedInteger = integerPart[i] + formattedInteger;
+      count++;
+    }
+    
+    return `${formattedInteger},${decimalPart}`;
+  };
+
   const calcularResumen = () => {
     const resumen = MESES.map(mes => {
       const data = getMergedData(user?.id, mes);
@@ -112,11 +138,11 @@ export default function AvanceAnual() {
         </div>
         <div className="resumen-card">
           <span className="resumen-label">Monto Total Anual</span>
-          <span className="resumen-value">S/ {totalMontoAnual.toFixed(2)}</span>
+          <span className="resumen-value">S/ {formatNumberPeruano(totalMontoAnual)}</span>
         </div>
         <div className="resumen-card">
           <span className="resumen-label">Ganancias Anuales</span>
-          <span className="resumen-value">S/ {totalGananciasAnual.toFixed(2)}</span>
+          <span className="resumen-value">S/ {formatNumberPeruano(totalGananciasAnual)}</span>
         </div>
         <div className="resumen-card">
           <span className="resumen-label">Meses con Ventas</span>
@@ -151,8 +177,8 @@ export default function AvanceAnual() {
                 <tr key={index}>
                   <td className="col-mes">{mes.mes}</td>
                   <td className="col-cliente">{mes.clientes}</td>
-                  <td className="col-numero">S/ {mes.monto.toFixed(2)}</td>
-                  <td className="col-numero">S/ {mes.ganancias.toFixed(2)}</td>
+                  <td className="col-numero">S/ {formatNumberPeruano(mes.monto)}</td>
+                  <td className="col-numero">S/ {formatNumberPeruano(mes.ganancias)}</td>
                   <td className="col-estado">
                     {mes.clientes > 0 ? (
                       <span className="check-icon">✓</span>
@@ -175,7 +201,7 @@ export default function AvanceAnual() {
                   <div className="detalle-mes">{mes.mes}</div>
                   <div className="detalle-stats">
                     <span>{mes.clientes} clientes</span>
-                    <span className="detalle-monto">S/ {mes.monto.toFixed(2)}</span>
+                    <span className="detalle-monto">S/ {formatNumberPeruano(mes.monto)}</span>
                   </div>
                 </div>
               ))}
