@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import WhitelistManager from './WhitelistManager';
+import DocumentConfigSimple from './DocumentConfigSimple';
 
 import './AdminPanel.css';
 
@@ -8,7 +9,7 @@ export default function AdminPanel() {
   const { clients, removeClient, updateClientPassword, subscribeClient, getTrialStatus } = useAuth();
   const [showPasswords, setShowPasswords] = useState({});
   const [message, setMessage] = useState('');
-  const [activeTab, setActiveTab] = useState('clients'); // 'clients' o 'whitelist'
+  const [activeTab, setActiveTab] = useState('clients'); // 'clients', 'whitelist' o 'document'
 
   const togglePasswordVisibility = (clientId) => {
     setShowPasswords(prev => ({
@@ -65,11 +66,19 @@ export default function AdminPanel() {
         >
           Lista Blanca
         </button>
+        <button 
+          className={`tab-button ${activeTab === 'document' ? 'active' : ''}`}
+          onClick={() => setActiveTab('document')}
+        >
+          Documento Oficial
+        </button>
       </div>
 
       {/* Contenido según tab seleccionado */}
       {activeTab === 'whitelist' ? (
         <WhitelistManager />
+      ) : activeTab === 'document' ? (
+        <DocumentConfigSimple />
       ) : (
         <>
           {/* Lista de Clientes */}

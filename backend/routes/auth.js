@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Client = require('../models/Client');
 const Document = require('../models/Document');
-const DocumentTemplate = require('../models/DocumentTemplate');
+const DocumentConfig = require('../models/DocumentConfig');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -14,36 +14,35 @@ const MONTHS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-// Función para crear documentos desde plantilla oficial
-const createDocumentsFromTemplate = async (clientId) => {
+// Función para crear documentos usando configuración oficial
+const createDocumentsForClient = async (clientId) => {
   try {
-    // Buscar plantilla oficial
-    const template = await DocumentTemplate.getOfficialTemplate();
+    // Obtener configuración actual del documento
+    const config = await DocumentConfig.getConfig();
     
-    if (!template) {
-      console.log('No hay plantilla oficial configurada. Los documentos se crearán vacíos bajo demanda.');
-      return false;
-    }
+    console.log(`Creando documentos para cliente ${clientId} con configuración oficial`);
     
-    console.log(`Creando documentos para cliente ${clientId} desde plantilla oficial: ${template.name}`);
+    // Crear estructura de datos vacía
+    const numCols = config.headers.length;
+    const emptyData = Array(50).fill(null).map(() => Array(numCols).fill(''));
     
     // Crear documentos para todos los meses
     const documentsToCreate = MONTHS.map(month => ({
       clientId,
       month,
       year: 2026,
-      headers: template.headers,
-      data: template.data,
-      completedData: template.completedData || [],
-      originalFile: template.originalFile
+      headers: config.headers,
+      data: emptyData,
+      completedData: [],
+      originalFile: null
     }));
     
     await Document.insertMany(documentsToCreate);
-    console.log(`✅ ${MONTHS.length} documentos creados exitosamente desde plantilla oficial`);
+    console.log(`✅ ${MONTHS.length} documentos creados exitosamente`);
     return true;
     
   } catch (error) {
-    console.error('Error creando documentos desde plantilla:', error);
+    console.error('Error creando documentos:', error);
     return false;
   }
 };
@@ -124,7 +123,7 @@ router.post('/register', async (req, res) => {
     });
 
     // Crear documentos desde plantilla oficial (si existe)
-    await createDocumentsFromTemplate(user._id);
+    await createDocumentsForClient(user._id);
 
     // Generar token
     const token = generateToken(user._id);

@@ -924,4 +924,133 @@ router.post('/apply-template-all', protect, adminOnly, async (req, res) => {
   }
 });
 
+// ============================================
+// ENDPOINTS SIMPLIFICADOS - DOCUMENTO OFICIAL
+// ============================================
+
+const DocumentConfig = require('../models/DocumentConfig');
+
+// @route   GET /api/admin/document-config
+// @desc    Obtener configuración actual del documento oficial
+// @access  Admin Only
+router.get('/document-config', protect, adminOnly, async (req, res) => {
+  try {
+    const config = await DocumentConfig.getConfig();
+    res.json({
+      success: true,
+      config: {
+        headers: config.headers,
+        updatedAt: config.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error obteniendo configuración:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo configuración del documento'
+    });
+  }
+});
+
+// @route   PUT /api/admin/document-config
+// @desc    Actualizar configuración del documento oficial
+// @access  Admin Only
+router.put('/document-config', protect, adminOnly, async (req, res) => {
+  try {
+    const { headers } = req.body;
+    
+    if (!headers || !Array.isArray(headers) || headers.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Headers debe ser un array no vacío'
+      });
+    }
+    
+    let config = await DocumentConfig.findOne();
+    if (!config) {
+      config = new DocumentConfig({
+        headers,
+        updatedBy: req.user._id
+      });
+    } else {
+      config.headers = headers;
+      config.updatedBy = req.user._id;
+    }
+    
+    await config.save();
+    
+    res.json({
+      success: true,
+      message: 'Configuración guardada correctamente',
+      config: {
+        headers: config.headers,
+        updatedAt: config.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error guardando configuración:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error guardando configuración'
+    });
+  }
+});
+
+// @route   POST /api/admin/apply-document-config
+// @desc    Aplicar configuración actual a TODOS los clientes
+// @access  Admin Only
+router.post('/apply-document-config', protect, adminOnly, async (req, res) => {
+  try {
+    const config = await DocumentConfig.getConfig();
+    const { year } = req.body;
+    const targetYear = year || 2026;
+    
+    // Obtener todos los clientes
+    const clients = await User.find({ role: 'client' });
+    let totalDocumentsCreated = 0;
+    let totalDocumentsUpdated = 0;
+    
+    // Crear estructura de datos vacía con los headers
+    const numCols = config.headers.length;
+    const emptyData = Array(50).fill(null).map(() => Array(numCols).fill(''));
+    
+    for (const client of clients) {
+      // Eliminar documentos existentes del cliente para este año
+      await Document.deleteMany({ 
+        clientId: client._id, 
+        year: targetYear 
+      });
+      
+      // Crear nuevos documentos con la configuración actual
+      const documentsToCreate = MONTHS.map(month => ({
+        clientId: client._id,
+        month,
+        year: targetYear,
+        headers: config.headers,
+        data: emptyData,
+        completedData: [],
+        originalFile: null
+      }));
+      
+      await Document.insertMany(documentsToCreate);
+      totalDocumentsCreated += MONTHS.length;
+    }
+    
+    res.json({
+      success: true,
+      message: `Configuración aplicada a ${clients.length} clientes`,
+      clientsUpdated: clients.length,
+      documentsCreated: totalDocumentsCreated,
+      year: targetYear,
+      headers: config.headers
+    });
+  } catch (error) {
+    console.error('Error aplicando configuración:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error aplicando configuración a los clientes'
+    });
+  }
+});
+
 module.exports = router;

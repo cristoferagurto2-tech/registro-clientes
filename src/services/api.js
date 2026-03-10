@@ -440,6 +440,38 @@ export const adminAPI = {
       throw error.response?.data || { success: false, error: error.message };
     }
   },
+
+  // ==================== CONFIGURACIÓN SIMPLE DE DOCUMENTO ====================
+  
+  // Obtener configuración del documento oficial
+  getDocumentConfig: async () => {
+    try {
+      const response = await api.get('/admin/document-config');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Actualizar configuración del documento oficial
+  updateDocumentConfig: async (headers) => {
+    try {
+      const response = await api.put('/admin/document-config', { headers });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Aplicar configuración a todos los clientes
+  applyDocumentConfig: async (year = 2026) => {
+    try {
+      const response = await api.post('/admin/apply-document-config', { year });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
 };
 
 export default api;
