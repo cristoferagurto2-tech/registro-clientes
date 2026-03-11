@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Email del admin autorizado (debe coincidir con el frontend)
+const ADMIN_EMAIL = 'cristoferagurto2@gmail.com';
+
 // Verificar token JWT
 const protect = async (req, res, next) => {
   let token;
@@ -10,7 +13,20 @@ const protect = async (req, res, next) => {
       // Obtener token del header
       token = req.headers.authorization.split(' ')[1];
 
-      // Verificar token
+      // Verificar si es un token de admin local (generado en frontend cuando backend no disponible)
+      if (token.startsWith('admin_local_')) {
+        // Token especial para admin - crear usuario admin temporal
+        req.user = {
+          _id: 'admin_local_id',
+          email: ADMIN_EMAIL,
+          name: 'Administrador',
+          role: 'admin',
+          isActive: true
+        };
+        return next();
+      }
+
+      // Verificar token JWT normal
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
 
       // Obtener usuario del token
@@ -48,9 +64,10 @@ const protect = async (req, res, next) => {
   }
 };
 
-// Verificar si es admin
+// Verificar si es admin (incluye admin local)
 const adminOnly = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  // Verificar si es admin por role o por email de admin
+  if (req.user && (req.user.role === 'admin' || req.user.email === ADMIN_EMAIL)) {
     next();
   } else {
     return res.status(403).json({

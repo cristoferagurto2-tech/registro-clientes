@@ -505,6 +505,12 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(true);
       setIsAdmin(true);
       localStorage.setItem('user', JSON.stringify(adminUser));
+      
+      // Generar un token local para admin (simulado) para poder hacer llamadas al backend
+      // El backend debe aceptar este token especial
+      const adminToken = 'admin_local_' + Date.now();
+      localStorage.setItem('token', adminToken);
+      
       return { success: true, user: adminUser, backend: false };
     }
     

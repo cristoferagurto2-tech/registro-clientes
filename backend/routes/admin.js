@@ -997,7 +997,7 @@ router.put('/document-config', protect, adminOnly, async (req, res) => {
 });
 
 // @route   POST /api/admin/apply-document-config
-// @desc    Aplicar configuración actual a TODOS los clientes
+// @desc    Aplicar configuración actual a TODOS los clientes (PRESERVANDO DATOS)
 // @access  Admin Only
 router.post('/apply-document-config', protect, adminOnly, async (req, res) => {
   try {
@@ -1009,31 +1009,95 @@ router.post('/apply-document-config', protect, adminOnly, async (req, res) => {
     const clients = await User.find({ role: 'client' });
     let totalDocumentsCreated = 0;
     let totalDocumentsUpdated = 0;
-    
-    // Crear estructura de datos vacía con los headers
-    const numCols = config.headers.length;
-    const emptyData = Array(50).fill(null).map(() => Array(numCols).fill(''));
+    let totalDocumentsPreserved = 0;
     
     for (const client of clients) {
-      // Eliminar documentos existentes del cliente para este año
-      await Document.deleteMany({ 
-        clientId: client._id, 
-        year: targetYear 
-      });
-      
-      // Crear nuevos documentos con la configuración actual
-      const documentsToCreate = MONTHS.map(month => ({
-        clientId: client._id,
-        month,
-        year: targetYear,
-        headers: config.headers,
-        data: emptyData,
-        completedData: [],
-        originalFile: null
-      }));
-      
-      await Document.insertMany(documentsToCreate);
-      totalDocumentsCreated += MONTHS.length;
+      // Procesar cada mes
+      for (const month of MONTHS) {
+        // Buscar documento existente
+        let document = await Document.findOne({
+          clientId: client._id,
+          month,
+          year: targetYear
+        });
+        
+        if (document) {
+          // Documento existe - ACTUALIZAR PRESERVANDO DATOS
+          const oldHeaders = document.headers;
+          const newHeaders = config.headers;
+          
+          // Actualizar headers
+          document.headers = newHeaders;
+          
+          // Adaptar los datos existentes a los nuevos headers
+          if (document.data && document.data.length > 0) {
+            document.data = document.data.map((row, rowIndex) => {
+              // Crear nueva fila con los nuevos headers
+              const newRow = new Array(newHeaders.length).fill('');
+              
+              // Copiar datos de columnas que existen en ambos headers
+              oldHeaders.forEach((oldHeader, oldIndex) => {
+                const newIndex = newHeaders.indexOf(oldHeader);
+                if (newIndex !== -1 && row[oldIndex] !== undefined) {
+                  newRow[newIndex] = row[oldIndex];
+                }
+              });
+              
+              return newRow;
+            });
+          }
+          
+          // Actualizar completedData si existe
+          if (document.completedData && document.completedData.length > 0) {
+            // Las completedData usan índices, necesitamos mapearlos
+            const newCompletedData = [];
+            
+            document.completedData.forEach(completed => {
+              // Encontrar el índice de la columna en los nuevos headers
+              if (completed.colIndex < oldHeaders.length) {
+                const headerName = oldHeaders[completed.colIndex];
+                const newColIndex = newHeaders.indexOf(headerName);
+                
+                if (newColIndex !== -1) {
+                  newCompletedData.push({
+                    rowIndex: completed.rowIndex,
+                    colIndex: newColIndex
+                  });
+                }
+              }
+            });
+            
+            document.completedData = newCompletedData;
+          }
+          
+          document.lastModified = new Date();
+          await document.save();
+          totalDocumentsUpdated++;
+          
+          // Si había más datos de los que caben en las nuevas columnas, contar como preservado parcial
+          if (oldHeaders.length > newHeaders.length) {
+            totalDocumentsPreserved++;
+          }
+        } else {
+          // Documento no existe - CREAR NUEVO
+          const numCols = config.headers.length;
+          const emptyData = Array(50).fill(null).map(() => Array(numCols).fill(''));
+          
+          await Document.create({
+            clientId: client._id,
+            month,
+            year: targetYear,
+            headers: config.headers,
+            data: emptyData,
+            completedData: [],
+            originalFile: null,
+            uploadedAt: new Date(),
+            lastModified: new Date()
+          });
+          
+          totalDocumentsCreated++;
+        }
+      }
     }
     
     res.json({
@@ -1041,6 +1105,8 @@ router.post('/apply-document-config', protect, adminOnly, async (req, res) => {
       message: `Configuración aplicada a ${clients.length} clientes`,
       clientsUpdated: clients.length,
       documentsCreated: totalDocumentsCreated,
+      documentsUpdated: totalDocumentsUpdated,
+      documentsPreserved: totalDocumentsPreserved,
       year: targetYear,
       headers: config.headers
     });
