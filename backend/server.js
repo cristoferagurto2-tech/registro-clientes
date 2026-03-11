@@ -37,6 +37,7 @@ const allowedOrigins = [
   // Permitir previews de Cloudflare Pages (URLs con hash aleatorio)
   /^https:\/\/([a-z0-9-]+)\.clientcode\.pages\.dev$/,
   'http://localhost:5173',
+  'http://localhost:5175',  // Puerto para desarrollo local (Vite)
   'http://localhost:3000'
 ];
 
