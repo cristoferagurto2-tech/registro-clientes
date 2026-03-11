@@ -594,7 +594,7 @@ export default function DocumentEditor({ month }) {
     // Crear múltiples filas, una por cada cliente detectado
     const newRows = records.map(record => [
       record.fecha || new Date().toISOString().split('T')[0], // Fecha (YYYY-MM-DD)
-      month,                                                    // Mes
+      month.toLowerCase() + ' 2026',                           // ✅ CORREGIDO: Mes con año
       record.dni || '',                                         // DNI
       record.nombre || '',                                      // Nombre y Apellidos
       record.celular || '',                                     // Celular
@@ -606,8 +606,21 @@ export default function DocumentEditor({ month }) {
       ''                                                        // Ganancias (vacío - cliente calcula)
     ]);
 
-    // Agregar todas las filas al inicio de los datos
+    // ✅ AGREGAR: Calcular índices y actualizar editedData para que los datos aparezcan en la tabla
+    const currentDataLength = data ? data.length : 0;
+    const newEditedData = {};
+    
+    newRows.forEach((row, rowIndex) => {
+      const actualRowIndex = currentDataLength + rowIndex;
+      row.forEach((cell, colIndex) => {
+        const key = `${actualRowIndex}-${colIndex}`;
+        newEditedData[key] = cell !== null && cell !== undefined ? String(cell) : '';
+      });
+    });
+
+    // Actualizar ambos estados
     setData(prevData => [...newRows, ...(prevData || [])]);
+    setEditedData(prev => ({ ...prev, ...newEditedData }));  // ✅ ESTA LÍNEA FALTABA
     
     // Mostrar mensaje de éxito con lista de clientes
     const nombresClientes = records
