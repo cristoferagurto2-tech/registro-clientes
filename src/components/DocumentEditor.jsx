@@ -50,6 +50,11 @@ export default function DocumentEditor({ month }) {
   // NUEVO: Estado para mostrar/ocultar formulario móvil de agregar cliente
   const [showMobileForm, setShowMobileForm] = useState(false);
 
+  // NUEVO: Estados para verificación de autenticación y modo solo lectura
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(true);
+  const [trialStatusInfo, setTrialStatusInfo] = useState(null);
+
   // Estado para el color del PDF (por defecto verde)
   const [pdfColor, setPdfColor] = useState(() => {
     const savedColor = localStorage.getItem('pdfHeaderColor');
@@ -1008,6 +1013,21 @@ export default function DocumentEditor({ month }) {
     setPreviewData(null);
   };
 
+  // Effect para verificar estado de autenticación
+  useEffect(() => {
+    const checkAuth = () => {
+      if (user?.email) {
+        const status = getTrialStatus(user.email);
+        setTrialStatusInfo(status);
+        setIsReadOnly(isReadOnlyMode(user.email));
+        setAuthChecked(true);
+      }
+    };
+
+    const timer = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timer);
+  }, [user, isReadOnlyMode, getTrialStatus]);
+
   if (!data) {
     return (
       <div className="editor-empty">
@@ -1017,20 +1037,37 @@ export default function DocumentEditor({ month }) {
     );
   }
 
-  const readOnly = isReadOnlyMode(user?.email);
-  const trialStatus = getTrialStatus(user?.email);
+  const handleVerPlanes = () => {
+    if (trialStatusInfo?.trialEndDate && !trialStatusInfo.isSubscribed) {
+      alert('Su período de prueba ha finalizado. Por favor, contacte al administrador para suscribirse.');
+    } else {
+      window.location.href = '/planes';
+    }
+  };
+
+  // Mostrar spinner mientras se verifica la autenticación
+  if (!authChecked) {
+    return (
+      <div className="document-editor-v2">
+        <div className="editor-loading">
+          <div className="spinner"></div>
+          <p>Verificando acceso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="document-editor-v2">
-      {/* Banner de modo solo lectura */}
-      {readOnly && (
+      {/* Banner de modo solo lectura - solo mostrar si authChecked es true */}
+      {authChecked && isReadOnly && (
         <div className="read-only-banner">
           <span className="read-only-icon">🔒</span>
           <div className="read-only-content">
             <strong>Modo Solo Lectura</strong>
             <span>Su período de prueba ha finalizado. Suscríbase para editar.</span>
           </div>
-          <button className="read-only-btn" onClick={() => window.location.reload()}>
+          <button className="read-only-btn" onClick={handleVerPlanes}>
             Ver Planes
           </button>
         </div>
@@ -1043,13 +1080,13 @@ export default function DocumentEditor({ month }) {
         </div>
         
         <div className="header-actions">
-          {lastSaved && !readOnly && (
+          {lastSaved && !isReadOnly && (
             <span className="save-indicator">
               Guardado: {lastSaved.toLocaleTimeString()}
             </span>
           )}
           
-          {!readOnly && (
+          {!isReadOnly && (
             <>
               <button 
                 className={`btn-save-v2 ${saving ? 'saving' : ''}`}
@@ -1100,7 +1137,7 @@ export default function DocumentEditor({ month }) {
           </div>
 
           {/* NUEVO: Botón para agregar cliente (solo visible en móvil) */}
-          {!readOnly && (
+          {!isReadOnly && (
             <div className="mobile-add-client-container">
               <button
                 className="btn-add-client-mobile"
@@ -1113,7 +1150,7 @@ export default function DocumentEditor({ month }) {
           )}
 
           {/* NUEVO: Formulario móvil para agregar cliente */}
-          {showMobileForm && !readOnly && (
+          {showMobileForm && !isReadOnly && (
             <MobileClientForm
               month={month}
               onSubmit={handleAddClientFromMobile}
@@ -1159,7 +1196,7 @@ export default function DocumentEditor({ month }) {
                                 value={safeValue}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
-                                disabled={readOnly}
+                                disabled={isReadOnly}
                               >
                                 <option value="">Seleccione...</option>
                                 {productosList.map(prod => (
@@ -1180,7 +1217,7 @@ export default function DocumentEditor({ month }) {
                                 value={value && value !== 'undefined' ? value : ''}
                                 onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                                 className="data-input"
-                                disabled={readOnly}
+                                disabled={isReadOnly}
                               >
                                 <option value="">Día</option>
                                 {diasOptions.map(dia => (
@@ -1201,7 +1238,7 @@ export default function DocumentEditor({ month }) {
                               <input
                                 type="text"
                                 value={mesAutomatico}
-                                readOnly
+                                isReadOnly
                                 className="data-input readonly"
                                 title="Mes asignado automáticamente"
                               />
@@ -1223,7 +1260,7 @@ export default function DocumentEditor({ month }) {
                                   onBlur={(e) => handleCellBlur(rowIndex, colIndex, e.target.value)}
                                   className="data-input prefixed"
                                   placeholder="0.00"
-                                  disabled={readOnly}
+                                  disabled={isReadOnly}
                                 />
                               </div>
                             </td>
@@ -1244,7 +1281,7 @@ export default function DocumentEditor({ month }) {
                                   onBlur={(e) => handleCellBlur(rowIndex, colIndex, e.target.value)}
                                   className="data-input prefixed"
                                   placeholder="0.00"
-                                  disabled={readOnly}
+                                  disabled={isReadOnly}
                                 />
                               </div>
                             </td>
@@ -1259,7 +1296,7 @@ export default function DocumentEditor({ month }) {
                               onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                               className="data-input"
                               placeholder=""
-                              disabled={readOnly}
+                              disabled={isReadOnly}
                             />
                           </td>
                         );
@@ -1271,7 +1308,7 @@ export default function DocumentEditor({ month }) {
             </table>
             
             {/* Botones para añadir/eliminar filas */}
-            {!readOnly && (
+            {!isReadOnly && (
               <div className="table-row-controls">
                 <button 
                   className="btn-row-control btn-add-row"

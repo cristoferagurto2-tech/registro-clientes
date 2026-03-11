@@ -356,17 +356,19 @@ export function AuthProvider({ children }) {
 
   // Funciones para el período de prueba de 7 días
   const getTrialStatus = (clientEmail) => {
+    if (!clientEmail) return null;
+    
     const normalizedEmail = clientEmail.toLowerCase().trim();
-    const client = clients.find(c => c.email.toLowerCase() === normalizedEmail);
     
-    if (!client) return null;
+    // PRIORIDAD 1: Verificar si es Admin o VIP directamente por email
+    // Esto funciona incluso si no está en el array clients
+    const isAdmin = normalizedEmail === ADMIN_EMAIL.toLowerCase();
+    const isVIP = VIP_EMAILS.includes(normalizedEmail);
     
-    // El admin y los VIP tienen acceso permanente gratuito
-    if (normalizedEmail === ADMIN_EMAIL.toLowerCase() || 
-        VIP_EMAILS.includes(normalizedEmail)) {
+    if (isAdmin || isVIP) {
       return {
-        isAdmin: normalizedEmail === ADMIN_EMAIL.toLowerCase(),
-        isVIP: VIP_EMAILS.includes(normalizedEmail),
+        isAdmin: isAdmin,
+        isVIP: isVIP,
         isTrialActive: true,
         isSubscribed: true,
         daysRemaining: null,
@@ -375,12 +377,34 @@ export function AuthProvider({ children }) {
       };
     }
     
+    // Buscar cliente en el estado actual
+    const client = clients.find(c => c.email.toLowerCase() === normalizedEmail);
+    
+    // Si no está en clients, verificar si el usuario actual tiene la info
+    if (!client && user && user.email.toLowerCase() === normalizedEmail) {
+      // Usar info del usuario logueado
+      const isUserSubscribed = user.isSubscribed || false;
+      
+      return {
+        isAdmin: false,
+        isVIP: false,
+        isTrialActive: isUserSubscribed, // Si está suscrito, trial está "activo"
+        isSubscribed: isUserSubscribed,
+        daysRemaining: isUserSubscribed ? null : 0,
+        trialEndDate: null,
+        registeredAt: user.registeredAt || null
+      };
+    }
+    
+    if (!client) return null;
+    
     const registeredAt = client.registeredAt ? new Date(client.registeredAt) : null;
     
     if (!registeredAt) {
       // Si no tiene fecha de registro, asumimos que es un cliente antiguo y le damos acceso completo
       return {
         isAdmin: false,
+        isVIP: false,
         isTrialActive: true,
         isSubscribed: true,
         daysRemaining: null,
@@ -397,6 +421,7 @@ export function AuthProvider({ children }) {
     
     return {
       isAdmin: false,
+      isVIP: false,
       isTrialActive,
       isSubscribed: client.isSubscribed || false,
       daysRemaining: isTrialActive ? daysRemaining : 0,
