@@ -581,28 +581,40 @@ export default function DocumentEditor({ month }) {
     }
   };
 
-  // NUEVO: Función para manejar datos extraídos del escáner OCR
+  // NUEVO: Función para manejar datos extraídos del escáner OCR (múltiples registros)
   const handleScannedData = (scannedData) => {
-    // Agregar una nueva fila con los datos escaneados
-    const newRow = [
-      scannedData.fecha || new Date().toLocaleDateString(), // Fecha
-      month, // Mes
-      scannedData.dni || '', // DNI
-      scannedData.nombre || '', // Nombre y Apellidos
-      scannedData.celular || '', // Celular
-      scannedData.producto || '', // Producto
-      scannedData.monto || '', // Monto
-      scannedData.tasa || '', // Tasa
-      scannedData.lugar || '', // Lugar
-      scannedData.observacion || '', // Observación
-      scannedData.ganancias || '' // Ganancias
-    ];
-
-    // Agregar la nueva fila al inicio de los datos
-    setData(prevData => [newRow, ...(prevData || [])]);
+    // Ahora scannedData es un array de registros
+    const records = Array.isArray(scannedData) ? scannedData : [scannedData];
     
-    // Mostrar mensaje de éxito
-    alert(`✅ Datos del cliente "${scannedData.nombre || 'Nuevo'}" agregados correctamente desde la imagen.\n\nPuedes editar los campos si es necesario antes de guardar.`);
+    if (records.length === 0) {
+      alert('⚠️ No se detectaron clientes válidos en la imagen.');
+      return;
+    }
+    
+    // Crear múltiples filas, una por cada cliente detectado
+    const newRows = records.map(record => [
+      record.fecha || new Date().toISOString().split('T')[0], // Fecha (YYYY-MM-DD)
+      month,                                                    // Mes
+      record.dni || '',                                         // DNI
+      record.nombre || '',                                      // Nombre y Apellidos
+      record.celular || '',                                     // Celular
+      record.producto || '',                                    // Producto
+      record.monto || '',                                       // Monto
+      record.tasa || '',                                        // Tasa
+      record.lugar || '',                                       // Lugar
+      '',                                                       // Observación (vacío - cliente llena)
+      ''                                                        // Ganancias (vacío - cliente calcula)
+    ]);
+
+    // Agregar todas las filas al inicio de los datos
+    setData(prevData => [...newRows, ...(prevData || [])]);
+    
+    // Mostrar mensaje de éxito con lista de clientes
+    const nombresClientes = records
+      .map((r, i) => `${i + 1}. ${r.nombre || 'Cliente sin nombre'} (DNI: ${r.dni || 'N/A'})`)
+      .join('\n');
+    
+    alert(`✅ ${records.length} cliente(s) agregado(s) correctamente desde la imagen:\n\n${nombresClientes}\n\nPuedes editar los campos si es necesario antes de guardar.`);
   };
 
   // Función para obtener el color según la observación

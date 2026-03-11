@@ -354,4 +354,163 @@
   .data-preview {
     grid-template-columns: 1fr;
   }
+  
+  .record-card {
+    padding: 10px;
+  }
+  
+  .record-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .records-preview {
+    max-height: 250px;
+  }
+}
+
+/* Estilos para múltiples registros detectados */
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.results-header h4 {
+  margin: 0;
+}
+
+.client-count {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 30px 20px;
+  background: #fef3c7;
+  border: 2px dashed #f59e0b;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.no-data-message p {
+  margin: 0 0 8px 0;
+  color: #92400e;
+}
+
+.no-data-message p:first-child {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.records-preview {
+  max-height: 350px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 8px;
+}
+
+.records-preview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.records-preview::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.records-preview::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.records-preview::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.record-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.record-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.record-card:last-child {
+  margin-bottom: 0;
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.record-number {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.record-name {
+  font-weight: 600;
+  color: #1e3a8a;
+  font-size: 1rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.record-fields .field {
+  background: #f9fafb;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  border: 1px solid #e5e7eb;
+}
+
+.record-fields .label {
+  color: #6b7280;
+  font-weight: 600;
+  margin-right: 6px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.record-fields .field span:not(.label) {
+  color: #111827;
+  font-weight: 500;
 }
