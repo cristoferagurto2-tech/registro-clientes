@@ -59,12 +59,16 @@ export default function AvanceAnual() {
   };
 
   // Función para formatear números con formato peruano: puntos para miles, coma para decimales
+  // Solo muestra decimales si existen
   const formatNumberPeruano = (value) => {
-    if (!value || value === '' || value === 0) return '0,00';
+    if (!value || value === '' || value === 0) return '0';
     
     const numValue = typeof value === 'number' ? value : parseFloat(value);
     
-    if (isNaN(numValue)) return '0,00';
+    if (isNaN(numValue)) return '0';
+    
+    // Verificar si tiene decimales significativos
+    const hasDecimals = numValue % 1 !== 0;
     
     // Separar parte entera y decimal
     const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
@@ -81,7 +85,12 @@ export default function AvanceAnual() {
       count++;
     }
     
-    return `${formattedInteger},${decimalPart}`;
+    // Solo mostrar decimales si existen
+    if (hasDecimals) {
+      return `${formattedInteger},${decimalPart}`;
+    }
+    
+    return formattedInteger;
   };
 
   const calcularResumen = () => {

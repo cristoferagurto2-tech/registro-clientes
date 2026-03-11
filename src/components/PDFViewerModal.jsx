@@ -40,8 +40,17 @@ export default function PDFViewerModal({ isOpen, onClose, backup }) {
   };
 
   // Función para formatear números con formato peruano
+  // Solo muestra decimales si existen
   const formatNumberPeruano = (value) => {
+    if (!value || value === '' || value === 0) return '0';
+    
     const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+    
+    if (isNaN(numValue)) return '0';
+    
+    // Verificar si tiene decimales significativos
+    const hasDecimals = numValue % 1 !== 0;
+    
     const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
     let formattedInteger = '';
     let count = 0;
@@ -53,7 +62,13 @@ export default function PDFViewerModal({ isOpen, onClose, backup }) {
       formattedInteger = integerPart[i] + formattedInteger;
       count++;
     }
-    return `${formattedInteger},${decimalPart}`;
+    
+    // Solo mostrar decimales si existen
+    if (hasDecimals) {
+      return `${formattedInteger},${decimalPart}`;
+    }
+    
+    return formattedInteger;
   };
 
   return (

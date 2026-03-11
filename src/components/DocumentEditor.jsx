@@ -235,16 +235,19 @@ export default function DocumentEditor({ month }) {
   }, [month, clientId, getMergedData]);
 
   // Función para formatear números con formato peruano: puntos para miles, coma para decimales
-  // Ejemplo: 5000.50 -> "5.000,50", 1000 -> "1.000,00", 5.909 -> "5,91"
+  // Solo muestra decimales si existen: 5000 -> "5.000", 5000.50 -> "5.000,50"
   const formatNumberPeruano = (value) => {
-    if (!value || value === '' || value === '0') return '0,00';
+    if (!value || value === '' || value === '0' || value === 0) return '0';
     
     const str = String(value).trim();
     
     // Usar parseMonto para obtener el valor numérico correcto
     const numValue = parseMonto(str);
     
-    if (isNaN(numValue)) return '0,00';
+    if (isNaN(numValue)) return '0';
+    
+    // Verificar si tiene decimales significativos
+    const hasDecimals = numValue % 1 !== 0;
     
     // Formatear manualmente para garantizar formato peruano
     // Separar parte entera y decimal
@@ -262,8 +265,12 @@ export default function DocumentEditor({ month }) {
       count++;
     }
     
-    // Combinar con coma para decimales (formato peruano)
-    return `${formattedInteger},${decimalPart}`;
+    // Solo mostrar decimales si existen
+    if (hasDecimals) {
+      return `${formattedInteger},${decimalPart}`;
+    }
+    
+    return formattedInteger;
   };
 
   const handleCellChange = (rowIndex, colIndex, value) => {

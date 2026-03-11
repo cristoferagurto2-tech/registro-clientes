@@ -52,7 +52,15 @@ export default function Historial() {
   };
 
   const formatCurrency = (value) => {
+    if (!value || value === '' || value === 0) return 'S/ 0';
+    
     const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+    
+    if (isNaN(numValue)) return 'S/ 0';
+    
+    // Verificar si tiene decimales significativos
+    const hasDecimals = numValue % 1 !== 0;
+    
     const [integerPart, decimalPart] = numValue.toFixed(2).split('.');
     let formattedInteger = '';
     let count = 0;
@@ -64,7 +72,13 @@ export default function Historial() {
       formattedInteger = integerPart[i] + formattedInteger;
       count++;
     }
-    return `S/ ${formattedInteger},${decimalPart}`;
+    
+    // Solo mostrar decimales si existen
+    if (hasDecimals) {
+      return `S/ ${formattedInteger},${decimalPart}`;
+    }
+    
+    return `S/ ${formattedInteger}`;
   };
 
   return (
