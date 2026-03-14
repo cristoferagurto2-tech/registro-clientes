@@ -8,6 +8,9 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Lista de emails VIP (acceso gratuito permanente)
+const VIP_EMAILS = ['cristovalleagur@gmail.com', 'yudyagurto1983@gmail.com'];
+
 // Meses del año para crear documentos
 const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -185,6 +188,12 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Verificar si el usuario es VIP y actualizar en MongoDB si es necesario
+    if (VIP_EMAILS.includes(user.email.toLowerCase()) && !user.isVip) {
+      user.isVip = true;
+      console.log(`Usuario ${user.email} marcado como VIP automáticamente`);
+    }
+
     // Actualizar último login
     user.lastLogin = Date.now();
     await user.save();
@@ -202,6 +211,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         role: user.role,
         isSubscribed: user.isSubscribed,
+        isVip: user.isVip,
         trialStatus: user.getTrialStatus()
       }
     });
