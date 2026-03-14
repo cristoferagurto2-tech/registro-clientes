@@ -21,7 +21,9 @@ const protect = async (req, res, next) => {
           email: ADMIN_EMAIL,
           name: 'Administrador',
           role: 'admin',
-          isActive: true
+          isActive: true,
+          isSubscribed: true,
+          isVip: true
         };
         return next();
       }
@@ -96,6 +98,11 @@ const checkSubscription = async (req, res, next) => {
     
     // Admin siempre tiene acceso
     if (user.role === 'admin') {
+      return next();
+    }
+
+    // VIP siempre tiene acceso
+    if (user.isVip) {
       return next();
     }
 

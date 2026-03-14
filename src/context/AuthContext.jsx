@@ -42,7 +42,8 @@ const INITIAL_CLIENTS = [
     name: 'Yudy Agurto',
     password: 'Melissa1983',
     isRegistered: true,
-    backendId: '69ab44840529792adcf6a723'
+    backendId: '69ab44840529792adcf6a723',
+    isVip: true
   },
 ];
 
@@ -472,6 +473,30 @@ export function AuthProvider({ children }) {
     return { success: true, message: 'Suscripción activada correctamente' };
   };
 
+  // Marcar/desmarcar cliente como VIP
+  const toggleVipStatus = async (clientEmail, isVip) => {
+    const normalizedEmail = clientEmail.toLowerCase().trim();
+    
+    // Actualizar localmente
+    setClients(prev => prev.map(c => 
+      c.email.toLowerCase() === normalizedEmail 
+        ? { ...c, isVip }
+        : c
+    ));
+    
+    // Si hay backend, actualizar en el servidor
+    try {
+      const client = clients.find(c => c.email.toLowerCase() === normalizedEmail);
+      if (client?.backendId) {
+        await adminAPI.toggleVipStatus(client.backendId, isVip);
+      }
+    } catch (error) {
+      console.error('Error actualizando VIP en backend:', error);
+    }
+    
+    return { success: true, message: isVip ? 'Cliente marcado como VIP' : 'Cliente desmarcado como VIP' };
+  };
+
   // Login de usuario con soporte híbrido (backend + localStorage)
   const login = async (email, password) => {
     const normalizedEmail = email.toLowerCase().trim();
@@ -760,6 +785,7 @@ export function AuthProvider({ children }) {
       canCreateCredits,
       isReadOnlyMode,
       subscribeClient,
+      toggleVipStatus,
       syncUserWithBackend,
       syncClientBackendId,
       getClientBackendId,

@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  isVip: {
+    type: Boolean,
+    default: false
+  },
   registeredAt: {
     type: Date,
     default: Date.now
@@ -72,10 +76,11 @@ userSchema.methods.getTrialStatus = function() {
   const daysRemaining = Math.ceil((trialEndDate - now) / (1000 * 60 * 60 * 24));
   
   return {
-    isTrialActive: daysRemaining > 0,
-    daysRemaining: Math.max(0, daysRemaining),
-    trialEndDate: trialEndDate.toISOString(),
-    isSubscribed: this.isSubscribed
+    isTrialActive: daysRemaining > 0 || this.isVip,
+    daysRemaining: this.isVip ? null : Math.max(0, daysRemaining),
+    trialEndDate: this.isVip ? null : trialEndDate.toISOString(),
+    isSubscribed: this.isSubscribed || this.isVip,
+    isVip: this.isVip
   };
 };
 

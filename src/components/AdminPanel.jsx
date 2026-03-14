@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { adminAPI } from '../services/api';
 import WhitelistManager from './WhitelistManager';
 import DocumentConfigSimple from './DocumentConfigSimple';
 
 import './AdminPanel.css';
 
 export default function AdminPanel() {
-  const { clients, removeClient, updateClientPassword, subscribeClient, getTrialStatus } = useAuth();
+  const { clients, removeClient, updateClientPassword, subscribeClient, toggleVipStatus, getTrialStatus } = useAuth();
   const [showPasswords, setShowPasswords] = useState({});
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('clients'); // 'clients', 'whitelist' o 'document'
@@ -101,6 +102,7 @@ export default function AdminPanel() {
                       <th>Email</th>
                       <th>Contraseña</th>
                       <th>Suscripción</th>
+                      <th>VIP</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -138,12 +140,21 @@ export default function AdminPanel() {
                             </div>
                           </td>
                           <td className="subscription-cell">
-                            {isSubscribed ? (
+                            {client.isVip ? (
+                              <span className="badge-subscription vip">VIP</span>
+                            ) : isSubscribed ? (
                               <span className="badge-subscription active">Activa</span>
                             ) : isTrialActive ? (
                               <span className="badge-subscription trial">Trial: {daysRemaining} días</span>
                             ) : (
                               <span className="badge-subscription expired">Expirada</span>
+                            )}
+                          </td>
+                          <td className="vip-cell">
+                            {client.isVip ? (
+                              <span className="badge-vip active">✓ VIP</span>
+                            ) : (
+                              <span className="badge-vip inactive">-</span>
                             )}
                           </td>
                           <td className="actions-cell">
@@ -154,7 +165,7 @@ export default function AdminPanel() {
                             >
                               Contraseña
                             </button>
-                            {!isSubscribed && (
+                            {!client.isVip && !isSubscribed && (
                               <button 
                                 className="btn-action subscribe"
                                 onClick={() => {
@@ -168,6 +179,28 @@ export default function AdminPanel() {
                                 Suscribir
                               </button>
                             )}
+                            <button 
+                              className={`btn-action ${client.isVip ? 'unvip' : 'vip'}`}
+                              onClick={async () => {
+                                const newVipStatus = !client.isVip;
+                                if (window.confirm(`¿${newVipStatus ? 'Marcar' : 'Desmarcar'} a ${client.name} como VIP?\n\nLos usuarios VIP tienen acceso ilimitado sin importar el trial.`)) {
+                                  try {
+                                    // Actualizar en backend primero
+                                    if (client.backendId) {
+                                      await adminAPI.toggleVipStatus(client.backendId, newVipStatus);
+                                    }
+                                    // Actualizar localmente
+                                    await toggleVipStatus(client.email, newVipStatus);
+                                    setMessage(`${client.name} ${newVipStatus ? 'marcado como VIP' : 'desmarcado como VIP'}`);
+                                  } catch (error) {
+                                    setMessage(`Error: ${error.message || 'No se pudo actualizar el estado VIP'}`);
+                                  }
+                                }
+                              }}
+                              title={client.isVip ? 'Quitar VIP' : 'Marcar como VIP'}
+                            >
+                              {client.isVip ? 'Quitar VIP' : 'VIP'}
+                            </button>
                             <button 
                               className="btn-action delete"
                               onClick={() => handleRemoveClient(client.id, client.email)}

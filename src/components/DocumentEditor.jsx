@@ -582,7 +582,7 @@ export default function DocumentEditor({ month }) {
   };
 
   // NUEVO: Función para manejar datos extraídos del escáner OCR (múltiples registros)
-  const handleScannedData = (scannedData) => {
+  const handleScannedData = async (scannedData) => {
     // Ahora scannedData es un array de registros
     const records = Array.isArray(scannedData) ? scannedData : [scannedData];
     
@@ -602,32 +602,99 @@ export default function DocumentEditor({ month }) {
       record.monto || '',                                       // Monto
       record.tasa || '',                                        // Tasa
       record.lugar || '',                                       // Lugar
-      '',                                                       // Observación (vacío - cliente llena)
-      ''                                                        // Ganancias (vacío - cliente calcula)
+      record.observacion || '',                                 // Observación (del OCR)
+      record.ganancias || ''                                    // Ganancias (del OCR)
     ]);
 
-    // ✅ AGREGAR: Calcular índices y actualizar editedData para que los datos aparezcan en la tabla
-    const currentDataLength = data ? data.length : 0;
-    const newEditedData = {};
+    // ✅ BUSCAR FILAS VACÍAS PRIMERO
+    const currentData = data || [];
+    const emptyRowIndices = [];
     
-    newRows.forEach((row, rowIndex) => {
-      const actualRowIndex = currentDataLength + rowIndex;
-      row.forEach((cell, colIndex) => {
-        const key = `${actualRowIndex}-${colIndex}`;
-        newEditedData[key] = cell !== null && cell !== undefined ? String(cell) : '';
-      });
+    // Identificar filas vacías (donde DNI, Nombre y Celular están vacíos)
+    currentData.forEach((row, index) => {
+      const dni = editedData[`${index}-2`] !== undefined ? editedData[`${index}-2`] : row[2];
+      const nombre = editedData[`${index}-3`] !== undefined ? editedData[`${index}-3`] : row[3];
+      const celular = editedData[`${index}-4`] !== undefined ? editedData[`${index}-4`] : row[4];
+      
+      if ((!dni || dni === '') && (!nombre || nombre === '') && (!celular || celular === '')) {
+        emptyRowIndices.push(index);
+      }
     });
-
-    // Actualizar ambos estados
-    setData(prevData => [...newRows, ...(prevData || [])]);
-    setEditedData(prev => ({ ...prev, ...newEditedData }));  // ✅ ESTA LÍNEA FALTABA
     
-    // Mostrar mensaje de éxito con lista de clientes
-    const nombresClientes = records
-      .map((r, i) => `${i + 1}. ${r.nombre || 'Cliente sin nombre'} (DNI: ${r.dni || 'N/A'})`)
-      .join('\n');
+    // Preparar datos para actualizar
+    const newEditedData = {};
+    const rowsToAdd = [];
+    const rowMappings = []; // Mapeo: índice del registro OCR -> índice de la fila en la tabla
     
-    alert(`✅ ${records.length} cliente(s) agregado(s) correctamente desde la imagen:\n\n${nombresClientes}\n\nPuedes editar los campos si es necesario antes de guardar.`);
+    newRows.forEach((row, recordIndex) => {
+      if (recordIndex < emptyRowIndices.length) {
+        // Usar fila vacía existente
+        const targetRowIndex = emptyRowIndices[recordIndex];
+        rowMappings.push({ recordIndex, targetRowIndex, isNew: false });
+        
+        row.forEach((cell, colIndex) => {
+          const key = `${targetRowIndex}-${colIndex}`;
+          newEditedData[key] = cell !== null && cell !== undefined ? String(cell) : '';
+        });
+      } else {
+        // Agregar nueva fila al final
+        rowsToAdd.push(row);
+        rowMappings.push({ recordIndex, targetRowIndex: currentData.length + rowsToAdd.length - 1, isNew: true });
+      }
+    });
+    
+    // Actualizar estados
+    setData(prevData => {
+      const baseData = [...(prevData || [])];
+      
+      // Llenar filas vacías existentes
+      rowMappings.filter(m => !m.isNew).forEach(mapping => {
+        const rowData = newRows[mapping.recordIndex];
+        if (baseData[mapping.targetRowIndex]) {
+          baseData[mapping.targetRowIndex] = [...rowData];
+        }
+      });
+      
+      // Agregar nuevas filas al final
+      return [...baseData, ...rowsToAdd];
+    });
+    
+    setEditedData(prev => ({ ...prev, ...newEditedData }));
+    
+    // ✅ CRÍTICO: Guardar en el contexto para que persistan los datos
+    const clientId = user?.id;
+    if (clientId) {
+      console.log('Guardando datos OCR en contexto:', { clientId, month, rowMappings, newRows });
+      for (const mapping of rowMappings) {
+        const rowData = newRows[mapping.recordIndex];
+        for (let colIndex = 0; colIndex < rowData.length; colIndex++) {
+          const value = rowData[colIndex];
+          if (value) {
+            await updateCompletedData(clientId, month, mapping.targetRowIndex, colIndex, value);
+          }
+        }
+      }
+    }
+    
+    console.log('Datos OCR guardados. Estado actual:', { data: newRows, editedData: newEditedData });
+    
+    // Mostrar mensaje de éxito con información de qué se hizo
+    const filasLlenadas = rowMappings.filter(m => !m.isNew).length;
+    const filasNuevas = rowMappings.filter(m => m.isNew).length;
+    
+    let mensaje = `✅ ${records.length} cliente(s) agregado(s) correctamente desde la imagen:\n\n`;
+    
+    if (filasLlenadas > 0) {
+      mensaje += `📋 ${filasLlenadas} fila(s) vacía(s) llenada(s)\n`;
+    }
+    if (filasNuevas > 0) {
+      mensaje += `➕ ${filasNuevas} fila(s) nueva(s) agregada(s) al final\n`;
+    }
+    
+    mensaje += `\n${records.map((r, i) => `${i + 1}. ${r.nombre || 'Cliente sin nombre'} (DNI: ${r.dni || 'N/A'})`).join('\n')}`;
+    mensaje += `\n\nPuedes editar los campos si es necesario antes de guardar.`;
+    
+    alert(mensaje);
   };
 
   // Función para obtener el color según la observación
@@ -1263,7 +1330,7 @@ export default function DocumentEditor({ month }) {
                               <input
                                 type="text"
                                 value={mesAutomatico}
-                                isReadOnly
+                                readOnly={true}
                                 className="data-input readonly"
                                 title="Mes asignado automáticamente"
                               />

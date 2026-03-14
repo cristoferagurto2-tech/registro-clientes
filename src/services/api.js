@@ -297,7 +297,7 @@ export const adminAPI = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { success: false, error: error.message };
-    }
+    }ve 
   },
 
   // Obtener documentos de un cliente
@@ -334,6 +334,16 @@ export const adminAPI = {
   updateClientSubscription: async (clientId, isSubscribed) => {
     try {
       const response = await api.put(`/admin/clients/${clientId}/subscribe`, { isSubscribed });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { success: false, error: error.message };
+    }
+  },
+
+  // Marcar/desmarcar cliente como VIP
+  toggleVipStatus: async (clientId, isVip) => {
+    try {
+      const response = await api.put(`/admin/clients/${clientId}/vip`, { isVip });
       return response.data;
     } catch (error) {
       throw error.response?.data || { success: false, error: error.message };

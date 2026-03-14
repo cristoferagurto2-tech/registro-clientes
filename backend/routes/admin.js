@@ -366,6 +366,46 @@ router.put('/clients/:clientId/subscribe', protect, adminOnly, async (req, res) 
   }
 });
 
+// @route   PUT /api/admin/clients/:clientId/vip
+// @desc    Marcar/desmarcar un cliente como VIP
+// @access  Admin Only
+router.put('/clients/:clientId/vip', protect, adminOnly, async (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const { isVip } = req.body;
+
+    const client = await User.findById(clientId);
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cliente no encontrado'
+      });
+    }
+
+    client.isVip = isVip;
+    await client.save();
+
+    res.json({
+      success: true,
+      message: isVip 
+        ? 'Cliente marcado como VIP correctamente' 
+        : 'Cliente desmarcado como VIP',
+      client: {
+        id: client._id,
+        name: client.name,
+        email: client.email,
+        isVip: client.isVip
+      }
+    });
+  } catch (error) {
+    console.error('Error actualizando estado VIP:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error actualizando estado VIP del cliente'
+    });
+  }
+});
+
 // @route   DELETE /api/admin/clients/:clientId
 // @desc    Eliminar un cliente y todos sus datos
 // @access  Admin Only

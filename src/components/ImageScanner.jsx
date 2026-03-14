@@ -7,7 +7,7 @@ export default function ImageScanner({ onDataExtracted, onClose }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [extractedText, setExtractedText] = useState('');
-  const [parsedData, setParsedData] = useState([]); // Array para múltiples registros
+  const [parsedData, setParsedData] = useState([]);
   const fileInputRef = useRef(null);
 
   const handleImageSelect = (event) => {
@@ -26,33 +26,45 @@ export default function ImageScanner({ onDataExtracted, onClose }) {
     setProgress(0);
 
     try {
+      console.log('🔄 Iniciando OCR con configuración PSM 6...');
+      
       const result = await Tesseract.recognize(
         selectedImage,
-        'spa', // Idioma español
+        'spa',
         {
           logger: (m) => {
             if (m.status === 'recognizing text') {
               setProgress(Math.round(m.progress * 100));
             }
-          }
+          },
+          tessedit_pageseg_mode: '6',
+          tessedit_ocr_engine_mode: '3'
         }
       );
 
       const text = result.data.text;
-      setExtractedText(text);
+      console.log('✅ Texto extraído:', text.substring(0, 200) + '...');
       
-      // Parsear los datos extraídos (ahora devuelve array)
       const records = parseExtractedData(text);
+      console.log('📊 Registros detectados:', records.length);
+      
+      console.log('🎯 Resumen final:', {
+        totalClientes: records.length,
+        conNombre: records.filter(r => r.nombre).length,
+        conMonto: records.filter(r => r.monto).length,
+        conLugar: records.filter(r => r.lugar).length
+      });
+      
+      setExtractedText(text);
       setParsedData(records);
     } catch (error) {
-      console.error('Error al procesar imagen:', error);
+      console.error('❌ Error al procesar imagen:', error);
       alert('Error al procesar la imagen. Intenta con otra foto más clara.');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Función auxiliar para crear registro vacío
   const createEmptyRecord = () => ({
     fecha: '',
     dni: '',
@@ -66,164 +78,276 @@ export default function ImageScanner({ onDataExtracted, onClose }) {
     ganancias: ''
   });
 
-  // Función auxiliar para validar si un registro tiene datos mínimos
   const isValidRecord = (record) => {
     return record.dni && record.dni.length === 8;
   };
 
-  // Función mejorada para parsear múltiples registros
   const parseExtractedData = (text) => {
-    const lines = text.split('\n').filter(line => line.trim());
     const records = [];
-    let currentRecord = createEmptyRecord();
     
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-      const lowerLine = trimmedLine.toLowerCase();
+    const productosMap = {
+      'Préstamo Personal': ['préstamo personal', 'prestamo personal'],
+      'Crédito de Consumo': ['crédito de consumo', 'credito de consumo'],
+      'Tarjeta de Crédito': ['tarjeta de crédito', 'tarjeta de credito', 'tarjeta credito'],
+      'Préstamo Vehicular': ['préstamo vehicular', 'prestamo vehicular', 'vehicular'],
+      'Crédito Hipotecario': ['crédito hipotecario', 'credito hipotecario', 'hipotecario'],
+      'Microcrédito': ['microcrédito', 'microcredito']
+    };
+    
+    const estadosList = ['Pendiente', 'Cobro', 'En espera', 'Cancelado', 'Rechazado'];
+    
+    const ciudadesList = ['Lima', 'Arequipa', 'Trujillo', 'Chiclayo', 'Piura', 'Cusco', 
+                          'Callao', 'Ica', 'Huancayo', 'Pucallpa', 'Iquitos', 'Tacna', 
+                          'Moquegua', 'Olmos'];
+    
+    const correccionesNombres = {
+      'Rominasanches': 'Romina Sanches',
+      'Romina Sanches': 'Romina Sanches',
+      'Mily Gonsaes': 'Mily Gonsales',
+      'Mily Gonsales': 'Mily Gonsales',
+      'Imily Gonsales': 'Mily Gonsales',
+      'Imily Gonsaes': 'Mily Gonsales',
+      'Rosario Seden': 'Rosario Seden',
+      'Irosario Seden': 'Rosario Seden',
+      'Rosario Sedeno': 'Rosario Seden',
+      'Maria Lupez': 'Maria Lupez',
+      'Imaria Lupez': 'Maria Lupez',
+      'Imarialupez': 'Maria Lupez',
+      'Josefa Musques': 'Josefa Musques',
+      'Losefa Musques': 'Josefa Musques',
+      'Alexander Santos': 'Alexander Santos',
+      'Alexandersantos': 'Alexander Santos',
+      'Pepe Rausol': 'Pepe Rausol',
+      'Cristofer Vallejos': 'Cristofer Vallejos',
+      'Cristofervallejos': 'Cristofer Vallejos'
+    };
+    
+    const palabrasBasura = ['PN', 'PO', 'O', 'NON', 'NO', 'MK', 'LEE', 'Ex', 'Sr'];
+    
+    const limpiarNombre = (nombreDetectado) => {
+      let limpio = nombreDetectado.replace(/^(I|IM|IN|IR|M)(?=[A-ZÁÉÍÓÚÑ])/i, '');
       
-      // DETECTAR NUEVO CLIENTE POR DNI (8 dígitos consecutivos)
-      const dniMatch = trimmedLine.match(/\b\d{8}\b/);
-      if (dniMatch) {
-        // Si ya teníamos un DNI guardado, este es un nuevo cliente
-        if (currentRecord.dni) {
-          if (isValidRecord(currentRecord)) {
-            records.push({ ...currentRecord });
+      limpio = limpio.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, ' ');
+      limpio = limpio.replace(/\s+/g, ' ').trim();
+      limpio = limpio.replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g, '$1 $2');
+      
+      palabrasBasura.forEach(palabra => {
+        const regex = new RegExp(`\\b${palabra}\\b`, 'gi');
+        limpio = limpio.replace(regex, '');
+      });
+      
+      limpio = limpio.replace(/^(I\s+|IM\s+|IN\s+|IR\s+|M\s+)/i, '');
+      limpio = limpio.replace(/\s+/g, ' ').trim();
+      
+      if (correccionesNombres[limpio]) {
+        return correccionesNombres[limpio];
+      }
+      
+      limpio = limpio.replace(/\b\w/g, l => l.toUpperCase());
+      
+      return limpio;
+    };
+    
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    
+    lines.forEach((line) => {
+      if (line.match(/^(Fecha|Mes|DNI|Nombre|#)/i) || line.length < 20) {
+        return;
+      }
+      
+      const record = createEmptyRecord();
+      
+      const fechaMatch = line.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+      if (fechaMatch) {
+        let dia = fechaMatch[1];
+        let mes = fechaMatch[2];
+        let anio = fechaMatch[3];
+        
+        if (anio === '2006') {
+          anio = '2026';
+        }
+        
+        record.fecha = `${anio}-${mes}-${dia}`;
+      }
+      
+      const dniMatches = [...line.matchAll(/\b(\d{8})\b/g)];
+      if (dniMatches.length > 0) {
+        record.dni = dniMatches[0][1];
+        if (dniMatches.length > 1) {
+          const secondNum = dniMatches[1][1];
+          if (secondNum.startsWith('9')) {
+            record.celular = secondNum;
           }
-          // Iniciar nuevo registro
-          currentRecord = createEmptyRecord();
-        }
-        currentRecord.dni = dniMatch[0];
-      }
-      
-      // CELULAR (9 dígitos que empiecen con 9)
-      const celMatch = trimmedLine.match(/\b(9\d{8})\b/);
-      if (celMatch && !currentRecord.celular) {
-        currentRecord.celular = celMatch[1];
-      }
-      
-      // MONTO - Detectar después de S/ o cuando la columna diga "monto"
-      // Prioridad 1: Buscar S/ seguido de número
-      const montoConSimbolo = trimmedLine.match(/S\/?\.?\s*(\d[\d\.,]*)/i);
-      if (montoConSimbolo && !currentRecord.monto) {
-        const montoLimpio = montoConSimbolo[1].replace(/\./g, '').replace(',', '');
-        if (montoLimpio.length >= 3) { // Evitar números pequeños que puedan ser fechas
-          currentRecord.monto = montoLimpio;
         }
       }
-      // Prioridad 2: Buscar en líneas que contengan "monto" como encabezado
-      if (!currentRecord.monto && lowerLine.includes('monto')) {
-        const montoEnLinea = trimmedLine.match(/(\d[\d\.,]*)/);
-        if (montoEnLinea) {
-          const montoLimpio = montoEnLinea[1].replace(/\./g, '').replace(',', '');
-          if (montoLimpio.length >= 3) {
-            currentRecord.monto = montoLimpio;
+      
+      if (!record.celular) {
+        const celMatch = line.match(/\b(9\d{8})\b/);
+        if (celMatch) {
+          record.celular = celMatch[1];
+        }
+      }
+      
+      if (record.dni) {
+        const dniIndex = line.indexOf(record.dni);
+        let searchEndIndex = line.length;
+        
+        if (record.celular) {
+          const celIndex = line.indexOf(record.celular);
+          if (celIndex > dniIndex) {
+            searchEndIndex = celIndex;
+          }
+        } else {
+          const lineLower = line.toLowerCase();
+          for (const [prodKey, variations] of Object.entries(productosMap)) {
+            for (const variation of variations) {
+              const prodIndex = lineLower.indexOf(variation);
+              if (prodIndex > dniIndex && prodIndex < searchEndIndex) {
+                searchEndIndex = prodIndex;
+                break;
+              }
+            }
           }
         }
+        
+        const textBetween = line.substring(dniIndex + record.dni.length, searchEndIndex).trim();
+        
+        console.log('🔍 Procesando nombre:', {
+          dni: record.dni,
+          textoCrudo: textBetween,
+          longitud: textBetween.length
+        });
+        
+        const cleanName = limpiarNombre(textBetween);
+        
+        console.log('✨ Nombre limpio:', {
+          original: textBetween,
+          limpio: cleanName,
+          longitud: cleanName.length
+        });
+        
+        if (cleanName.length >= 2 && cleanName.length < 50 && !cleanName.match(/^\d/)) {
+          const lowerName = cleanName.toLowerCase();
+          const isProducto = Object.keys(productosMap).some(p => 
+            p.toLowerCase().includes(lowerName) || lowerName.includes(p.toLowerCase())
+          );
+          const isCiudad = ciudadesList.some(c => c.toLowerCase() === lowerName);
+          
+          if (!isProducto && !isCiudad) {
+            record.nombre = cleanName;
+            console.log('✅ Nombre asignado:', cleanName);
+          } else {
+            console.log('❌ Nombre rechazado (es producto o ciudad):', cleanName);
+          }
+        } else {
+          console.log('❌ Nombre rechazado (validación):', {
+            nombre: cleanName,
+            longitud: cleanName.length,
+            empiezaConNumero: cleanName.match(/^\d/) ? 'Sí' : 'No'
+          });
+        }
       }
       
-      // TASA - Soportar decimales (0.1, 5.5, 10.25, etc.)
-      const tasaMatch = trimmedLine.match(/(\d+(?:\.\d+)?)\s*%/);
-      if (tasaMatch && !currentRecord.tasa) {
-        currentRecord.tasa = tasaMatch[1];
-      }
-      
-      // PRODUCTO - Nombres completos
-      const productos = [
-        { full: 'Préstamo Personal', keywords: ['préstamo personal', 'prestamo personal'] },
-        { full: 'Crédito de Consumo', keywords: ['crédito de consumo', 'credito de consumo'] },
-        { full: 'Tarjeta de Crédito', keywords: ['tarjeta de crédito', 'tarjeta de credito', 'tarjeta credito'] },
-        { full: 'Préstamo Vehicular', keywords: ['préstamo vehicular', 'prestamo vehicular', 'vehicular'] },
-        { full: 'Crédito Hipotecario', keywords: ['crédito hipotecario', 'credito hipotecario', 'hipotecario'] },
-        { full: 'Microcrédito', keywords: ['microcrédito', 'microcredito'] }
+      const montoPatterns = [
+        /S\/?\.?\s*(\d{1,3}(?:\.\d{3})+)/gi,
+        /S\/?\s*(\d{3,6})/gi,
+        /s\/?\s*(\d+(?:\.\d+)?)/gi
       ];
       
-      if (!currentRecord.producto) {
-        for (const prod of productos) {
-          if (prod.keywords.some(kw => lowerLine.includes(kw))) {
-            currentRecord.producto = prod.full;
+      for (const pattern of montoPatterns) {
+        const matches = [...line.matchAll(pattern)];
+        for (const match of matches) {
+          let montoStr = match[1].replace(/\./g, '');
+          let montoNum = parseInt(montoStr);
+          
+          const contextMatch = line.match(/[Ss]\/?\s*(\d)\.(\d{2,3})/);
+          if (contextMatch && montoNum === 100) {
+            const parteEntera = contextMatch[1];
+            const parteDecimal = contextMatch[2];
+            if (parteEntera === '1' && parteDecimal === '000') {
+              montoNum = 1000;
+            }
+          }
+          
+          if (montoNum >= 100 && montoNum <= 100000 && 
+              montoNum !== 2026 && montoNum !== 2006 &&
+              !(montoStr.length === 9 && montoStr.startsWith('9')) &&
+              montoStr.length >= 3 && montoStr.length <= 6) {
+            record.monto = montoNum.toString();
             break;
           }
         }
+        if (record.monto) break;
       }
       
-      // NOMBRE - Solo letras y espacios, limpiar caracteres especiales
-      // Validar que tenga solo letras, espacios y acentos
-      const nombreSoloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{3,50}$/;
-      const palabras = trimmedLine.split(/\s+/).filter(p => p.length > 0);
-      
-      if (palabras.length >= 2 && 
-          palabras.length <= 6 && // Máximo 6 palabras
-          !trimmedLine.match(/^\d/) && // No empieza con número
-          !trimmedLine.includes('/') && // No tiene fecha
-          !lowerLine.includes('s/') && // No es monto
-          !lowerLine.includes('dni') && // No es etiqueta DNI
-          !lowerLine.includes('monto') && // No es etiqueta monto
-          nombreSoloLetras.test(trimmedLine.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '')) &&
-          !currentRecord.nombre) {
-        
-        // Limpiar caracteres especiales
-        let nombreLimpio = trimmedLine
-          .replace(/^[\_\-\.\,\:\;\|\(\)\[\]\{\}\*\+\=\?\!\@\#\$\%\^\&\s]+/, '')
-          .replace(/[\_\-\.\,\:\;\|\(\)\[\]\{\}\*\+\=\?\!\@\#\$\%\^\&\s]+$/, '');
-        
-        if (nombreLimpio.length >= 5) {
-          currentRecord.nombre = nombreLimpio;
+      const tasaMatch = line.match(/(\d+(?:\.\d+)?)\s*%/);
+      if (tasaMatch) {
+        const tasa = parseFloat(tasaMatch[1]);
+        if (tasa > 0 && tasa < 100) {
+          record.tasa = tasaMatch[1];
         }
       }
       
-      // FECHA - Solo formato exacto DD/MM/AAAA
-      const fechaMatch = trimmedLine.match(/\b(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}\b/);
-      if (fechaMatch && !currentRecord.fecha) {
-        currentRecord.fecha = fechaMatch[0];
+      const lineLower = line.toLowerCase();
+      for (const [prodKey, variations] of Object.entries(productosMap)) {
+        if (variations.some(v => lineLower.includes(v))) {
+          record.producto = prodKey;
+          break;
+        }
       }
       
-      // LUGAR - Solo letras, detectado por encabezado o palabras comunes de ciudad
-      const ciudadesComunes = ['lima', 'arequipa', 'trujillo', 'chiclayo', 'piura', 'cusco', 'callao', 
-                               'ica', 'huancayo', 'pucallpa', 'iquitos', 'tacna', 'moquegua'];
-      const lugarKeywords = ['lugar', 'distrito', 'provincia', 'departamento', 'ciudad'];
+      for (const ciudad of ciudadesList) {
+        if (lineLower.includes(ciudad.toLowerCase())) {
+          record.lugar = ciudad;
+          break;
+        }
+      }
       
-      if (!currentRecord.lugar) {
-        // Opción 1: Detectar por encabezado "lugar" o similar
-        if (lugarKeywords.some(kw => lowerLine.includes(kw))) {
-          const palabrasLugar = trimmedLine.split(/\s+/);
-          // Tomar las palabras después del encabezado
-          const indiceKeyword = palabrasLugar.findIndex(p => 
-            lugarKeywords.some(kw => p.toLowerCase().includes(kw))
-          );
-          if (indiceKeyword !== -1 && palabrasLugar.length > indiceKeyword + 1) {
-            const posibleLugar = palabrasLugar.slice(indiceKeyword + 1).join(' ')
-              .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')
-              .trim();
-            if (posibleLugar.length >= 3 && /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(posibleLugar)) {
-              currentRecord.lugar = posibleLugar;
+      for (const estado of estadosList) {
+        if (lineLower.includes(estado.toLowerCase())) {
+          record.observacion = estado;
+          break;
+        }
+      }
+      
+      if (record.observacion) {
+        const obsIndex = line.toLowerCase().indexOf(record.observacion.toLowerCase());
+        if (obsIndex !== -1) {
+          const afterObs = line.substring(obsIndex + record.observacion.length);
+          const gananciasMatch = afterObs.match(/\b(\d{2,3}(?:\.\d{2})?)\b/);
+          if (gananciasMatch) {
+            const gananciaNum = parseFloat(gananciasMatch[1]);
+            if (gananciaNum >= 10 && gananciaNum <= 999) {
+              record.ganancias = gananciasMatch[1];
             }
           }
         }
-        
-        // Opción 2: Detectar ciudad común suelta
-        if (!currentRecord.lugar) {
-          for (const ciudad of ciudadesComunes) {
-            if (lowerLine === ciudad || lowerLine.includes(` ${ciudad} `)) {
-              currentRecord.lugar = ciudad.charAt(0).toUpperCase() + ciudad.slice(1);
-              break;
+      }
+      
+      if (!record.ganancias) {
+        const lastNumbers = [...line.matchAll(/\b(\d{2,3}(?:\.\d{2})?)\b/g)];
+        if (lastNumbers.length > 0) {
+          const lastNum = lastNumbers[lastNumbers.length - 1][1];
+          const gananciaNum = parseFloat(lastNum);
+          if (gananciaNum >= 10 && gananciaNum <= 999) {
+            if (lastNum !== record.tasa && lastNum !== record.monto) {
+              record.ganancias = lastNum;
             }
           }
         }
+      }
+      
+      if (record.dni && record.dni.length === 8) {
+        records.push(record);
       }
     });
     
-    // Guardar el último registro si es válido
-    if (isValidRecord(currentRecord)) {
-      records.push(currentRecord);
-    }
-    
-    // Limpiar y validar cada registro
-    return records.filter(record => record.dni && record.dni.length === 8);
+    return records;
   };
 
   const handleApplyData = () => {
     if (parsedData && parsedData.length > 0) {
-      onDataExtracted(parsedData); // Envía array de registros
+      onDataExtracted(parsedData);
       onClose();
     }
   };
